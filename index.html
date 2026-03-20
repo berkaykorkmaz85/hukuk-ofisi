@@ -909,12 +909,16 @@
     <div class="login-logo">⚖ Hukuk Ofisi</div>
     <div class="login-sub">YÖNETİM PANELİ · GİRİŞ</div>
     <div class="login-field">
+      <label>Kullanıcı Adı</label>
+      <input type="text" id="login-user" placeholder="Kullanıcı adınız..." onkeydown="if(event.key==='Enter')document.getElementById('login-pw').focus()">
+    </div>
+    <div class="login-field">
       <label>Şifre</label>
       <input type="password" id="login-pw" placeholder="Şifrenizi girin..." onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <button class="login-btn" onclick="doLogin()">Giriş Yap</button>
     <div class="login-error" id="login-error"></div>
-    <div class="login-hint" id="login-hint">İlk kullanımda şifre: <strong style="color:var(--gold)">1234</strong></div>
+    <div class="login-hint" id="login-hint">İlk kullanımda: <strong style="color:var(--gold)">admin</strong> / <strong style="color:var(--gold)">1234</strong></div>
   </div>
 </div>
 
@@ -952,6 +956,9 @@
     <div class="nav-item" onclick="showPage('cari')">
       <span class="nav-icon">📒</span> Cari Hesap
     </div>
+    <div class="nav-item" id="nav-kullanicilar" style="display:none" onclick="showPage('kullanicilar')">
+      <span class="nav-icon">👥</span> Kullanıcı Yönetimi
+    </div>
     <div class="nav-section">Organizasyon</div>
     <div class="nav-item" onclick="showPage('tasks')">
       <span class="nav-icon">✅</span> Görevler
@@ -965,6 +972,15 @@
     </div>
   </nav>
   <div class="sidebar-footer">
+    <div id="sidebar-user-info" style="margin-bottom:10px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:8px">
+      <div id="sidebar-user-avatar" style="width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0">?</div>
+      <div style="flex:1;min-width:0">
+        <div id="sidebar-user-name" style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+        <div id="sidebar-user-role" style="font-size:10px;color:var(--text3)">—</div>
+      </div>
+      <div id="online-dot" style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0" title="Çevrimiçi"></div>
+    </div>
+    <div id="online-users-bar" style="margin-bottom:8px;font-size:11px;color:var(--text3);padding:0 2px"></div>
     Tüm veriler cihazınızda<br>güvenli şekilde saklanır
     <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
       <button class="btn btn-outline" style="font-size:11px;padding:5px 10px;justify-content:center" onclick="openModal('modal-backup')">💾 Yedek Al / Yükle</button>
@@ -2162,6 +2178,34 @@
   </div>
 </div>
 
+<!-- KULLANICI MODAL -->
+<div class="modal-overlay" id="modal-kullanici">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-kullanici-title">Yeni Kullanıcı</div>
+      <button class="modal-close" onclick="closeModal('modal-kullanici')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Kullanıcı Adı</label><input id="ku-username" placeholder="ornek: berkay"></div>
+        <div class="form-group full"><label>Ad Soyad</label><input id="ku-adsoyad" placeholder="Ad Soyad"></div>
+        <div class="form-group"><label>Rol</label>
+          <select id="ku-rol">
+            <option value="admin">👑 Admin</option>
+            <option value="kullanici">👤 Kullanıcı</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Şifre</label><input id="ku-sifre" type="password" placeholder="Şifre"></div>
+      </div>
+      <div id="ku-error" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px"></div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal('modal-kullanici')">İptal</button>
+        <button class="btn btn-gold" onclick="saveKullanici()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CARİ HESAP MODAL -->
 <div class="modal-overlay" id="modal-cari">
   <div class="modal" style="max-width:500px">
@@ -2196,7 +2240,7 @@
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCqwqtHyobs56s-7FSG8W7-VOByL71g7lI",
@@ -2210,7 +2254,7 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const fsdb = getFirestore(firebaseApp);
 
-// Global DB - localStorage + Firestore
+// ---- Global DB ----
 window.DB = {
   genId: () => Date.now().toString(36) + Math.random().toString(36).slice(2,5),
   get: (key) => {
@@ -2219,26 +2263,73 @@ window.DB = {
   },
   set: (key, val) => {
     localStorage.setItem('hukuk_' + key, JSON.stringify(val));
-    setDoc(doc(fsdb, 'ofis', key), { data: JSON.stringify(val) })
-      .catch(e => console.warn('Firestore yazma hatası:', e));
+    setDoc(doc(fsdb, 'ofis', key), { data: JSON.stringify(val), updatedAt: Date.now() })
+      .catch(e => console.warn('Firestore yazma:', e));
   }
 };
 
-// Firestore'dan verileri çek, sonra uygulamayı başlat
-const KEYS = ['muvekkiller','davalar','icralar','finans','cari','tasks','notlar','kisiler','contacts','bootstrapped','tebligat_gecmis'];
+// ---- Realtime Listener ----
+const KEYS = ['muvekkiller','davalar','icralar','finans','cari','tasks','notlar','kisiler','contacts','bootstrapped','tebligat_gecmis','kullanicilar'];
+let lastLocalWrite = {};
+
+function startRealtimeSync() {
+  KEYS.forEach(key => {
+    onSnapshot(doc(fsdb, 'ofis', key), (snap) => {
+      if (!snap.exists()) return;
+      const remote = snap.data();
+      const remoteTime = remote.updatedAt || 0;
+      const localTime = lastLocalWrite[key] || 0;
+      // Sadece başkası yazdıysa güncelle
+      if (remoteTime > localTime + 500) {
+        localStorage.setItem('hukuk_' + key, remote.data);
+        // Aktif sayfayı yenile
+        if (window._appStarted) window.refreshCurrentPage && window.refreshCurrentPage(key);
+      }
+    }, e => console.warn('Snapshot hatası:', key, e));
+  });
+}
+
+// ---- Online Presence ----
+let currentUserId = null;
+function setOnlinePresence(userId, adSoyad) {
+  currentUserId = userId;
+  const presenceRef = doc(fsdb, 'online', userId);
+  setDoc(presenceRef, { adSoyad, userId, ts: Date.now() });
+  // Her 30 sn güncelle
+  setInterval(() => setDoc(presenceRef, { adSoyad, userId, ts: Date.now() }), 30000);
+  // Sayfa kapanınca sil
+  window.addEventListener('beforeunload', () => deleteDoc(presenceRef));
+  // Online kullanıcıları dinle
+  onSnapshot(collection(fsdb, 'online'), (snap) => {
+    const now = Date.now();
+    const users = snap.docs
+      .map(d => d.data())
+      .filter(u => now - u.ts < 90000); // 90 sn içinde aktif
+    const bar = document.getElementById('online-users-bar');
+    if (bar) {
+      const others = users.filter(u => u.userId !== userId);
+      if (others.length > 0) {
+        bar.innerHTML = '🟢 Şu an aktif: ' + others.map(u => `<strong style="color:var(--gold)">${u.adSoyad}</strong>`).join(', ');
+      } else {
+        bar.innerHTML = '';
+      }
+    }
+  });
+}
+window.setOnlinePresence = setOnlinePresence;
+
+// ---- İlk Yükleme: Firestore'dan çek ----
 try {
   await Promise.all(KEYS.map(async key => {
     const snap = await getDoc(doc(fsdb, 'ofis', key));
-    if (snap.exists()) {
-      localStorage.setItem('hukuk_' + key, snap.data().data);
-    }
+    if (snap.exists()) localStorage.setItem('hukuk_' + key, snap.data().data);
   }));
   console.log('✅ Firestore sync tamam');
 } catch(e) {
-  console.warn('Firestore bağlantı hatası, offline çalışıyor:', e);
+  console.warn('Firestore offline, localStorage kullanılıyor:', e);
 }
 
-// Uygulama başlat
+startRealtimeSync();
 if (window.appReady) window.appReady();
 </script>
 
@@ -2766,37 +2857,138 @@ function tekrarSorgula(kod) {
   document.getElementById('tebligat-kod').value = kod;
   sorgulaTebligat();
 }
+// ========== KULLANICI SİSTEMİ ==========
+window.currentUser = null;
+
 const AUTH = {
-  DEFAULT_PW: '1234',
-  STORAGE_KEY: 'hukuk_auth_pw',
-  SESSION_KEY: 'hukuk_session',
+  SESSION_KEY: 'hukuk_session_v2',
   getHash: (pw) => {
-    // Simple hash: rotate chars + XOR pattern (not cryptographic, but obscures pw from plain sight)
     let h = 0;
     for (let i = 0; i < pw.length; i++) h = (Math.imul(31, h) + pw.charCodeAt(i)) | 0;
     return h.toString(36) + '_' + pw.length;
   },
-  getStoredHash: () => localStorage.getItem(AUTH.STORAGE_KEY) || AUTH.getHash(AUTH.DEFAULT_PW),
-  setPassword: (pw) => localStorage.setItem(AUTH.STORAGE_KEY, AUTH.getHash(pw)),
-  check: (pw) => AUTH.getHash(pw) === AUTH.getStoredHash(),
-  isLoggedIn: () => sessionStorage.getItem(AUTH.SESSION_KEY) === 'ok',
-  login: () => sessionStorage.setItem(AUTH.SESSION_KEY, 'ok'),
-  logout: () => { sessionStorage.removeItem(AUTH.SESSION_KEY); location.reload(); }
+  isLoggedIn: () => {
+    const s = sessionStorage.getItem(AUTH.SESSION_KEY);
+    if (!s) return false;
+    try { window.currentUser = JSON.parse(s); return true; } catch { return false; }
+  },
+  login: (user) => { sessionStorage.setItem(AUTH.SESSION_KEY, JSON.stringify(user)); window.currentUser = user; },
+  logout: () => { sessionStorage.removeItem(AUTH.SESSION_KEY); location.reload(); },
+  check: (pw) => false,
+  setPassword: () => {}
 };
 
-function doLogin() {
-  const pw = document.getElementById('login-pw').value;
-  if (!pw) { document.getElementById('login-error').textContent = 'Şifre boş olamaz.'; return; }
-  if (AUTH.check(pw)) {
-    AUTH.login();
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('login-hint').style.display = 'none';
-    document.getElementById('login-error').textContent = '';
-  } else {
-    document.getElementById('login-error').textContent = '❌ Hatalı şifre. Lütfen tekrar deneyin.';
-    document.getElementById('login-pw').value = '';
-    document.getElementById('login-pw').focus();
+function getKullanicilar() {
+  const raw = DB.get('kullanicilar');
+  if (!raw || raw.length === 0) {
+    const admin = { id: 'admin', username: 'admin', adSoyad: 'Admin', rol: 'admin', hash: AUTH.getHash('1234'), olusturulma: new Date().toISOString() };
+    DB.set('kullanicilar', [admin]);
+    return [admin];
   }
+  return raw;
+}
+
+function doLogin() {
+  const username = (document.getElementById('login-user')?.value || '').trim().toLowerCase();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  if (!username || !pw) { errEl.textContent = 'Kullanıcı adı ve şifre gereklidir.'; return; }
+  const kullanicilar = getKullanicilar();
+  const user = kullanicilar.find(u => u.username.toLowerCase() === username);
+  if (!user || user.hash !== AUTH.getHash(pw)) {
+    errEl.textContent = '❌ Hatalı kullanıcı adı veya şifre.';
+    document.getElementById('login-pw').value = '';
+    return;
+  }
+  const arr = DB.get('kullanicilar').map(u => u.id === user.id ? {...u, sonGiris: new Date().toISOString()} : u);
+  DB.set('kullanicilar', arr);
+  AUTH.login(user);
+  document.getElementById('login-screen').classList.add('hidden');
+  errEl.textContent = '';
+  updateSidebarUser(user);
+  if (window.setOnlinePresence) window.setOnlinePresence(user.id, user.adSoyad || user.username);
+}
+
+function updateSidebarUser(user) {
+  if (!user) return;
+  const av = document.getElementById('sidebar-user-avatar');
+  const nm = document.getElementById('sidebar-user-name');
+  const rl = document.getElementById('sidebar-user-role');
+  if (av) av.textContent = (user.adSoyad || user.username).slice(0,2).toUpperCase();
+  if (nm) nm.textContent = user.adSoyad || user.username;
+  if (rl) rl.textContent = user.rol === 'admin' ? '👑 Admin' : '👤 Kullanıcı';
+  const navKul = document.getElementById('nav-kullanicilar');
+  if (navKul) navKul.style.display = user.rol === 'admin' ? '' : 'none';
+}
+
+// ========== KULLANICI YÖNETİMİ ==========
+let editingKullaniciId = null;
+
+function renderKullanicilar() {
+  const kullanicilar = getKullanicilar();
+  document.getElementById('kullanici-tbody').innerHTML = kullanicilar.map(u => `
+    <tr>
+      <td><strong style="color:var(--text)">${u.username}</strong></td>
+      <td>${u.adSoyad || '—'}</td>
+      <td><span class="tag ${u.rol==='admin'?'tag-aktif':'tag-bekliyor'}">${u.rol==='admin'?'👑 Admin':'👤 Kullanıcı'}</span></td>
+      <td style="font-size:12px">${u.sonGiris ? fmtDateShort(u.sonGiris) : '—'}</td>
+      <td>
+        <button class="btn btn-ghost" onclick="editKullanici('${u.id}')">✏</button>
+        ${u.id !== 'admin' ? `<button class="btn btn-ghost" style="color:var(--red)" onclick="deleteKullanici('${u.id}')">🗑</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openKullaniciModal() {
+  editingKullaniciId = null;
+  ['ku-username','ku-adsoyad','ku-sifre'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('ku-rol').value = 'kullanici';
+  document.getElementById('ku-error').textContent = '';
+  document.getElementById('modal-kullanici-title').textContent = 'Yeni Kullanıcı';
+  openModal('modal-kullanici');
+}
+
+function editKullanici(id) {
+  const u = getKullanicilar().find(x => x.id === id);
+  if (!u) return;
+  editingKullaniciId = id;
+  document.getElementById('ku-username').value = u.username;
+  document.getElementById('ku-adsoyad').value = u.adSoyad || '';
+  document.getElementById('ku-rol').value = u.rol;
+  document.getElementById('ku-sifre').value = '';
+  document.getElementById('ku-error').textContent = '';
+  document.getElementById('modal-kullanici-title').textContent = 'Kullanıcıyı Düzenle';
+  openModal('modal-kullanici');
+}
+
+function saveKullanici() {
+  const username = document.getElementById('ku-username').value.trim().toLowerCase();
+  const adSoyad = document.getElementById('ku-adsoyad').value.trim();
+  const rol = document.getElementById('ku-rol').value;
+  const sifre = document.getElementById('ku-sifre').value;
+  const errEl = document.getElementById('ku-error');
+  if (!username) { errEl.textContent = 'Kullanıcı adı zorunludur.'; return; }
+  if (!editingKullaniciId && !sifre) { errEl.textContent = 'Yeni kullanıcı için şifre zorunludur.'; return; }
+  let arr = getKullanicilar();
+  if (arr.find(u => u.username === username && u.id !== editingKullaniciId)) { errEl.textContent = 'Bu kullanıcı adı zaten kullanımda.'; return; }
+  if (editingKullaniciId) {
+    arr = arr.map(u => u.id === editingKullaniciId ? {...u, username, adSoyad, rol, ...(sifre ? {hash: AUTH.getHash(sifre)} : {})} : u);
+  } else {
+    arr.push({ id: DB.genId(), username, adSoyad, rol, hash: AUTH.getHash(sifre), olusturulma: new Date().toISOString() });
+  }
+  DB.set('kullanicilar', arr);
+  closeModal('modal-kullanici');
+  renderKullanicilar();
+  notify(editingKullaniciId ? 'Kullanıcı güncellendi ✓' : 'Kullanıcı eklendi ✓');
+  editingKullaniciId = null;
+}
+
+function deleteKullanici(id) {
+  if (!confirm('Bu kullanıcıyı silmek istiyor musunuz?')) return;
+  DB.set('kullanicilar', DB.get('kullanicilar').filter(u => u.id !== id));
+  renderKullanicilar();
+  notify('Kullanıcı silindi');
 }
 
 function doLogout() {
@@ -4255,6 +4447,34 @@ if (typeof DB === 'undefined') {
 let editingId = null;
 let currentPage = 'dashboard';
 
+// ========== REALTIME SAYFA YENİLEME ==========
+window.refreshCurrentPage = function(changedKey) {
+  if (!window._appStarted) return;
+  const keyPageMap = {
+    davalar: 'davalar', icralar: 'icralar', muvekkiller: 'kisiler',
+    kisiler: 'kisiler', finans: 'finans', cari: 'cari',
+    tasks: 'tasks', notlar: 'notlar', kullanicilar: 'kullanicilar'
+  };
+  const targetPage = keyPageMap[changedKey];
+  if (!targetPage) return;
+  if (currentPage === targetPage) {
+    // Aktif sayfayı sessizce yenile
+    if (targetPage === 'davalar') renderDavalar();
+    else if (targetPage === 'icralar') renderIcralar();
+    else if (targetPage === 'kisiler') { renderMuvekkiller(); renderKisiler(); }
+    else if (targetPage === 'finans') renderFinans();
+    else if (targetPage === 'cari') renderCari();
+    else if (targetPage === 'tasks') renderTasks();
+    else if (targetPage === 'notlar') renderNotes();
+    else if (targetPage === 'kullanicilar') renderKullanicilar();
+    // Küçük bildirim
+    const bar = document.getElementById('online-users-bar');
+    if (bar && bar.textContent) notify('🔄 Veriler güncellendi');
+  }
+  // Dashboard her zaman güncelle
+  if (currentPage === 'dashboard') renderDashboard();
+};
+
 // Sample data bootstrap
 function initSampleData() {
   if (DB.get('bootstrapped').length) return;
@@ -4329,6 +4549,7 @@ function showPage(page) {
   }
   else if (page === 'finans') renderFinans();
   else if (page === 'cari') { populateCariMuvekkilSelect(); renderCari(); }
+  else if (page === 'kullanicilar') { renderKullanicilar(); }
   else if (page === 'tasks') {
     populateTaskDosyaFilter();
     renderTasks();
@@ -4341,8 +4562,8 @@ function showPage(page) {
   closeSidebar();
 }
 
-const pageTitles = {dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', cari:'Cari Hesap', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar'};
-const pageNames = {dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', cari:'Cari Hesap', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar'};
+const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', cari:'Cari Hesap', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar'};
+const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', cari:'Cari Hesap', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar'};
 
 function showSubpage(id) {
   const page = id.split('-')[0];
@@ -6187,10 +6408,13 @@ window.appReady = function() {
   window._appStarted = true;
   // Auth gate
   if (!AUTH.isLoggedIn()) {
-    const isDefault = AUTH.getStoredHash() === AUTH.getHash('1234');
-    if (!isDefault) document.getElementById('login-hint').style.display = 'none';
+    // show login
   } else {
     document.getElementById('login-screen').classList.add('hidden');
+    updateSidebarUser(window.currentUser);
+    if (window.setOnlinePresence && window.currentUser) {
+      window.setOnlinePresence(window.currentUser.id, window.currentUser.adSoyad || window.currentUser.username);
+    }
   }
 
   initSampleData();
@@ -6219,5 +6443,27 @@ setTimeout(() => {
   }
 }, 3000);
 </script>
+
+    <!-- KULLANICI YÖNETİMİ -->
+    <div id="page-kullanicilar" class="page">
+      <div class="card" style="max-width:700px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">👥 Kullanıcı Yönetimi</div>
+          <button class="btn btn-gold" onclick="openKullaniciModal()">+ Yeni Kullanıcı</button>
+        </div>
+        <div class="table-wrap">
+          <table id="kullanici-table">
+            <thead><tr>
+              <th>Kullanıcı Adı</th>
+              <th>Ad Soyad</th>
+              <th>Rol</th>
+              <th>Son Giriş</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="kullanici-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 </body>
 </html>
