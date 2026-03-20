@@ -1472,6 +1472,28 @@
       </div>
     </div>
 
+    <!-- KULLANICI YÖNETİMİ -->
+    <div id="page-kullanicilar" class="page">
+      <div class="card" style="max-width:700px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">👥 Kullanıcı Yönetimi</div>
+          <button class="btn btn-gold" onclick="openKullaniciModal()">+ Yeni Kullanıcı</button>
+        </div>
+        <div class="table-wrap">
+          <table id="kullanici-table">
+            <thead><tr>
+              <th>Kullanıcı Adı</th>
+              <th>Ad Soyad</th>
+              <th>Rol</th>
+              <th>Son Giriş</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="kullanici-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -6444,26 +6466,5 @@ setTimeout(() => {
 }, 3000);
 </script>
 
-    <!-- KULLANICI YÖNETİMİ -->
-    <div id="page-kullanicilar" class="page">
-      <div class="card" style="max-width:700px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div class="card-title" style="margin-bottom:0">👥 Kullanıcı Yönetimi</div>
-          <button class="btn btn-gold" onclick="openKullaniciModal()">+ Yeni Kullanıcı</button>
-        </div>
-        <div class="table-wrap">
-          <table id="kullanici-table">
-            <thead><tr>
-              <th>Kullanıcı Adı</th>
-              <th>Ad Soyad</th>
-              <th>Rol</th>
-              <th>Son Giriş</th>
-              <th></th>
-            </tr></thead>
-            <tbody id="kullanici-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 </body>
 </html>
