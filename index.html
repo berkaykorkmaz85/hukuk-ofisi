@@ -45,7 +45,7 @@
     flex-direction: column;
     position: fixed;
     top: 0; left: 0;
-    z-index: 120;
+    z-index: 120; /* above dava detail page (110) */
     transition: transform 0.3s;
     overflow: hidden;
   }
@@ -1313,7 +1313,6 @@
   }
   /* Sidebar ayarlar ikonu */
   .sidebar-ayarlar-btn {
-    flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     gap: 8px; padding: 10px 16px; margin: 0 12px 12px;
     background: transparent; border: 1px dashed var(--border2);
@@ -1410,7 +1409,9 @@
     <div class="nav-item" onclick="showPage('cari')">
       <span class="nav-icon">📒</span> Cari Hesap
     </div>
-
+    <div class="nav-item" id="nav-kullanicilar" style="display:none" onclick="showPage('kullanicilar')">
+      <span class="nav-icon">👥</span> Kullanıcı Yönetimi
+    </div>
     <div class="nav-section">Organizasyon</div>
     <div class="nav-item" onclick="showPage('durusmatakvim')">
       <span class="nav-icon">⚖️</span> Duruşma Takvimi
@@ -1948,6 +1949,26 @@
       </div>
     </div>
 
+    <!-- KULLANICI YÖNETİMİ -->
+    <div id="page-kullanicilar" class="page">
+      <div class="card" style="max-width:700px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">👥 Kullanıcı Yönetimi</div>
+          <button class="btn btn-gold" onclick="openKullaniciModal()">+ Yeni Kullanıcı</button>
+        </div>
+        <div class="table-wrap">
+          <table id="kullanici-table">
+            <thead><tr>
+              <th>Kullanıcı Adı</th>
+              <th>Ad Soyad</th>
+              <th>Rol</th>
+              <th>Son Giriş</th>
+              <th></th>
+            </tr></thead>
+            <tbody id="kullanici-tbody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- DURUŞMA TAKVİMİ -->
@@ -2783,6 +2804,32 @@
   </div>
 </div>
 
+<!-- KULLANICI MODAL -->
+<div class="modal-overlay" id="modal-kullanici">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-kullanici-title">Yeni Kullanıcı</div>
+      <button class="modal-close" onclick="closeModal('modal-kullanici')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Kullanıcı Adı</label><input id="ku-username" placeholder="ornek: berkay"></div>
+        <div class="form-group full"><label>Ad Soyad</label><input id="ku-adsoyad" placeholder="Ad Soyad"></div>
+        <div class="form-group"><label>Rol</label>
+          <select id="ku-rol">
+            <option value="admin">👑 Admin</option>
+            <option value="kullanici">👤 Kullanıcı</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Şifre</label><input id="ku-sifre" type="password" placeholder="Şifre"></div>
+      </div>
+      <div id="ku-error" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px"></div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal('modal-kullanici')">İptal</button>
+        <button class="btn btn-gold" onclick="saveKullanici()">Kaydet</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- CARİ HESAP MODAL -->
@@ -3602,7 +3649,15 @@ const AUTH = {
   setPassword: () => {}
 };
 
-
+function getKullanicilar() {
+  const raw = DB.get('kullanicilar');
+  if (!raw || raw.length === 0) {
+    const admin = { id: 'admin', username: 'admin', adSoyad: 'Admin', rol: 'admin', hash: AUTH.getHash('1234'), olusturulma: new Date().toISOString() };
+    DB.set('kullanicilar', [admin]);
+    return [admin];
+  }
+  return raw;
+}
 
 
 
@@ -3614,10 +3669,83 @@ function updateSidebarUser(user) {
   if (av) av.textContent = (user.adSoyad || user.username).slice(0,2).toUpperCase();
   if (nm) nm.textContent = user.adSoyad || user.username;
   if (rl) rl.textContent = user.rol === 'admin' ? '👑 Admin' : '👤 Kullanıcı';
-
+  const navKul = document.getElementById('nav-kullanicilar');
+  if (navKul) navKul.style.display = user.rol === 'admin' ? '' : 'none';
 }
 
-// doLogout — Supabase versiyonu yukarıda tanımlı
+// ========== KULLANICI YÖNETİMİ ==========
+let editingKullaniciId = null;
+
+function renderKullanicilar() {
+  const kullanicilar = getKullanicilar();
+  document.getElementById('kullanici-tbody').innerHTML = kullanicilar.map(u => `
+    <tr>
+      <td><strong style="color:var(--text)">${u.username}</strong></td>
+      <td>${u.adSoyad || '—'}</td>
+      <td><span class="tag ${u.rol==='admin'?'tag-aktif':'tag-bekliyor'}">${u.rol==='admin'?'👑 Admin':'👤 Kullanıcı'}</span></td>
+      <td style="font-size:12px">${u.sonGiris ? fmtDateShort(u.sonGiris) : '—'}</td>
+      <td>
+        <button class="btn btn-ghost" onclick="editKullanici('${u.id}')">✏</button>
+        ${u.id !== 'admin' ? `<button class="btn btn-ghost" style="color:var(--red)" onclick="deleteKullanici('${u.id}')">🗑</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openKullaniciModal() {
+  editingKullaniciId = null;
+  ['ku-username','ku-adsoyad','ku-sifre'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('ku-rol').value = 'kullanici';
+  document.getElementById('ku-error').textContent = '';
+  document.getElementById('modal-kullanici-title').textContent = 'Yeni Kullanıcı';
+  openModal('modal-kullanici');
+}
+
+function editKullanici(id) {
+  const u = getKullanicilar().find(x => x.id === id);
+  if (!u) return;
+  editingKullaniciId = id;
+  document.getElementById('ku-username').value = u.username;
+  document.getElementById('ku-adsoyad').value = u.adSoyad || '';
+  document.getElementById('ku-rol').value = u.rol;
+  document.getElementById('ku-sifre').value = '';
+  document.getElementById('ku-error').textContent = '';
+  document.getElementById('modal-kullanici-title').textContent = 'Kullanıcıyı Düzenle';
+  openModal('modal-kullanici');
+}
+
+function saveKullanici() {
+  const username = document.getElementById('ku-username').value.trim().toLowerCase();
+  const adSoyad = document.getElementById('ku-adsoyad').value.trim();
+  const rol = document.getElementById('ku-rol').value;
+  const sifre = document.getElementById('ku-sifre').value;
+  const errEl = document.getElementById('ku-error');
+  if (!username) { errEl.textContent = 'Kullanıcı adı zorunludur.'; return; }
+  if (!editingKullaniciId && !sifre) { errEl.textContent = 'Yeni kullanıcı için şifre zorunludur.'; return; }
+  let arr = getKullanicilar();
+  if (arr.find(u => u.username === username && u.id !== editingKullaniciId)) { errEl.textContent = 'Bu kullanıcı adı zaten kullanımda.'; return; }
+  if (editingKullaniciId) {
+    arr = arr.map(u => u.id === editingKullaniciId ? {...u, username, adSoyad, rol, ...(sifre ? {hash: AUTH.getHash(sifre)} : {})} : u);
+  } else {
+    arr.push({ id: DB.genId(), username, adSoyad, rol, hash: AUTH.getHash(sifre), olusturulma: new Date().toISOString() });
+  }
+  DB.set('kullanicilar', arr);
+  closeModal('modal-kullanici');
+  renderKullanicilar();
+  notify(editingKullaniciId ? 'Kullanıcı güncellendi ✓' : 'Kullanıcı eklendi ✓');
+  editingKullaniciId = null;
+}
+
+function deleteKullanici(id) {
+  if (!confirm('Bu kullanıcıyı silmek istiyor musunuz?')) return;
+  DB.set('kullanicilar', DB.get('kullanicilar').filter(u => u.id !== id));
+  renderKullanicilar();
+  notify('Kullanıcı silindi');
+}
+
+function doLogout() {
+  if (confirm('Çıkış yapmak istediğinize emin misiniz?')) AUTH.logout();
+}
 
 function openSecurityModal() {
   document.getElementById('sec-current').value = '';
@@ -3627,7 +3755,18 @@ function openSecurityModal() {
   openModal('modal-security');
 }
 
-// changePassword — Supabase versiyonu yukarıda tanımlı
+function changePassword() {
+  const cur = document.getElementById('sec-current').value;
+  const nw = document.getElementById('sec-new').value;
+  const conf = document.getElementById('sec-confirm').value;
+  const errEl = document.getElementById('sec-error');
+  if (!AUTH.check(cur)) { errEl.textContent = '❌ Mevcut şifre hatalı.'; return; }
+  if (nw.length < 4) { errEl.textContent = '⚠️ Yeni şifre en az 4 karakter olmalı.'; return; }
+  if (nw !== conf) { errEl.textContent = '⚠️ Şifreler eşleşmiyor.'; return; }
+  AUTH.setPassword(nw);
+  closeModal('modal-security');
+  notify('✅ Şifre başarıyla güncellendi');
+}
 
 // ========== BACKUP / RESTORE ==========
 function exportData() {
@@ -4558,18 +4697,13 @@ function switchKisilerTab(tab) {
   // İçerikler
   document.getElementById('kisiler-tab-muvekkiller').style.display = tab === 'muvekkiller' ? '' : 'none';
   document.getElementById('kisiler-tab-digerkisiler').style.display = tab === 'digerkisiler' ? '' : 'none';
-  // Topbar butonunu güncelle
-  document.getElementById('topbar-add-btn').onclick = () => {
-    editingId = null; clearForms();
-    if (tab === 'muvekkiller') {
-      document.getElementById('modal-muvekkil-title').textContent = 'Yeni Müvekkil';
-      openModal('modal-muvekkil');
-    } else {
-      document.getElementById('modal-kisi-title').textContent = 'Yeni Kişi';
-      openModal('modal-kisi');
-    }
-    populateMuvekkilSelects(); updateKisilerDatalist();
-  };
+  // Topbar butonu handleTopbarAdd() tarafından yönetiliyor
+  const btn = document.getElementById('topbar-add-btn');
+  if (btn) {
+    btn.onclick = handleTopbarAdd;
+    btn.textContent = tab === 'muvekkiller' ? '+ Yeni Müvekkil' : '+ Yeni Kişi';
+    btn.style.display = '';
+  }
 }
 
 // ========== KİŞİLER ==========
@@ -5066,7 +5200,7 @@ window.refreshCurrentPage = function(changedKey) {
   const keyPageMap = {
     davalar: 'davalar', icralar: 'icralar', muvekkiller: 'kisiler',
     kisiler: 'kisiler', finans: 'finans', cari: 'cari',
-    tasks: 'tasks', notlar: 'notlar'
+    tasks: 'tasks', notlar: 'notlar', kullanicilar: 'kullanicilar'
   };
   const targetPage = keyPageMap[changedKey];
   if (!targetPage) return;
@@ -5079,6 +5213,7 @@ window.refreshCurrentPage = function(changedKey) {
     else if (targetPage === 'cari') renderCari();
     else if (targetPage === 'tasks') renderTasks();
     else if (targetPage === 'notlar') renderNotes();
+    else if (targetPage === 'kullanicilar') renderKullanicilar();
     // Küçük bildirim
     const bar = document.getElementById('online-users-bar');
     if (bar && bar.textContent) notify('🔄 Veriler güncellendi');
@@ -5168,6 +5303,7 @@ function showPage(page) {
   }
   else if (page === 'finans') renderFinans();
   else if (page === 'cari') { populateCariMuvekkilSelect(); renderCari(); }
+  else if (page === 'kullanicilar') { renderKullanicilar(); }
   else if (page === 'tasks') {
     populateTaskDosyaFilter();
     renderTasks();
@@ -5209,8 +5345,8 @@ function showPage(page) {
   closeSidebar();
 }
 
-const pageTitles = {dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', cari:'Cari Hesap', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
-const pageNames = {dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', cari:'Cari Hesap', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
+const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', cari:'Cari Hesap', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
+const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', cari:'Cari Hesap', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
 
 function showSubpage(id) {
   const page = id.split('-')[0];
@@ -5231,11 +5367,36 @@ function handleTopbarAdd() {
     return;
   }
 
-  // Hangi sayfa gerçekten aktif? DOM'dan oku, currentPage'e güvenme
-  const activePage = document.querySelector('.page.active')?.id?.replace('page-', '') || currentPage;
+  // Aktif sayfayı hem DOM'dan hem currentPage'den kontrol et
+  const domPage = document.querySelector('.page.active')?.id?.replace('page-', '') || '';
+  const activePage = domPage || currentPage;
 
-  // Kişiler / Müvekkiller sayfası
-  if (activePage === 'kisiler' || activePage === 'muvekkiller' || currentPage === 'kisiler') {
+  // İcra dosyaları
+  if (activePage === 'icralar') {
+    clearForms();
+    document.getElementById('modal-icra-title').textContent = 'Yeni İcra Dosyası';
+    openModal('modal-icra');
+    populateMuvekkilSelects();
+    return;
+  }
+
+  // Finans
+  if (activePage === 'finans') {
+    clearForms();
+    document.getElementById('modal-finans-title').textContent = 'Yeni Finansal İşlem';
+    openModal('modal-finans');
+    populateMuvekkilSelects();
+    return;
+  }
+
+  // Cari hesap
+  if (activePage === 'cari') {
+    openCariModal();
+    return;
+  }
+
+  // Kişiler / Müvekkiller
+  if (activePage === 'kisiler' || activePage === 'muvekkiller') {
     const muvekilTabActive = document.getElementById('tab-muvekkiller')?.classList.contains('active');
     if (muvekilTabActive) {
       document.getElementById('modal-muvekkil-title').textContent = 'Yeni Müvekkil';
@@ -5248,20 +5409,18 @@ function handleTopbarAdd() {
     return;
   }
 
-  // Görevler sayfası
+  // Görevler
   if (activePage === 'tasks') {
     const dosyaFilter = document.getElementById('task-dosya-filter')?.value || '';
     const dava = dosyaFilter ? DB.get('davalar').find(d => d.ad === dosyaFilter || d.no === dosyaFilter) : null;
     document.getElementById('modal-task-title').textContent = dava ? `Yeni Görev — ${dava.ad || dava.no}` : 'Yeni Görev';
-    clearForms();
     openModal('modal-task');
     populateDavaSelect(dosyaFilter);
     return;
   }
 
-  // Duruşma takvimi sayfası
+  // Duruşma takvimi
   if (activePage === 'durusmatakvim') {
-    clearForms();
     setTaskTip('durusma');
     document.getElementById('modal-task-title').textContent = 'Yeni Duruşma';
     openModal('modal-task');
@@ -5269,54 +5428,28 @@ function handleTopbarAdd() {
     return;
   }
 
-  // Cari hesap sayfası
-  if (activePage === 'cari') {
-    openCariModal();
-    return;
-  }
-
-  // Notlar sayfası
+  // Notlar
   if (activePage === 'notlar') {
-    clearForms();
     document.getElementById('modal-note-title').textContent = 'Yeni Not';
     openModal('modal-note');
     return;
   }
 
-  // Finans sayfası
-  if (activePage === 'finans') {
-    clearForms();
-    document.getElementById('modal-finans-title').textContent = 'Yeni Finansal İşlem';
-    openModal('modal-finans');
-    populateMuvekkilSelects();
-    return;
-  }
-
-  // İcra sayfası
-  if (activePage === 'icralar') {
-    clearForms();
-    document.getElementById('modal-icra-title').textContent = 'Yeni İcra Dosyası';
-    openModal('modal-icra');
-    populateMuvekkilSelects();
-    return;
-  }
-
-  // Dava dosyaları, dashboard, dava dashboardu
-  if (activePage === 'davalar' || activePage === 'dashboard' || activePage === 'davadash') {
-    clearForms();
+  // Dava dashboardu
+  if (activePage === 'davadash') {
     document.getElementById('modal-dava-title').textContent = 'Yeni Dava Dosyası';
     openModal('modal-dava');
     populateMuvekkilSelects(); updateKisilerDatalist();
     return;
   }
 
-  // Rapor, yardımcı siteler, kullanıcı yönetimi — bu sayfalarda "+ Yeni Ekle" anlamsız, yoksay
-  if (['raporlar','tebligat','davadash'].includes(activePage)) return;
+  // Raporlar / Yardımcı siteler — buton zaten gizli, yine de guard
+  if (['raporlar','tebligat'].includes(activePage)) return;
 
-  // Fallback
-  clearForms();
+  // Dava dosyaları + Dashboard + Fallback
+  document.getElementById('modal-dava-title').textContent = 'Yeni Dava Dosyası';
   openModal('modal-dava');
-  populateMuvekkilSelects();
+  populateMuvekkilSelects(); updateKisilerDatalist();
 }
 
 // ========== DASHBOARD ==========
@@ -7120,22 +7253,45 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ========== INIT ==========
-// window.appReady Supabase script bloğunda tanımlı
+window.appReady = function() {
+  if (window._appStarted) return;
+  window._appStarted = true;
+  // Auth gate
+  if (!AUTH.isLoggedIn()) {
+    // show login
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+    updateSidebarUser(window.currentUser);
+    if (window.setOnlinePresence && window.currentUser) {
+      window.setOnlinePresence(window.currentUser.id, window.currentUser.adSoyad || window.currentUser.username);
+    }
+  }
 
-setTimeout(() => {
-  try { DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder); } catch(e) {}
+  initSampleData();
+  initMahkemeSelects();
+  renderDashboard();
+
+  // Schedule existing reminders
+  DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder);
+
+  // Periodic reminder check
   setInterval(() => {
     const now = new Date();
-    try {
-      DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
-        const rem = new Date(t.hatirlatma);
-        if (Math.abs(rem - now) < 60000) notify('⏰ ' + t.baslik);
-      });
-    } catch(e) {}
+    DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
+      const rem = new Date(t.hatirlatma);
+      const diff = Math.abs(rem - now);
+      if (diff < 60000) notify(`⏰ ${t.baslik}`);
+    });
   }, 60000);
-}, 2000);
+};
 
-setTimeout(() => { if (!window._appStarted && window.appReady) window.appReady(); }, 3000);
+// appReady, Firebase modül scripti tarafından çağrılır.
+// Eğer modül çalışmazsa (localhost gibi) fallback:
+setTimeout(() => {
+  if (!window._appStarted && window.appReady) {
+    window.appReady();
+  }
+}, 3000);
 
 // ========== GLOBAL ARAMA ==========
 let gsActiveIdx = -1;
