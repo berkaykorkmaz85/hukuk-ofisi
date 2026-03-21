@@ -3292,26 +3292,7 @@ function getKullanicilar() {
   return raw;
 }
 
-function doLogin() {
-  const username = (document.getElementById('login-user')?.value || '').trim().toLowerCase();
-  const pw = document.getElementById('login-pw').value;
-  const errEl = document.getElementById('login-error');
-  if (!username || !pw) { errEl.textContent = 'Kullanıcı adı ve şifre gereklidir.'; return; }
-  const kullanicilar = getKullanicilar();
-  const user = kullanicilar.find(u => u.username.toLowerCase() === username);
-  if (!user || user.hash !== AUTH.getHash(pw)) {
-    errEl.textContent = '❌ Hatalı kullanıcı adı veya şifre.';
-    document.getElementById('login-pw').value = '';
-    return;
-  }
-  const arr = DB.get('kullanicilar').map(u => u.id === user.id ? {...u, sonGiris: new Date().toISOString()} : u);
-  DB.set('kullanicilar', arr);
-  AUTH.login(user);
-  document.getElementById('login-screen').classList.add('hidden');
-  errEl.textContent = '';
-  updateSidebarUser(user);
-  if (window.setOnlinePresence) window.setOnlinePresence(user.id, user.adSoyad || user.username);
-}
+
 
 function updateSidebarUser(user) {
   if (!user) return;
