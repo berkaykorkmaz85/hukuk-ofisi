@@ -3376,9 +3376,7 @@ function deleteKullanici(id) {
   notify('Kullanıcı silindi');
 }
 
-function doLogout() {
-  if (confirm('Çıkış yapmak istediğinize emin misiniz?')) AUTH.logout();
-}
+// doLogout — Supabase versiyonu yukarıdaki script bloğunda tanımlı
 
 function openSecurityModal() {
   document.getElementById('sec-current').value = '';
@@ -3388,18 +3386,7 @@ function openSecurityModal() {
   openModal('modal-security');
 }
 
-function changePassword() {
-  const cur = document.getElementById('sec-current').value;
-  const nw = document.getElementById('sec-new').value;
-  const conf = document.getElementById('sec-confirm').value;
-  const errEl = document.getElementById('sec-error');
-  if (!AUTH.check(cur)) { errEl.textContent = '❌ Mevcut şifre hatalı.'; return; }
-  if (nw.length < 4) { errEl.textContent = '⚠️ Yeni şifre en az 4 karakter olmalı.'; return; }
-  if (nw !== conf) { errEl.textContent = '⚠️ Şifreler eşleşmiyor.'; return; }
-  AUTH.setPassword(nw);
-  closeModal('modal-security');
-  notify('✅ Şifre başarıyla güncellendi');
-}
+// changePassword — Supabase versiyonu yukarıdaki script bloğunda tanımlı
 
 // ========== BACKUP / RESTORE ==========
 function exportData() {
@@ -6895,40 +6882,28 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ========== INIT ==========
-window.appReady = function() {
-  if (window._appStarted) return;
-  window._appStarted = true;
-  // Auth gate
-  if (!AUTH.isLoggedIn()) {
-    // show login
-  } else {
-    document.getElementById('login-screen').classList.add('hidden');
-    updateSidebarUser(window.currentUser);
-    if (window.setOnlinePresence && window.currentUser) {
-      window.setOnlinePresence(window.currentUser.id, window.currentUser.adSoyad || window.currentUser.username);
-    }
-  }
+// NOT: window.appReady, sayfanın üstündeki Supabase script bloğunda tanımlıdır.
+// Bu blok sadece reminder zamanlayıcısını kurar ve Supabase appReady'sini çağırır.
 
-  initSampleData();
-  initMahkemeSelects();
-  renderDashboard();
-
-  // Schedule existing reminders
-  DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder);
-
+// Schedule existing reminders (appReady çağrıldıktan sonra çalışması için gecikmeli)
+setTimeout(() => {
+  try {
+    DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder);
+  } catch(e) {}
   // Periodic reminder check
   setInterval(() => {
     const now = new Date();
-    DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
-      const rem = new Date(t.hatirlatma);
-      const diff = Math.abs(rem - now);
-      if (diff < 60000) notify(`⏰ ${t.baslik}`);
-    });
+    try {
+      DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
+        const rem = new Date(t.hatirlatma);
+        const diff = Math.abs(rem - now);
+        if (diff < 60000) notify(`⏰ ${t.baslik}`);
+      });
+    } catch(e) {}
   }, 60000);
-};
+}, 2000);
 
-// appReady, Firebase modül scripti tarafından çağrılır.
-// Eğer modül çalışmazsa (localhost gibi) fallback:
+// Fallback: Supabase appReady çağrılmadıysa tetikle
 setTimeout(() => {
   if (!window._appStarted && window.appReady) {
     window.appReady();
