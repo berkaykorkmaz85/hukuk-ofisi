@@ -2648,100 +2648,93 @@
 
 <div id="notification"></div>
 
-<!-- Firebase SDK -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<script>
+const SUPABASE_URL = 'https://cbxgdnwunvjndiwwzcfn.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_VIs6hBcJMFYONt-VrILUrA_t8bxfKXv';
+window._supabaseToken = null;
+window._currentUserId = null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCqwqtHyobs56s-7FSG8W7-VOByL71g7lI",
-  authDomain: "hukuk-ofisi-6be39.firebaseapp.com",
-  projectId: "hukuk-ofisi-6be39",
-  storageBucket: "hukuk-ofisi-6be39.firebasestorage.app",
-  messagingSenderId: "937900461244",
-  appId: "1:937900461244:web:9680347ab5ee856a4d14b9"
-};
+function checkSession() {
+  const s = sessionStorage.getItem('sb_session');
+  if (!s) return false;
+  try {
+    const d = JSON.parse(s);
+    if (d.expires_at && Date.now()/1000 > d.expires_at) { sessionStorage.removeItem('sb_session'); return false; }
+    window._supabaseToken = d.access_token;
+    window._currentUserId = d.user_id;
+    return d;
+  } catch { return false; }
+}
 
-const firebaseApp = initializeApp(firebaseConfig);
-const fsdb = getFirestore(firebaseApp);
-
-// ---- Global DB ----
 window.DB = {
   genId: () => Date.now().toString(36) + Math.random().toString(36).slice(2,5),
-  get: (key) => {
-    const raw = localStorage.getItem('hukuk_' + key);
-    return raw ? JSON.parse(raw) : [];
-  },
-  set: (key, val) => {
-    localStorage.setItem('hukuk_' + key, JSON.stringify(val));
-    setDoc(doc(fsdb, 'ofis', key), { data: JSON.stringify(val), updatedAt: Date.now() })
-      .catch(e => console.warn('Firestore yazma:', e));
-  }
+  get: (key) => { const r = localStorage.getItem('hukuk_' + key); return r ? JSON.parse(r) : []; },
+  set: (key, val) => { localStorage.setItem('hukuk_' + key, JSON.stringify(val)); }
 };
 
-// ---- Realtime Listener ----
-const KEYS = ['muvekkiller','davalar','icralar','finans','cari','tasks','notlar','kisiler','contacts','bootstrapped','tebligat_gecmis','kullanicilar'];
-let lastLocalWrite = {};
-
-function startRealtimeSync() {
-  KEYS.forEach(key => {
-    onSnapshot(doc(fsdb, 'ofis', key), (snap) => {
-      if (!snap.exists()) return;
-      const remote = snap.data();
-      const remoteTime = remote.updatedAt || 0;
-      const localTime = lastLocalWrite[key] || 0;
-      // Sadece başkası yazdıysa güncelle
-      if (remoteTime > localTime + 500) {
-        localStorage.setItem('hukuk_' + key, remote.data);
-        // Aktif sayfayı yenile
-        if (window._appStarted) window.refreshCurrentPage && window.refreshCurrentPage(key);
-      }
-    }, e => console.warn('Snapshot hatası:', key, e));
-  });
+async function doLogin() {
+  const emailOrUser = (document.getElementById('login-user')?.value || '').trim();
+  const pw = document.getElementById('login-pw').value;
+  const errEl = document.getElementById('login-error');
+  if (!emailOrUser || !pw) { errEl.textContent = 'E-posta ve şifre gereklidir.'; return; }
+  try {
+    const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = '❌ Hatalı e-posta veya şifre.'; document.getElementById('login-pw').value = ''; return; }
+    window._supabaseToken = data.access_token;
+    window._currentUserId = data.user.id;
+    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.expires_at }));
+    document.getElementById('login-screen').classList.add('hidden');
+    errEl.textContent = '';
+    const user = { username: data.user.email, adSoyad: data.user.email.split('@')[0], rol: 'admin' };
+    updateSidebarUser(user); window.currentUser = user;
+    const hint = document.getElementById('login-hint'); if (hint) hint.style.display = 'none';
+  } catch(e) { errEl.textContent = '❌ Bağlantı hatası: ' + e.message; }
 }
 
-// ---- Online Presence ----
-let currentUserId = null;
-function setOnlinePresence(userId, adSoyad) {
-  currentUserId = userId;
-  const presenceRef = doc(fsdb, 'online', userId);
-  setDoc(presenceRef, { adSoyad, userId, ts: Date.now() });
-  // Her 30 sn güncelle
-  setInterval(() => setDoc(presenceRef, { adSoyad, userId, ts: Date.now() }), 30000);
-  // Sayfa kapanınca sil
-  window.addEventListener('beforeunload', () => deleteDoc(presenceRef));
-  // Online kullanıcıları dinle
-  onSnapshot(collection(fsdb, 'online'), (snap) => {
-    const now = Date.now();
-    const users = snap.docs
-      .map(d => d.data())
-      .filter(u => now - u.ts < 90000); // 90 sn içinde aktif
-    const bar = document.getElementById('online-users-bar');
-    if (bar) {
-      const others = users.filter(u => u.userId !== userId);
-      if (others.length > 0) {
-        bar.innerHTML = '🟢 Şu an aktif: ' + others.map(u => `<strong style="color:var(--gold)">${u.adSoyad}</strong>`).join(', ');
-      } else {
-        bar.innerHTML = '';
-      }
-    }
-  });
-}
-window.setOnlinePresence = setOnlinePresence;
-
-// ---- İlk Yükleme: Firestore'dan çek ----
-try {
-  await Promise.all(KEYS.map(async key => {
-    const snap = await getDoc(doc(fsdb, 'ofis', key));
-    if (snap.exists()) localStorage.setItem('hukuk_' + key, snap.data().data);
-  }));
-  console.log('✅ Firestore sync tamam');
-} catch(e) {
-  console.warn('Firestore offline, localStorage kullanılıyor:', e);
+async function doLogout() {
+  if (!confirm('Çıkış yapmak istediğinize emin misiniz?')) return;
+  try { await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${window._supabaseToken}` } }); } catch(e) {}
+  window._supabaseToken = null; window._currentUserId = null;
+  sessionStorage.removeItem('sb_session'); location.reload();
 }
 
-startRealtimeSync();
-if (window.appReady) window.appReady();
+async function changePassword() {
+  const nw = document.getElementById('sec-new').value;
+  const conf = document.getElementById('sec-confirm').value;
+  const errEl = document.getElementById('sec-error');
+  if (nw.length < 6) { errEl.textContent = '⚠️ Şifre en az 6 karakter olmalı.'; return; }
+  if (nw !== conf) { errEl.textContent = '⚠️ Şifreler eşleşmiyor.'; return; }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, { method: 'PUT', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${window._supabaseToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: nw }) });
+    if (!res.ok) throw new Error('Şifre güncellenemedi');
+    closeModal('modal-security'); notify('✅ Şifre başarıyla güncellendi');
+  } catch(e) { errEl.textContent = '❌ ' + e.message; }
+}
+
+window.appReady = function() {
+  const session = checkSession();
+  if (session) {
+    document.getElementById('login-screen').classList.add('hidden');
+    const user = { username: session.email, adSoyad: session.email?.split('@')[0] || 'Kullanıcı', rol: 'admin' };
+    updateSidebarUser(user); window.currentUser = user;
+  }
+  const hint = document.getElementById('login-hint');
+  if (hint) hint.innerHTML = 'E-posta adresiniz ve şifrenizle giriş yapın';
+  if (window._appStarted) return;
+  window._appStarted = true;
+  initSampleData(); renderDashboard(); initMahkemeSelects();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(window.appReady, 100));
+} else { setTimeout(window.appReady, 100); }
+</script>
 </script>
 
 <script>
