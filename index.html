@@ -1120,6 +1120,204 @@
   .belge-tag-tebligat { background: rgba(192,83,58,0.2); color: #e08060; }
   .belge-tag-sozlesme { background: rgba(201,168,76,0.2); color: var(--gold); }
   .belge-tag-diger { background: rgba(107,100,85,0.2); color: var(--text3); }
+
+  /* ========== AYARLAR PANELİ ========== */
+  :root {
+    --sidebar-w: 220px;
+    --font-ui: 'DM Sans', sans-serif;
+  }
+  #ayarlar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 480;
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+  #ayarlar-overlay.open { display: block; }
+  #ayarlar-panel {
+    position: fixed; top: 0; right: -460px;
+    width: 440px; height: 100vh;
+    background: var(--bg2);
+    border-left: 1px solid var(--border2);
+    z-index: 490;
+    display: flex; flex-direction: column;
+    transition: right 0.38s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: -12px 0 48px rgba(0,0,0,0.6);
+  }
+  #ayarlar-panel.open { right: 0; }
+  .ap-header {
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .ap-header-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--gold-dim); border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .ap-header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px; color: var(--gold); flex: 1;
+  }
+  .ap-header-sub { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .ap-close {
+    background: none; border: none; color: var(--text3);
+    font-size: 20px; cursor: pointer; padding: 4px;
+    border-radius: 6px; line-height: 1;
+    transition: color 0.15s, background 0.15s;
+  }
+  .ap-close:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+  .ap-body {
+    flex: 1; overflow-y: auto; padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 26px;
+  }
+  .ap-body::-webkit-scrollbar { width: 4px; }
+  .ap-body::-webkit-scrollbar-track { background: transparent; }
+  .ap-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .ap-section-label {
+    font-size: 10px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .ap-section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  /* Tema grid */
+  .ap-tema-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .ap-tema-kart {
+    border-radius: 12px; padding: 12px 8px 10px;
+    cursor: pointer; border: 2px solid transparent;
+    transition: transform 0.18s, box-shadow 0.18s;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .ap-tema-kart:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .ap-tema-kart.aktif { box-shadow: 0 0 0 3px white, 0 4px 16px rgba(0,0,0,0.4); }
+  .ap-tema-kart.aktif::after {
+    content: '✓'; position: absolute; top: 5px; right: 7px;
+    font-size: 10px; font-weight: 800; color: white;
+    background: rgba(255,255,255,0.3); border-radius: 50%;
+    width: 16px; height: 16px; line-height: 16px; text-align: center;
+  }
+  .ap-tema-dots { display: flex; gap: 4px; justify-content: center; margin-bottom: 7px; }
+  .ap-tema-dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+  .ap-tema-ad { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.85); }
+  /* Gece modu toggle büyük */
+  .ap-gece-row {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .ap-gece-row:hover { border-color: var(--border2); }
+  .ap-gece-icon { font-size: 22px; flex-shrink: 0; }
+  .ap-gece-text { flex: 1; }
+  .ap-gece-title { font-size: 13.5px; color: var(--text); font-weight: 500; }
+  .ap-gece-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  /* Font grid */
+  .ap-font-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ap-font-kart {
+    background: var(--bg3); border: 2px solid var(--border);
+    border-radius: 10px; padding: 12px 14px;
+    cursor: pointer; transition: all 0.18s;
+  }
+  .ap-font-kart:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .ap-font-kart.aktif { border-color: var(--gold); background: var(--gold-dim); }
+  .ap-font-ornek { font-size: 17px; color: var(--text); margin-bottom: 4px; line-height: 1.2; }
+  .ap-font-meta { font-size: 10px; color: var(--text3); font-family: 'DM Sans', sans-serif !important; }
+  .ap-font-meta strong { color: var(--text2); }
+  /* Slider */
+  .ap-slider-wrap { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+  .ap-slider-label { font-size: 11px; color: var(--text3); min-width: 32px; }
+  input[type=range].ap-slider {
+    -webkit-appearance: none; flex: 1; height: 5px;
+    border-radius: 3px; background: var(--border2);
+    outline: none; cursor: pointer; border: none; padding: 0;
+  }
+  input[type=range].ap-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: var(--gold);
+    cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    transition: transform 0.15s;
+  }
+  input[type=range].ap-slider::-webkit-slider-thumb:hover { transform: scale(1.25); }
+  .ap-slider-val {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    color: var(--gold); min-width: 36px; text-align: right; font-weight: 600;
+  }
+  /* Toggle */
+  .ap-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 9px;
+    margin-bottom: 7px;
+  }
+  .ap-toggle-left { display: flex; align-items: center; gap: 10px; }
+  .ap-toggle-icon { font-size: 16px; }
+  .ap-toggle-label { font-size: 13px; color: var(--text2); }
+  .ap-switch {
+    width: 40px; height: 22px; background: var(--border2);
+    border-radius: 11px; position: relative; cursor: pointer;
+    transition: background 0.22s; flex-shrink: 0;
+  }
+  .ap-switch.on { background: var(--gold); }
+  .ap-switch::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: white; transition: left 0.22s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .ap-switch.on::after { left: 21px; }
+  /* Özel renk */
+  .ap-renk-row {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px 12px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 9px;
+    margin-top: 8px;
+  }
+  .ap-renk-row label { font-size: 12px; color: var(--text3); flex: 1; }
+  input[type=color].ap-color {
+    width: 34px; height: 28px; padding: 2px 3px;
+    border: 1px solid var(--border2); border-radius: 7px;
+    background: var(--bg3); cursor: pointer;
+  }
+  /* Önizleme */
+  .ap-preview {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px; margin-top: 4px;
+  }
+  .ap-preview-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: calc(var(--radius) - 2px); padding: 12px;
+    margin-bottom: 8px;
+  }
+  /* Footer */
+  .ap-footer {
+    padding: 14px 24px; border-top: 1px solid var(--border);
+    display: flex; gap: 10px; flex-shrink: 0;
+    background: var(--bg2);
+  }
+  /* Sidebar ayarlar ikonu */
+  .sidebar-ayarlar-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 10px 16px; margin: 0 12px 12px;
+    background: transparent; border: 1px dashed var(--border2);
+    border-radius: 9px; cursor: pointer; color: var(--text3);
+    font-size: 12px; font-family: 'DM Sans', sans-serif;
+    transition: all 0.18s; width: calc(100% - 24px);
+  }
+  .sidebar-ayarlar-btn:hover {
+    border-color: var(--gold); color: var(--gold);
+    background: var(--gold-dim);
+  }
+  .sidebar-ayarlar-btn .sab-icon { font-size: 16px; transition: transform 0.3s; }
+  .sidebar-ayarlar-btn:hover .sab-icon { transform: rotate(45deg); }
+  @media(max-width:768px) {
+    #ayarlar-panel { width: 100%; right: -100%; }
+  }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1235,6 +1433,12 @@
       <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px;justify-content:center;color:var(--text3)" onclick="doLogout()">🚪 Çıkış</button>
     </div>
   </div>
+  <!-- AYARLAR İKON BUTONU -->
+  <button class="sidebar-ayarlar-btn" onclick="openAyarlarPanel()" title="Site Ayarları">
+    <span class="sab-icon">⚙️</span>
+    <span>Site Ayarları</span>
+    <span style="margin-left:auto;font-size:10px;opacity:0.5">🎨</span>
+  </button>
 </div>
 <div class="overlay-bg" id="overlay-bg" onclick="closeSidebar()"></div>
 
@@ -2646,6 +2850,158 @@
   </div>
 </div>
 
+<!-- AYARLAR PANEL -->
+<div id="ayarlar-overlay" onclick="closeAyarlarPanel()"></div>
+<div id="ayarlar-panel">
+
+  <div class="ap-header">
+    <div class="ap-header-icon">⚙️</div>
+    <div>
+      <div class="ap-header-title">Site Ayarları</div>
+      <div class="ap-header-sub">Görünümü kişiselleştir — anında önizle</div>
+    </div>
+    <button class="ap-close" onclick="closeAyarlarPanel()">✕</button>
+  </div>
+
+  <div class="ap-body">
+
+    <!-- GECE / GÜNDÜZ MODU -->
+    <div>
+      <div class="ap-section-label">🌙 Tema Modu</div>
+      <div class="ap-gece-row" onclick="geceModu()" id="ap-gece-row">
+        <div class="ap-gece-icon" id="ap-gece-icon">🌙</div>
+        <div class="ap-gece-text">
+          <div class="ap-gece-title" id="ap-gece-title">Gece Modu</div>
+          <div class="ap-gece-sub" id="ap-gece-sub">Şu an: Koyu — Geçiş için tıkla</div>
+        </div>
+        <div class="ap-switch on" id="toggle-gece"></div>
+      </div>
+    </div>
+
+    <!-- RENK TEMASı -->
+    <div>
+      <div class="ap-section-label">🎨 Renk Teması</div>
+      <div class="ap-tema-grid" id="ap-tema-grid"></div>
+      <div class="ap-renk-row">
+        <label>✏️ Özel Vurgu Rengi</label>
+        <input type="color" class="ap-color" id="ozel-gold" value="#c9a84c" oninput="ozelRenk('gold',this.value)" title="Ana vurgu rengi">
+        <label style="margin-left:8px">🖤 Arka Plan</label>
+        <input type="color" class="ap-color" id="ozel-bg" value="#0f0e0c" oninput="ozelRenk('bg',this.value)" title="Arka plan rengi">
+      </div>
+    </div>
+
+    <!-- YAZI FONTU -->
+    <div>
+      <div class="ap-section-label">🔤 Yazı Fontu</div>
+      <div class="ap-font-grid" id="ap-font-grid"></div>
+    </div>
+
+    <!-- BOYUT & YOĞUNLUK -->
+    <div>
+      <div class="ap-section-label">📐 Boyut & Yoğunluk</div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Yazı Boyutu</div>
+        <div class="ap-slider-wrap">
+          <span class="ap-slider-label" style="font-size:11px">A</span>
+          <input type="range" class="ap-slider" id="sl-font" min="12" max="17" value="14" step="1"
+            oninput="sliderDegistir('font',this.value)">
+          <span class="ap-slider-label" style="font-size:16px">A</span>
+          <span class="ap-slider-val" id="sl-font-val">14px</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Sidebar Genişliği</div>
+        <div class="ap-slider-wrap">
+          <span class="ap-slider-label">◀</span>
+          <input type="range" class="ap-slider" id="sl-sidebar" min="180" max="300" value="220" step="10"
+            oninput="sliderDegistir('sidebar',this.value)">
+          <span class="ap-slider-label">▶</span>
+          <span class="ap-slider-val" id="sl-sidebar-val">220px</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Köşe Yuvarlaklığı</div>
+        <div class="ap-slider-wrap">
+          <span class="ap-slider-label">◼</span>
+          <input type="range" class="ap-slider" id="sl-radius" min="0" max="20" value="10" step="2"
+            oninput="sliderDegistir('radius',this.value)">
+          <span class="ap-slider-label">⬤</span>
+          <span class="ap-slider-val" id="sl-radius-val">10px</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Gölge Yoğunluğu</div>
+        <div class="ap-slider-wrap">
+          <span class="ap-slider-label">☁</span>
+          <input type="range" class="ap-slider" id="sl-shadow" min="0" max="5" value="3" step="1"
+            oninput="sliderDegistir('shadow',this.value)">
+          <span class="ap-slider-label">🌑</span>
+          <span class="ap-slider-val" id="sl-shadow-val">×3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇENEKLER -->
+    <div>
+      <div class="ap-section-label">⚙️ Seçenekler</div>
+      <div class="ap-toggle-row">
+        <div class="ap-toggle-left"><span class="ap-toggle-icon">🗜️</span><span class="ap-toggle-label">Kompakt Mod</span></div>
+        <div class="ap-switch" id="toggle-compact" onclick="toggleAyar('compact')"></div>
+      </div>
+      <div class="ap-toggle-row">
+        <div class="ap-toggle-left"><span class="ap-toggle-icon">✨</span><span class="ap-toggle-label">Animasyonlar</span></div>
+        <div class="ap-switch on" id="toggle-anim" onclick="toggleAyar('anim')"></div>
+      </div>
+      <div class="ap-toggle-row" style="margin-bottom:0">
+        <div class="ap-toggle-left"><span class="ap-toggle-icon">🔲</span><span class="ap-toggle-label">Sidebar'ı Gizle (Otomatik Kapat)</span></div>
+        <div class="ap-switch" id="toggle-autohide" onclick="toggleAyar('autohide')"></div>
+      </div>
+    </div>
+
+    <!-- ÖNİZLEME -->
+    <div>
+      <div class="ap-section-label">👁 Canlı Önizleme</div>
+      <div class="ap-preview">
+        <div class="ap-preview-card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:32px;height:32px;border-radius:var(--radius);background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center">⚖️</div>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:var(--text);font-family:var(--font-ui)">Ahmet Yılmaz Davası</div>
+              <div style="font-size:11px;color:var(--text3)">2024/001 · İstanbul 3. Sulh Hukuk</div>
+            </div>
+            <span style="background:rgba(74,140,92,0.2);color:#7dc495;font-size:10px;padding:2px 9px;border-radius:20px;font-weight:600">Aktif</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:calc(var(--radius) - 3px);padding:7px 10px">
+              <div style="font-size:10px;color:var(--text3)">Son Duruşma</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-top:2px">15 Mar 2024</div>
+            </div>
+            <div style="flex:1;background:var(--gold-dim);border:1px solid var(--gold);border-radius:calc(var(--radius) - 3px);padding:7px 10px">
+              <div style="font-size:10px;color:var(--gold)">Vekalet</div>
+              <div style="font-size:12px;font-weight:600;color:var(--gold2);margin-top:2px">₺15.000</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-gold" style="flex:1;justify-content:center;font-size:12px">+ Görev Ekle</button>
+          <button class="btn btn-outline" style="flex:1;justify-content:center;font-size:12px">Detay →</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ap-body -->
+
+  <div class="ap-footer">
+    <button class="btn btn-outline" style="flex:1;justify-content:center;font-size:12px" onclick="ayarlariSifirla()">🔄 Sıfırla</button>
+    <button class="btn btn-gold" style="flex:1;justify-content:center;font-size:13px;font-weight:600" onclick="ayarlariKaydet()">💾 Kaydet</button>
+  </div>
+
+</div><!-- /ayarlar-panel -->
+
 <div id="notification"></div>
 
 <script>
@@ -3376,7 +3732,9 @@ function deleteKullanici(id) {
   notify('Kullanıcı silindi');
 }
 
-// doLogout — Supabase versiyonu yukarıdaki script bloğunda tanımlı
+function doLogout() {
+  if (confirm('Çıkış yapmak istediğinize emin misiniz?')) AUTH.logout();
+}
 
 function openSecurityModal() {
   document.getElementById('sec-current').value = '';
@@ -3386,7 +3744,18 @@ function openSecurityModal() {
   openModal('modal-security');
 }
 
-// changePassword — Supabase versiyonu yukarıdaki script bloğunda tanımlı
+function changePassword() {
+  const cur = document.getElementById('sec-current').value;
+  const nw = document.getElementById('sec-new').value;
+  const conf = document.getElementById('sec-confirm').value;
+  const errEl = document.getElementById('sec-error');
+  if (!AUTH.check(cur)) { errEl.textContent = '❌ Mevcut şifre hatalı.'; return; }
+  if (nw.length < 4) { errEl.textContent = '⚠️ Yeni şifre en az 4 karakter olmalı.'; return; }
+  if (nw !== conf) { errEl.textContent = '⚠️ Şifreler eşleşmiyor.'; return; }
+  AUTH.setPassword(nw);
+  closeModal('modal-security');
+  notify('✅ Şifre başarıyla güncellendi');
+}
 
 // ========== BACKUP / RESTORE ==========
 function exportData() {
@@ -6882,28 +7251,40 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ========== INIT ==========
-// NOT: window.appReady, sayfanın üstündeki Supabase script bloğunda tanımlıdır.
-// Bu blok sadece reminder zamanlayıcısını kurar ve Supabase appReady'sini çağırır.
+window.appReady = function() {
+  if (window._appStarted) return;
+  window._appStarted = true;
+  // Auth gate
+  if (!AUTH.isLoggedIn()) {
+    // show login
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+    updateSidebarUser(window.currentUser);
+    if (window.setOnlinePresence && window.currentUser) {
+      window.setOnlinePresence(window.currentUser.id, window.currentUser.adSoyad || window.currentUser.username);
+    }
+  }
 
-// Schedule existing reminders (appReady çağrıldıktan sonra çalışması için gecikmeli)
-setTimeout(() => {
-  try {
-    DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder);
-  } catch(e) {}
+  initSampleData();
+  initMahkemeSelects();
+  renderDashboard();
+
+  // Schedule existing reminders
+  DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder);
+
   // Periodic reminder check
   setInterval(() => {
     const now = new Date();
-    try {
-      DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
-        const rem = new Date(t.hatirlatma);
-        const diff = Math.abs(rem - now);
-        if (diff < 60000) notify(`⏰ ${t.baslik}`);
-      });
-    } catch(e) {}
+    DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
+      const rem = new Date(t.hatirlatma);
+      const diff = Math.abs(rem - now);
+      if (diff < 60000) notify(`⏰ ${t.baslik}`);
+    });
   }, 60000);
-}, 2000);
+};
 
-// Fallback: Supabase appReady çağrılmadıysa tetikle
+// appReady, Firebase modül scripti tarafından çağrılır.
+// Eğer modül çalışmazsa (localhost gibi) fallback:
 setTimeout(() => {
   if (!window._appStarted && window.appReady) {
     window.appReady();
@@ -7514,6 +7895,341 @@ DB.get = function(key) {
     return Array.isArray(val) ? val : (val === null || val === undefined ? [] : val);
   } catch(e) { return []; }
 };
+
+// ============================================================
+// AYARLAR SİSTEMİ
+// ============================================================
+
+const AP_TEMALAR = [
+  { id:'altin',   ad:'Altın Gece',  preview:['#c9a84c','#181714','#0f0e0c'],
+    vars:{ gold:'#c9a84c', gold2:'#e8c97a', bg:'#0f0e0c', bg2:'#181714', bg3:'#211f1b', border:'#2e2b25', border2:'#3d3a32', text:'#f0ead8', text2:'#a89f8a', text3:'#6b6455' }},
+  { id:'okyanus', ad:'Okyanus',     preview:['#4a9aba','#0d1925','#070d14'],
+    vars:{ gold:'#4a9aba', gold2:'#7ec8e3', bg:'#070d14', bg2:'#0d1925', bg3:'#132030', border:'#1a2d40', border2:'#234055', text:'#d8edf5', text2:'#7aabcc', text3:'#4a6a80' }},
+  { id:'zumrut',  ad:'Zümrüt',      preview:['#27ae60','#0d1f18','#071410'],
+    vars:{ gold:'#27ae60', gold2:'#58d68d', bg:'#071410', bg2:'#0d1f18', bg3:'#122a22', border:'#1a3d2e', border2:'#235240', text:'#d5f5e3', text2:'#7dcea0', text3:'#4a8c68' }},
+  { id:'mor',     ad:'Gece Moru',   preview:['#9b59b6','#130e1c','#0a070f'],
+    vars:{ gold:'#9b59b6', gold2:'#c39bd3', bg:'#0a070f', bg2:'#130e1c', bg3:'#1a1228', border:'#281a3e', border2:'#362252', text:'#ede8f5', text2:'#a892cc', text3:'#6b5590' }},
+  { id:'kizilay', ad:'Kızıl Kaya',  preview:['#e74c3c','#1c0d0d','#0f0707'],
+    vars:{ gold:'#e74c3c', gold2:'#f1948a', bg:'#0f0707', bg2:'#1c0d0d', bg3:'#261212', border:'#3d1a1a', border2:'#522222', text:'#f5e8e8', text2:'cc8888', text3:'#905555' }},
+  { id:'buz',     ad:'Buz Mavisi',  preview:['#00bcd4','#0d1c2e','#07101a'],
+    vars:{ gold:'#00bcd4', gold2:'#4dd0e1', bg:'#07101a', bg2:'#0d1c2e', bg3:'#12263d', border:'#1a3350', border2:'#224468', text:'#d8f0f5', text2:'#7ab8cc', text3:'#4a7a90' }},
+];
+
+const AP_FONTLAR = [
+  { id:'dm',       ad:'DM Sans',    ornek:'Hukuk Ofisi', meta:'Modern & Temiz',   stack:"'DM Sans', sans-serif" },
+  { id:'playfair', ad:'Playfair',   ornek:'Hukuk Ofisi', meta:'Klasik & Zarif',   stack:"'Playfair Display', serif" },
+  { id:'inter',    ad:'Inter',      ornek:'Hukuk Ofisi', meta:'Profesyonel',       stack:"Inter, 'DM Sans', sans-serif",         gf:'Inter:wght@300;400;500;600' },
+  { id:'lora',     ad:'Lora',       ornek:'Hukuk Ofisi', meta:'Hukuki & Resmi',    stack:"Lora, Georgia, serif",                  gf:'Lora:wght@400;500;600;700' },
+  { id:'nunito',   ad:'Nunito',     ornek:'Hukuk Ofisi', meta:'Yumuşak & Dostane', stack:"Nunito, 'DM Sans', sans-serif",         gf:'Nunito:wght@300;400;500;600' },
+  { id:'mono',     ad:'Mono',       ornek:'HUKUK 2024',  meta:'Teknik & Net',      stack:"'DM Mono', 'Courier New', monospace" },
+];
+
+const AP_VARSAYILAN = {
+  tema: 'altin', font: 'dm', fontSize: 14,
+  sidebarW: 220, radius: 10, shadow: 3,
+  geceModu: true, compact: false, anim: true, autohide: false,
+  ozelGold: null, ozelBg: null
+};
+
+let AP = { ...AP_VARSAYILAN };
+let _apYuklendi = false;
+
+// ── Panel aç / kapat ──────────────────────────────────────
+function openAyarlarPanel() {
+  if (!_apYuklendi) { _apKayitYukle(); _apYuklendi = true; }
+  renderApTemalar();
+  renderApFontlar();
+  syncApUI();
+  document.getElementById('ayarlar-panel').classList.add('open');
+  document.getElementById('ayarlar-overlay').classList.add('open');
+  closeSidebar();
+}
+function closeAyarlarPanel() {
+  document.getElementById('ayarlar-panel').classList.remove('open');
+  document.getElementById('ayarlar-overlay').classList.remove('open');
+}
+
+// ── Tema grid ────────────────────────────────────────────
+function renderApTemalar() {
+  const grid = document.getElementById('ap-tema-grid');
+  if (!grid) return;
+  grid.innerHTML = AP_TEMALAR.map(t => `
+    <div class="ap-tema-kart ${AP.tema === t.id ? 'aktif' : ''}"
+      style="background:linear-gradient(145deg,${t.vars.bg2},${t.vars.bg3});border-color:${t.vars.border2}"
+      onclick="apTema('${t.id}')">
+      <div class="ap-tema-dots">
+        ${t.preview.map(c=>`<div class="ap-tema-dot" style="background:${c}"></div>`).join('')}
+      </div>
+      <div class="ap-tema-ad" style="color:${t.vars.text2}">${t.ad}</div>
+    </div>`).join('');
+}
+
+// ── Font grid ────────────────────────────────────────────
+function renderApFontlar() {
+  const grid = document.getElementById('ap-font-grid');
+  if (!grid) return;
+  grid.innerHTML = AP_FONTLAR.map(f => `
+    <div class="ap-font-kart ${AP.font === f.id ? 'aktif' : ''}" onclick="apFont('${f.id}')">
+      <div class="ap-font-ornek" style="font-family:${f.stack}">${f.ornek}</div>
+      <div class="ap-font-meta"><strong>${f.ad}</strong> · ${f.meta}</div>
+    </div>`).join('');
+}
+
+// ── Tema uygula ──────────────────────────────────────────
+function apTema(id) {
+  const t = AP_TEMALAR.find(x => x.id === id);
+  if (!t) return;
+  AP.tema = id; AP.ozelGold = null; AP.ozelBg = null;
+  const r = document.documentElement;
+  Object.entries(t.vars).forEach(([k,v]) => r.style.setProperty('--'+k, v));
+  r.style.setProperty('--gold-dim', t.vars.gold + '22');
+  // color input sync
+  const gi = document.getElementById('ozel-gold');
+  const bi = document.getElementById('ozel-bg');
+  if (gi) gi.value = t.vars.gold;
+  if (bi) bi.value = t.vars.bg;
+  // gece modu flag
+  AP.geceModu = true;
+  syncGeceModu();
+  renderApTemalar();
+}
+
+// ── Özel renk ────────────────────────────────────────────
+function ozelRenk(tip, val) {
+  const r = document.documentElement;
+  AP.tema = 'ozel';
+  if (tip === 'gold') {
+    AP.ozelGold = val;
+    r.style.setProperty('--gold', val);
+    r.style.setProperty('--gold2', val + 'dd');
+    r.style.setProperty('--gold-dim', val + '22');
+  } else {
+    AP.ozelBg = val;
+    r.style.setProperty('--bg', val);
+    r.style.setProperty('--bg2', _lighten(val, 9));
+    r.style.setProperty('--bg3', _lighten(val, 17));
+    r.style.setProperty('--border', _lighten(val, 28));
+    r.style.setProperty('--border2', _lighten(val, 40));
+  }
+  renderApTemalar();
+}
+
+// ── Font uygula ──────────────────────────────────────────
+function apFont(id) {
+  const f = AP_FONTLAR.find(x => x.id === id);
+  if (!f) return;
+  AP.font = id;
+  // Google font yükle
+  if (f.gf && !document.getElementById('gf-'+id)) {
+    const lk = document.createElement('link');
+    lk.id = 'gf-'+id; lk.rel = 'stylesheet';
+    lk.href = 'https://fonts.googleapis.com/css2?family='+f.gf+'&display=swap';
+    document.head.appendChild(lk);
+  }
+  document.documentElement.style.setProperty('--font-ui', f.stack);
+  document.body.style.fontFamily = f.stack;
+  renderApFontlar();
+}
+
+// ── Slider ───────────────────────────────────────────────
+function sliderDegistir(tip, val) {
+  val = parseInt(val);
+  const r = document.documentElement;
+  if (tip === 'font') {
+    AP.fontSize = val;
+    document.getElementById('sl-font-val').textContent = val + 'px';
+    r.style.fontSize = val + 'px';
+    document.body.style.fontSize = val + 'px';
+  } else if (tip === 'sidebar') {
+    AP.sidebarW = val;
+    document.getElementById('sl-sidebar-val').textContent = val + 'px';
+    document.getElementById('sidebar').style.width = val + 'px';
+    document.getElementById('main').style.marginLeft = val + 'px';
+    const ddp = document.getElementById('dava-detail-page');
+    if (ddp) ddp.style.left = val + 'px';
+  } else if (tip === 'radius') {
+    AP.radius = val;
+    document.getElementById('sl-radius-val').textContent = val + 'px';
+    r.style.setProperty('--radius', val + 'px');
+  } else if (tip === 'shadow') {
+    AP.shadow = val;
+    document.getElementById('sl-shadow-val').textContent = '×' + val;
+    const op = val / 5;
+    const px = val * 8;
+    r.style.setProperty('--shadow', `0 ${val*2}px ${px}px rgba(0,0,0,${op + 0.2})`);
+  }
+}
+
+// ── Toggle ───────────────────────────────────────────────
+function toggleAyar(ayar) {
+  AP[ayar] = !AP[ayar];
+  const el = document.getElementById('toggle-'+ayar);
+  if (el) el.classList.toggle('on', AP[ayar]);
+  if (ayar === 'compact') {
+    document.getElementById('content').style.padding = AP.compact ? '12px' : '24px';
+  }
+  if (ayar === 'anim') {
+    let s = document.getElementById('no-anim-style');
+    if (!AP.anim) {
+      if (!s) { s = document.createElement('style'); s.id = 'no-anim-style'; document.head.appendChild(s); }
+      s.textContent = '*, *::before, *::after { transition: none !important; animation: none !important; }';
+    } else { if (s) s.remove(); }
+  }
+  if (ayar === 'autohide') {
+    // Sidebar hover ile aç/kapat
+    const sb = document.getElementById('sidebar');
+    if (AP.autohide) {
+      sb.style.transform = 'translateX(-100%)';
+      sb.addEventListener('mouseenter', _sbShow);
+      sb.addEventListener('mouseleave', _sbHide);
+      document.getElementById('main').style.marginLeft = '0';
+    } else {
+      sb.style.transform = '';
+      sb.removeEventListener('mouseenter', _sbShow);
+      sb.removeEventListener('mouseleave', _sbHide);
+      document.getElementById('main').style.marginLeft = AP.sidebarW + 'px';
+    }
+  }
+}
+function _sbShow() { document.getElementById('sidebar').style.transform = 'translateX(0)'; }
+function _sbHide() { document.getElementById('sidebar').style.transform = 'translateX(-100%)'; }
+
+// ── Gece / Gündüz modu ───────────────────────────────────
+function geceModu() {
+  AP.geceModu = !AP.geceModu;
+  _apGeceModu(AP.geceModu);
+  syncGeceModu();
+}
+
+function _apGeceModu(gece) {
+  const r = document.documentElement;
+  if (gece) {
+    // Mevcut temayı uygula
+    if (AP.tema !== 'ozel') apTema(AP.tema);
+  } else {
+    // Açık mod — beyaz/gri tonlar
+    r.style.setProperty('--bg',      '#f5f4f0');
+    r.style.setProperty('--bg2',     '#ffffff');
+    r.style.setProperty('--bg3',     '#eceae4');
+    r.style.setProperty('--border',  '#d8d4cc');
+    r.style.setProperty('--border2', '#c5c0b5');
+    r.style.setProperty('--text',    '#1a1612');
+    r.style.setProperty('--text2',   '#4a4540');
+    r.style.setProperty('--text3',   '#8a8078');
+  }
+}
+
+function syncGeceModu() {
+  const sw = document.getElementById('toggle-gece');
+  const ic = document.getElementById('ap-gece-icon');
+  const ti = document.getElementById('ap-gece-title');
+  const su = document.getElementById('ap-gece-sub');
+  if (!sw) return;
+  if (AP.geceModu) {
+    sw.classList.add('on');
+    if (ic) ic.textContent = '🌙';
+    if (ti) ti.textContent = 'Gece Modu Aktif';
+    if (su) su.textContent = 'Koyu arka plan — Tıkla: Gündüz Moduna Geç';
+  } else {
+    sw.classList.remove('on');
+    if (ic) ic.textContent = '☀️';
+    if (ti) ti.textContent = 'Gündüz Modu Aktif';
+    if (su) su.textContent = 'Açık arka plan — Tıkla: Gece Moduna Geç';
+  }
+}
+
+// ── UI senkronize et ─────────────────────────────────────
+function syncApUI() {
+  // Sliderlar
+  [['font', AP.fontSize,'px'], ['sidebar', AP.sidebarW,'px'], ['radius', AP.radius,'px'], ['shadow', AP.shadow,'×']].forEach(([t,v,suf]) => {
+    const sl = document.getElementById('sl-'+t);
+    const vl = document.getElementById('sl-'+t+'-val');
+    if (sl) sl.value = v;
+    if (vl) vl.textContent = (suf === '×' ? suf+v : v+suf);
+  });
+  // Togglelar
+  ['compact','anim','autohide'].forEach(a => {
+    const el = document.getElementById('toggle-'+a);
+    if (el) el.classList.toggle('on', !!AP[a]);
+  });
+  // Renk inputları
+  if (AP.tema !== 'ozel') {
+    const t = AP_TEMALAR.find(x => x.id === AP.tema);
+    if (t) {
+      const gi = document.getElementById('ozel-gold');
+      const bi = document.getElementById('ozel-bg');
+      if (gi) gi.value = t.vars.gold;
+      if (bi) bi.value = t.vars.bg;
+    }
+  }
+  syncGeceModu();
+}
+
+// ── Yardımcılar ──────────────────────────────────────────
+function _lighten(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  const rr = Math.min(255,(n>>16)+amt);
+  const gg = Math.min(255,((n>>8)&0xFF)+amt);
+  const bb = Math.min(255,(n&0xFF)+amt);
+  return '#'+[rr,gg,bb].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Kaydet / Yükle / Sıfırla ─────────────────────────────
+function ayarlariKaydet() {
+  localStorage.setItem('hukuk_ayarlar_v2', JSON.stringify(AP));
+  closeAyarlarPanel();
+  notify('🎨 Görünüm ayarları kaydedildi ✓');
+}
+
+function ayarlariSifirla() {
+  if (!confirm('Tüm görünüm ayarları varsayılana dönecek. Devam?')) return;
+  localStorage.removeItem('hukuk_ayarlar_v2');
+  AP = { ...AP_VARSAYILAN };
+  _apUygulaTumune();
+  syncApUI();
+  renderApTemalar();
+  renderApFontlar();
+  notify('🔄 Ayarlar sıfırlandı');
+}
+
+function _apKayitYukle() {
+  try {
+    const s = localStorage.getItem('hukuk_ayarlar_v2');
+    if (s) AP = { ...AP_VARSAYILAN, ...JSON.parse(s) };
+  } catch(e) { AP = { ...AP_VARSAYILAN }; }
+}
+
+function _apUygulaTumune() {
+  // Tema
+  if (AP.tema !== 'ozel') apTema(AP.tema);
+  if (AP.ozelGold) ozelRenk('gold', AP.ozelGold);
+  if (AP.ozelBg)   ozelRenk('bg',   AP.ozelBg);
+  // Gece/gündüz
+  _apGeceModu(AP.geceModu);
+  syncGeceModu();
+  // Font
+  apFont(AP.font);
+  // Sliderlar sessizce uygula
+  sliderDegistir('font',    AP.fontSize);
+  sliderDegistir('sidebar', AP.sidebarW);
+  sliderDegistir('radius',  AP.radius);
+  sliderDegistir('shadow',  AP.shadow);
+  // Togglelar
+  if (AP.compact)  { AP.compact  = false; toggleAyar('compact'); }
+  if (!AP.anim)    { AP.anim     = true;  toggleAyar('anim'); }
+  if (AP.autohide) { AP.autohide = false; toggleAyar('autohide'); }
+}
+
+// ── Sayfa yüklenince otomatik uygula ─────────────────────
+(function _apInit() {
+  try {
+    const s = localStorage.getItem('hukuk_ayarlar_v2');
+    if (s) {
+      AP = { ...AP_VARSAYILAN, ...JSON.parse(s) };
+      _apUygulaTumune();
+    }
+  } catch(e) {}
+})();
 </script>
 
 </body>
