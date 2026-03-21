@@ -38,19 +38,21 @@
   /* SIDEBAR */
   #sidebar {
     width: 220px;
-    min-height: 100vh;
+    height: 100vh;
     background: var(--bg2);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     position: fixed;
     top: 0; left: 0;
-    z-index: 120; /* above dava detail page (110) */
+    z-index: 120;
     transition: transform 0.3s;
+    overflow: hidden;
   }
   .logo {
     padding: 24px 20px 20px;
     border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
   .logo-title {
     font-family: 'Playfair Display', serif;
@@ -59,7 +61,15 @@
     line-height: 1.2;
   }
   .logo-sub { font-size: 11px; color: var(--text3); margin-top: 3px; letter-spacing: 0.05em; }
-  nav { padding: 12px 0; flex: 1; }
+  nav {
+    padding: 12px 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  nav::-webkit-scrollbar { width: 3px; }
+  nav::-webkit-scrollbar-track { background: transparent; }
+  nav::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
   .nav-section { padding: 8px 16px 4px; font-size: 10px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
   .nav-item {
     display: flex; align-items: center; gap: 10px;
@@ -88,6 +98,7 @@
     border-top: 1px solid var(--border);
     font-size: 11px;
     color: var(--text3);
+    flex-shrink: 0;
   }
   /* MAIN */
   #main {
@@ -1302,6 +1313,7 @@
   }
   /* Sidebar ayarlar ikonu */
   .sidebar-ayarlar-btn {
+    flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     gap: 8px; padding: 10px 16px; margin: 0 12px 12px;
     background: transparent; border: 1px dashed var(--border2);
@@ -1398,9 +1410,7 @@
     <div class="nav-item" onclick="showPage('cari')">
       <span class="nav-icon">📒</span> Cari Hesap
     </div>
-    <div class="nav-item" id="nav-kullanicilar" style="display:none" onclick="showPage('kullanicilar')">
-      <span class="nav-icon">👥</span> Kullanıcı Yönetimi
-    </div>
+
     <div class="nav-section">Organizasyon</div>
     <div class="nav-item" onclick="showPage('durusmatakvim')">
       <span class="nav-icon">⚖️</span> Duruşma Takvimi
@@ -1938,26 +1948,6 @@
       </div>
     </div>
 
-    <!-- KULLANICI YÖNETİMİ -->
-    <div id="page-kullanicilar" class="page">
-      <div class="card" style="max-width:700px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div class="card-title" style="margin-bottom:0">👥 Kullanıcı Yönetimi</div>
-          <button class="btn btn-gold" onclick="openKullaniciModal()">+ Yeni Kullanıcı</button>
-        </div>
-        <div class="table-wrap">
-          <table id="kullanici-table">
-            <thead><tr>
-              <th>Kullanıcı Adı</th>
-              <th>Ad Soyad</th>
-              <th>Rol</th>
-              <th>Son Giriş</th>
-              <th></th>
-            </tr></thead>
-            <tbody id="kullanici-tbody"></tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <!-- DURUŞMA TAKVİMİ -->
@@ -2793,32 +2783,6 @@
   </div>
 </div>
 
-<!-- KULLANICI MODAL -->
-<div class="modal-overlay" id="modal-kullanici">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-header">
-      <div class="modal-title" id="modal-kullanici-title">Yeni Kullanıcı</div>
-      <button class="modal-close" onclick="closeModal('modal-kullanici')">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group full"><label>Kullanıcı Adı</label><input id="ku-username" placeholder="ornek: berkay"></div>
-        <div class="form-group full"><label>Ad Soyad</label><input id="ku-adsoyad" placeholder="Ad Soyad"></div>
-        <div class="form-group"><label>Rol</label>
-          <select id="ku-rol">
-            <option value="admin">👑 Admin</option>
-            <option value="kullanici">👤 Kullanıcı</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Şifre</label><input id="ku-sifre" type="password" placeholder="Şifre"></div>
-      </div>
-      <div id="ku-error" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px"></div>
-      <div class="form-actions">
-        <button class="btn btn-outline" onclick="closeModal('modal-kullanici')">İptal</button>
-        <button class="btn btn-gold" onclick="saveKullanici()">Kaydet</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- CARİ HESAP MODAL -->
@@ -3638,15 +3602,7 @@ const AUTH = {
   setPassword: () => {}
 };
 
-function getKullanicilar() {
-  const raw = DB.get('kullanicilar');
-  if (!raw || raw.length === 0) {
-    const admin = { id: 'admin', username: 'admin', adSoyad: 'Admin', rol: 'admin', hash: AUTH.getHash('1234'), olusturulma: new Date().toISOString() };
-    DB.set('kullanicilar', [admin]);
-    return [admin];
-  }
-  return raw;
-}
+
 
 
 
@@ -3658,83 +3614,10 @@ function updateSidebarUser(user) {
   if (av) av.textContent = (user.adSoyad || user.username).slice(0,2).toUpperCase();
   if (nm) nm.textContent = user.adSoyad || user.username;
   if (rl) rl.textContent = user.rol === 'admin' ? '👑 Admin' : '👤 Kullanıcı';
-  const navKul = document.getElementById('nav-kullanicilar');
-  if (navKul) navKul.style.display = user.rol === 'admin' ? '' : 'none';
+
 }
 
-// ========== KULLANICI YÖNETİMİ ==========
-let editingKullaniciId = null;
-
-function renderKullanicilar() {
-  const kullanicilar = getKullanicilar();
-  document.getElementById('kullanici-tbody').innerHTML = kullanicilar.map(u => `
-    <tr>
-      <td><strong style="color:var(--text)">${u.username}</strong></td>
-      <td>${u.adSoyad || '—'}</td>
-      <td><span class="tag ${u.rol==='admin'?'tag-aktif':'tag-bekliyor'}">${u.rol==='admin'?'👑 Admin':'👤 Kullanıcı'}</span></td>
-      <td style="font-size:12px">${u.sonGiris ? fmtDateShort(u.sonGiris) : '—'}</td>
-      <td>
-        <button class="btn btn-ghost" onclick="editKullanici('${u.id}')">✏</button>
-        ${u.id !== 'admin' ? `<button class="btn btn-ghost" style="color:var(--red)" onclick="deleteKullanici('${u.id}')">🗑</button>` : ''}
-      </td>
-    </tr>
-  `).join('');
-}
-
-function openKullaniciModal() {
-  editingKullaniciId = null;
-  ['ku-username','ku-adsoyad','ku-sifre'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('ku-rol').value = 'kullanici';
-  document.getElementById('ku-error').textContent = '';
-  document.getElementById('modal-kullanici-title').textContent = 'Yeni Kullanıcı';
-  openModal('modal-kullanici');
-}
-
-function editKullanici(id) {
-  const u = getKullanicilar().find(x => x.id === id);
-  if (!u) return;
-  editingKullaniciId = id;
-  document.getElementById('ku-username').value = u.username;
-  document.getElementById('ku-adsoyad').value = u.adSoyad || '';
-  document.getElementById('ku-rol').value = u.rol;
-  document.getElementById('ku-sifre').value = '';
-  document.getElementById('ku-error').textContent = '';
-  document.getElementById('modal-kullanici-title').textContent = 'Kullanıcıyı Düzenle';
-  openModal('modal-kullanici');
-}
-
-function saveKullanici() {
-  const username = document.getElementById('ku-username').value.trim().toLowerCase();
-  const adSoyad = document.getElementById('ku-adsoyad').value.trim();
-  const rol = document.getElementById('ku-rol').value;
-  const sifre = document.getElementById('ku-sifre').value;
-  const errEl = document.getElementById('ku-error');
-  if (!username) { errEl.textContent = 'Kullanıcı adı zorunludur.'; return; }
-  if (!editingKullaniciId && !sifre) { errEl.textContent = 'Yeni kullanıcı için şifre zorunludur.'; return; }
-  let arr = getKullanicilar();
-  if (arr.find(u => u.username === username && u.id !== editingKullaniciId)) { errEl.textContent = 'Bu kullanıcı adı zaten kullanımda.'; return; }
-  if (editingKullaniciId) {
-    arr = arr.map(u => u.id === editingKullaniciId ? {...u, username, adSoyad, rol, ...(sifre ? {hash: AUTH.getHash(sifre)} : {})} : u);
-  } else {
-    arr.push({ id: DB.genId(), username, adSoyad, rol, hash: AUTH.getHash(sifre), olusturulma: new Date().toISOString() });
-  }
-  DB.set('kullanicilar', arr);
-  closeModal('modal-kullanici');
-  renderKullanicilar();
-  notify(editingKullaniciId ? 'Kullanıcı güncellendi ✓' : 'Kullanıcı eklendi ✓');
-  editingKullaniciId = null;
-}
-
-function deleteKullanici(id) {
-  if (!confirm('Bu kullanıcıyı silmek istiyor musunuz?')) return;
-  DB.set('kullanicilar', DB.get('kullanicilar').filter(u => u.id !== id));
-  renderKullanicilar();
-  notify('Kullanıcı silindi');
-}
-
-function doLogout() {
-  if (confirm('Çıkış yapmak istediğinize emin misiniz?')) AUTH.logout();
-}
+// doLogout — Supabase versiyonu yukarıda tanımlı
 
 function openSecurityModal() {
   document.getElementById('sec-current').value = '';
@@ -3744,18 +3627,7 @@ function openSecurityModal() {
   openModal('modal-security');
 }
 
-function changePassword() {
-  const cur = document.getElementById('sec-current').value;
-  const nw = document.getElementById('sec-new').value;
-  const conf = document.getElementById('sec-confirm').value;
-  const errEl = document.getElementById('sec-error');
-  if (!AUTH.check(cur)) { errEl.textContent = '❌ Mevcut şifre hatalı.'; return; }
-  if (nw.length < 4) { errEl.textContent = '⚠️ Yeni şifre en az 4 karakter olmalı.'; return; }
-  if (nw !== conf) { errEl.textContent = '⚠️ Şifreler eşleşmiyor.'; return; }
-  AUTH.setPassword(nw);
-  closeModal('modal-security');
-  notify('✅ Şifre başarıyla güncellendi');
-}
+// changePassword — Supabase versiyonu yukarıda tanımlı
 
 // ========== BACKUP / RESTORE ==========
 function exportData() {
@@ -5194,7 +5066,7 @@ window.refreshCurrentPage = function(changedKey) {
   const keyPageMap = {
     davalar: 'davalar', icralar: 'icralar', muvekkiller: 'kisiler',
     kisiler: 'kisiler', finans: 'finans', cari: 'cari',
-    tasks: 'tasks', notlar: 'notlar', kullanicilar: 'kullanicilar'
+    tasks: 'tasks', notlar: 'notlar'
   };
   const targetPage = keyPageMap[changedKey];
   if (!targetPage) return;
@@ -5207,7 +5079,6 @@ window.refreshCurrentPage = function(changedKey) {
     else if (targetPage === 'cari') renderCari();
     else if (targetPage === 'tasks') renderTasks();
     else if (targetPage === 'notlar') renderNotes();
-    else if (targetPage === 'kullanicilar') renderKullanicilar();
     // Küçük bildirim
     const bar = document.getElementById('online-users-bar');
     if (bar && bar.textContent) notify('🔄 Veriler güncellendi');
@@ -5297,7 +5168,6 @@ function showPage(page) {
   }
   else if (page === 'finans') renderFinans();
   else if (page === 'cari') { populateCariMuvekkilSelect(); renderCari(); }
-  else if (page === 'kullanicilar') { renderKullanicilar(); }
   else if (page === 'tasks') {
     populateTaskDosyaFilter();
     renderTasks();
@@ -5326,7 +5196,6 @@ function showPage(page) {
       davadash:       '+ Yeni Dava',
       raporlar:       null,
       tebligat:       null,
-      kullanicilar:   null,
     };
     const label = btnLabels[page];
     if (label === null) {
@@ -5340,8 +5209,8 @@ function showPage(page) {
   closeSidebar();
 }
 
-const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', cari:'Cari Hesap', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
-const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', cari:'Cari Hesap', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
+const pageTitles = {dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', cari:'Cari Hesap', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
+const pageNames = {dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', cari:'Cari Hesap', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi'};
 
 function showSubpage(id) {
   const page = id.split('-')[0];
@@ -5442,7 +5311,7 @@ function handleTopbarAdd() {
   }
 
   // Rapor, yardımcı siteler, kullanıcı yönetimi — bu sayfalarda "+ Yeni Ekle" anlamsız, yoksay
-  if (['raporlar','tebligat','kullanicilar','davadash'].includes(activePage)) return;
+  if (['raporlar','tebligat','davadash'].includes(activePage)) return;
 
   // Fallback
   clearForms();
@@ -7251,45 +7120,22 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 // ========== INIT ==========
-window.appReady = function() {
-  if (window._appStarted) return;
-  window._appStarted = true;
-  // Auth gate
-  if (!AUTH.isLoggedIn()) {
-    // show login
-  } else {
-    document.getElementById('login-screen').classList.add('hidden');
-    updateSidebarUser(window.currentUser);
-    if (window.setOnlinePresence && window.currentUser) {
-      window.setOnlinePresence(window.currentUser.id, window.currentUser.adSoyad || window.currentUser.username);
-    }
-  }
+// window.appReady Supabase script bloğunda tanımlı
 
-  initSampleData();
-  initMahkemeSelects();
-  renderDashboard();
-
-  // Schedule existing reminders
-  DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder);
-
-  // Periodic reminder check
+setTimeout(() => {
+  try { DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(scheduleReminder); } catch(e) {}
   setInterval(() => {
     const now = new Date();
-    DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
-      const rem = new Date(t.hatirlatma);
-      const diff = Math.abs(rem - now);
-      if (diff < 60000) notify(`⏰ ${t.baslik}`);
-    });
+    try {
+      DB.get('tasks').filter(t=>!t.done && t.hatirlatma).forEach(t => {
+        const rem = new Date(t.hatirlatma);
+        if (Math.abs(rem - now) < 60000) notify('⏰ ' + t.baslik);
+      });
+    } catch(e) {}
   }, 60000);
-};
+}, 2000);
 
-// appReady, Firebase modül scripti tarafından çağrılır.
-// Eğer modül çalışmazsa (localhost gibi) fallback:
-setTimeout(() => {
-  if (!window._appStarted && window.appReady) {
-    window.appReady();
-  }
-}, 3000);
+setTimeout(() => { if (!window._appStarted && window.appReady) window.appReady(); }, 3000);
 
 // ========== GLOBAL ARAMA ==========
 let gsActiveIdx = -1;
