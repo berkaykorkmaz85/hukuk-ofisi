@@ -3064,46 +3064,6 @@ async function doLogin() {
   } catch(e) { errEl.textContent = '❌ Bağlantı hatası: ' + e.message; }
 }
 
-async function doLogout() {
-  if (!confirm('Çıkış yapmak istediğinize emin misiniz?')) return;
-  try { await fetch(`${SUPABASE_URL}/auth/v1/logout`, { method: 'POST', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${window._supabaseToken}` } }); } catch(e) {}
-  window._supabaseToken = null; window._currentUserId = null;
-  sessionStorage.removeItem('sb_session'); location.reload();
-}
-
-async function changePassword() {
-  const nw = document.getElementById('sec-new').value;
-  const conf = document.getElementById('sec-confirm').value;
-  const errEl = document.getElementById('sec-error');
-  if (nw.length < 6) { errEl.textContent = '⚠️ Şifre en az 6 karakter olmalı.'; return; }
-  if (nw !== conf) { errEl.textContent = '⚠️ Şifreler eşleşmiyor.'; return; }
-  try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, { method: 'PUT', headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${window._supabaseToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: nw }) });
-    if (!res.ok) throw new Error('Şifre güncellenemedi');
-    closeModal('modal-security'); notify('✅ Şifre başarıyla güncellendi');
-  } catch(e) { errEl.textContent = '❌ ' + e.message; }
-}
-
-window.appReady = function() {
-  const session = checkSession();
-  if (session) {
-    document.getElementById('login-screen').classList.add('hidden');
-    const user = { username: session.email, adSoyad: session.email?.split('@')[0] || 'Kullanıcı', rol: 'admin' };
-    updateSidebarUser(user); window.currentUser = user;
-  }
-  const hint = document.getElementById('login-hint');
-  if (hint) hint.innerHTML = 'E-posta adresiniz ve şifrenizle giriş yapın';
-  // initSampleData ve renderDashboard ana script'te tanımlı, oradan çağrılır
-  if (typeof initSampleData === 'function') {
-    initSampleData(); renderDashboard(); initMahkemeSelects();
-    if (typeof startFaizTimer === 'function') startFaizTimer();
-  }
-};
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => setTimeout(window.appReady, 100));
-} else { setTimeout(window.appReady, 100); }
-
 // ========== TAKVİM GÜN POPUP ==========
 function calGunAc(anahtar) {
   const gorevler = DB.get('tasks').filter(g => g.tarih && g.tarih.slice(0,10) === anahtar);
@@ -7719,7 +7679,7 @@ function tsSave() {
   if (!data.tasinmazlar_list) data.tasinmazlar_list = [];
   data.tasinmazlar_list.push({ id: Date.now().toString(36), adres, tur, tarih, aciklama });
   // Metin alanını da güncelle
-  data.tasinmazlar = data.tasinmazlar_list.map(t => '['+t.tur+'] '+t.adres+(t.tarih?' ('+t.tarih+')':'')).join('\n');
+  data.tasinmazlar = data.tasinmazlar_list.map(t => `[${t.tur}] ${t.adres}${t.tarih?' ('+t.tarih+')':''}`).join('\n');
   localStorage.setItem('icra_haciz_' + tsIcraId, JSON.stringify(data));
   closeModal('modal-tasinmaz');
   showIcraDetail(tsIcraId);
