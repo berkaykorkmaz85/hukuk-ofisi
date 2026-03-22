@@ -736,6 +736,8 @@
   }
   /* CHATTER */
   .chatter-feed {
+    display: flex;
+    flex-direction: column-reverse;
     flex: 1;
     overflow-y: auto;
     padding: 16px;
@@ -743,60 +745,70 @@
     flex-direction: column;
     gap: 12px;
   }
+  /* ── CHATTER: Twitter/X tarzı flat timeline ── */
   .chatter-post {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
     position: relative;
+    transition: background 0.12s;
   }
-  .chatter-post.reply {
-    margin-left: 20px;
-    border-left: 2px solid var(--gold);
-    border-radius: 0 10px 10px 0;
-    background: var(--bg);
-  }
+  .chatter-post:hover { background: rgba(255,255,255,0.015); }
+  .chatter-post:last-child { border-bottom: none; }
   .chatter-post-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
   }
   .chatter-avatar {
-    width: 28px; height: 28px;
+    width: 30px; height: 30px;
     border-radius: 50%;
     background: var(--gold-dim);
-    border: 1px solid var(--gold);
+    border: 1.5px solid rgba(201,168,76,0.4);
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--gold);
     font-weight: 700;
     flex-shrink: 0;
   }
-  .chatter-avatar.reply-av { background: rgba(58,107,140,0.15); border-color: #3a6b8c; color: #7ab5d4; }
-  .chatter-meta { flex: 1; }
-  .chatter-author { font-size: 12px; font-weight: 600; color: var(--text); }
-  .chatter-time { font-size: 10px; color: var(--text3); }
-  .chatter-body { font-size: 13.5px; color: var(--text2); line-height: 1.65; white-space: pre-wrap; }
+  .chatter-avatar.reply-av { background: rgba(58,107,140,0.15); border-color: rgba(58,107,140,0.4); color: #7ab5d4; }
+  .chatter-meta { flex: 1; display: flex; align-items: baseline; gap: 6px; }
+  .chatter-author { font-size: 13px; font-weight: 600; color: var(--text); }
+  .chatter-time { font-size: 11px; color: var(--text3); }
+  .chatter-body { font-size: 13.5px; color: var(--text2); line-height: 1.65; white-space: pre-wrap; padding-left: 38px; }
+  /* Yanıt alıntısı kutusu */
+  .chatter-quote {
+    margin: 6px 0 6px 38px;
+    border-left: 2px solid var(--border2);
+    padding: 4px 10px;
+    border-radius: 0 4px 4px 0;
+    background: rgba(255,255,255,0.025);
+  }
+  .chatter-quote-author { font-size: 11px; color: var(--gold); font-weight: 600; margin-bottom: 2px; }
+  .chatter-quote-text { font-size: 12px; color: var(--text3); line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .chatter-actions {
     display: flex;
-    gap: 6px;
-    margin-top: 8px;
+    gap: 2px;
+    margin-top: 6px;
+    padding-left: 34px;
+    opacity: 0;
+    transition: opacity 0.15s;
   }
+  .chatter-post:hover .chatter-actions { opacity: 1; }
   .chatter-btn {
     font-size: 11px;
     color: var(--text3);
     background: none;
     border: none;
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 4px;
     transition: all 0.12s;
   }
-  .chatter-btn:hover { background: rgba(255,255,255,0.06); color: var(--text2); }
+  .chatter-btn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
   .chatter-btn.reply-btn:hover { color: var(--gold); }
   .chatter-btn.del-btn:hover { color: var(--red); }
-  .chatter-replies { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .chatter-replies { display: none; }
   /* CHATTER INPUT */
   .chatter-input-area {
     border-top: 1px solid var(--border);
@@ -2042,24 +2054,46 @@
     <!-- SOL: Detay Bilgileri -->
     <div class="ddp-left" id="ddp-info"></div>
     <!-- SAĞ: Chatter -->
-    <div class="ddp-right">
-      <div class="ddp-right-header">
-        💬 Dosya Günlüğü
-        <span id="ddp-post-count" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--text3);font-weight:400"></span>
-      </div>
-      <div class="chatter-feed" id="chatter-feed"></div>
-      <div class="chatter-input-area">
-        <div class="chatter-reply-banner" id="chatter-reply-banner" style="display:none">
-          <span id="chatter-reply-label"></span>
-          <button onclick="cancelReply()" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;line-height:1">×</button>
+    <div class="ddp-right" style="display:flex;flex-direction:column;overflow:hidden;position:relative">
+      <!-- ANA FEED -->
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden" id="chatter-main-panel">
+        <div class="ddp-right-header">
+          💬 Dosya Günlüğü
+          <span id="ddp-post-count" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--text3);font-weight:400"></span>
         </div>
-        <textarea class="chatter-textarea" id="chatter-input"
-          placeholder="Bu dosya hakkında not, gelişme veya bilgi yazın..."
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendChatterPost();event.preventDefault()}else if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){sendChatterPost();event.preventDefault()}">
-        </textarea>
-        <div class="chatter-send-row">
-          <span class="chatter-send-hint">Ctrl + Enter ile gönder</span>
-          <button class="btn btn-gold" style="font-size:13px;padding:7px 16px" onclick="sendChatterPost()">Gönder →</button>
+        <div class="chatter-feed" id="chatter-feed"></div>
+        <div class="chatter-input-area">
+          <textarea class="chatter-textarea" id="chatter-input"
+            placeholder="Yeni mesaj yaz... (Enter = gönder)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey){sendChatterPost();event.preventDefault()}">
+          </textarea>
+          <div class="chatter-send-row">
+            <span class="chatter-send-hint">Enter · Shift+Enter yeni satır</span>
+            <button class="btn btn-gold" style="font-size:13px;padding:7px 16px" onclick="sendChatterPost()">Gönder →</button>
+          </div>
+        </div>
+      </div>
+      <!-- THREAD PANELİ (sağdan kayar) -->
+      <div id="thread-panel" style="display:none;position:absolute;inset:0;background:var(--bg2);z-index:10;flex-direction:column;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <button onclick="closeThread()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;line-height:1;padding:2px 6px;border-radius:4px" title="Kapat">←</button>
+          <span style="font-size:13px;font-weight:600;color:var(--text);flex:1">Thread</span>
+          <span id="thread-count" style="font-size:11px;color:var(--text3)"></span>
+        </div>
+        <!-- Ana mesaj -->
+        <div id="thread-root" style="padding:12px 16px;border-bottom:2px solid var(--border);flex-shrink:0;background:var(--bg3)"></div>
+        <!-- Yanıtlar -->
+        <div id="thread-replies" style="flex:1;overflow-y:auto;padding:8px 0"></div>
+        <!-- Yanıt yaz -->
+        <div style="border-top:1px solid var(--border);padding:10px 14px;flex-shrink:0;background:var(--bg2)">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Bu thread'e yanıt ver:</div>
+          <textarea id="thread-input" rows="2"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;padding:8px 10px;resize:none;outline:none;font-family:'DM Sans',sans-serif"
+            placeholder="Yanıt yaz... (Enter = gönder)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendThreadReply();event.preventDefault()}"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:6px">
+            <button class="btn btn-gold" style="font-size:12px;padding:5px 14px" onclick="sendThreadReply()">Yanıtla →</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2152,13 +2186,16 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="form-group"><label>Dosya No</label><input id="d-no" placeholder="2024/1234"></div>
+        <div class="form-group">
+  <label>Büro No</label>
+  <div style="display:flex;gap:6px;align-items:center">
+    <input id="d-no" placeholder="BK001" style="font-family:'DM Mono',monospace;flex:1" oninput="davaAdOtomatic()">
+    <button type="button" onclick="bkOtomatikVer()" class="btn btn-outline" style="white-space:nowrap;font-size:12px;padding:6px 10px">⚡ Otomatik</button>
+  </div>
+</div>
         <div class="form-group"><label>Müvekkil</label><select id="d-muvekkil"><option value="">Seçin...</option></select></div>
-        <div class="form-group full">
-          <label>Dosya Adı <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">— kısa, hatırlanabilir bir isim verin (örn: "Ahmet Kira", "Şirket Sözleşmesi")</span></label>
-          <input id="d-ad" placeholder="Dosya adı...">
-        </div>
-        <div class="form-group full"><label>Dava Konusu</label><input id="d-konu" placeholder="Kira alacağı davası, boşanma davası..."></div>
+        <input id="d-ad" type="hidden">
+        <div class="form-group full"><label>Dava Konusu <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(isteğe bağlı)</span></label><input id="d-konu" placeholder="Kira alacağı davası, boşanma davası..."></div>
 
         <!-- ① İLK DERECE MAHKEMESİ -->
         <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
@@ -2195,8 +2232,14 @@
             </div>
             <div class="form-group">
               <label>İl</label>
-              <select id="d-il" onchange="onMahkemeIlChange('dava')">
+              <select id="d-il" onchange="onMahkemeIlChange('dava');onAdliyeIlChange()">
                 <option value="">Önce tür seçin</option>
+              </select>
+            </div>
+            <div class="form-group" id="d-adliye-wrap" style="display:none">
+              <label>Adliye</label>
+              <select id="d-adliye" onchange="buildMahkemeAdi('dava')">
+                <option value="">Seçin...</option>
               </select>
             </div>
             <div class="form-group">
@@ -2222,9 +2265,15 @@
         </div>
 
         <!-- ② İSTİNAF MAHKEMESİ -->
-        <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0;margin-bottom:4px;overflow:hidden">
+          <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.collapse-arrow').style.transform=this.nextElementSibling.style.display==='none'?'rotate(0deg)':'rotate(90deg)'"
+            style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none">
             <div style="font-size:11px;color:#7ab5d4;text-transform:uppercase;letter-spacing:0.1em;font-weight:600">🏛 İstinaf Aşaması <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(varsa doldurun)</span></div>
+            <span class="collapse-arrow" style="color:var(--text3);font-size:14px;transition:transform 0.2s">▶</span>
+          </div>
+          <div style="display:none;padding:0 14px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div></div>
           </div>
           <div class="form-grid-3" style="gap:10px">
             <div class="form-group">
@@ -2267,11 +2316,17 @@
             <label>İstinaf Mahkeme Adı <span style="color:var(--text3);font-weight:400;text-transform:none">(otomatik dolar)</span></label>
             <input id="d-istinaf-mahkeme" placeholder="Örn: Ankara Bölge Adliye Mahkemesi 5. Hukuk Dairesi" style="color:#7ab5d4">
           </div>
+          </div><!-- /collapse body -->
         </div>
 
         <!-- ③ TEMYİZ MAHKEMESİ -->
-        <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
-          <div style="font-size:11px;color:#c4a8e0;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;font-weight:600">⚡ Temyiz Aşaması <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(varsa doldurun)</span></div>
+        <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0;margin-bottom:4px;overflow:hidden">
+          <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.collapse-arrow').style.transform=this.nextElementSibling.style.display==='none'?'rotate(0deg)':'rotate(90deg)'"
+            style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none">
+            <div style="font-size:11px;color:#c4a8e0;text-transform:uppercase;letter-spacing:0.1em;font-weight:600">⚡ Temyiz Aşaması <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(varsa doldurun)</span></div>
+            <span class="collapse-arrow" style="color:var(--text3);font-size:14px;transition:transform 0.2s">▶</span>
+          </div>
+          <div style="display:none;padding:0 14px 14px">
           <div class="form-grid-3" style="gap:10px">
             <div class="form-group">
               <label>Temyiz Mercii</label>
@@ -2297,6 +2352,7 @@
             <label>Temyiz Mahkeme Adı <span style="color:var(--text3);font-weight:400;text-transform:none">(otomatik dolar)</span></label>
             <input id="d-temyiz-mahkeme" placeholder="Örn: Yargıtay 8. Hukuk Dairesi" style="color:#c4a8e0">
           </div>
+          </div><!-- /collapse body -->
         </div>
 
         <div class="form-group"><label>Esas No</label><input id="d-esas" placeholder="2024/5678"></div>
@@ -2383,8 +2439,12 @@
               <input id="d-bilirkisi" placeholder="Ad Soyad / Kurum" list="kisiler-list-dl">
             </div>
             <div class="form-group">
-              <label>Arabulucu</label>
+              <label>Arabulucu Adı</label>
               <input id="d-arabulucu" placeholder="Ad Soyad" list="kisiler-list-dl">
+            </div>
+            <div class="form-group">
+              <label>Arabuluculuk No</label>
+              <input id="d-arabulucu-no" placeholder="2024/ARABULUCULUK/001">
             </div>
             <div class="form-group">
               <label>Diğer Kişi</label>
@@ -4489,6 +4549,45 @@ function buildIstinafMahkeme() { buildIstinafAdi(); }
 function buildYargitayMahkeme() {}
 function buildDanistayMahkeme() {}
 
+
+const COKLU_ADLIYE = {
+  'İstanbul': ['İstanbul (Çağlayan)', 'İstanbul Anadolu (Kartal)', 'Bakırköy', 'Küçükçekmece', 'Büyükçekmece', 'Gaziosmanpaşa', 'Üsküdar', 'Kartal', 'Beykoz', 'Adalar', 'Şişli'],
+  'Ankara': ['Ankara (Sıhhiye)', 'Ankara Batı (Sincan)', 'Ankara Yenimahalle', 'Etimesgut', 'Keçiören', 'Mamak'],
+  'İzmir': ['İzmir (Adliye)', 'İzmir Karşıyaka', 'İzmir Bayraklı', 'Bornova', 'Buca', 'Konak', 'Torbalı'],
+  'Bursa': ['Bursa (Merkez)', 'Bursa Osmangazi', 'Bursa Yıldırım', 'Bursa Nilüfer', 'İnegöl', 'Gemlik'],
+  'Antalya': ['Antalya (Merkez)', 'Alanya', 'Manavgat', 'Serik', 'Kemer'],
+  'Adana': ['Adana (Merkez)', 'Adana Seyhan', 'Adana Çukurova', 'Ceyhan', 'Kozan'],
+  'Gaziantep': ['Gaziantep (Merkez)', 'Gaziantep Şahinbey', 'Gaziantep Şehitkamil', 'Nizip'],
+  'Kocaeli': ['Kocaeli (İzmit)', 'Kocaeli Gebze', 'Kocaeli Darıca', 'Gölcük', 'Kandıra'],
+  'Mersin': ['Mersin (Merkez)', 'Tarsus', 'Silifke', 'Erdemli'],
+  'Diyarbakır': ['Diyarbakır (Merkez)', 'Diyarbakır Sur', 'Bismil', 'Ergani'],
+  'Şanlıurfa': ['Şanlıurfa (Merkez)', 'Viranşehir', 'Birecik', 'Siverek'],
+  'Sakarya': ['Sakarya (Adapazarı)', 'Sakarya Serdivan', 'Hendek', 'Akyazı'],
+  'Trabzon': ['Trabzon (Merkez)', 'Akçaabat', 'Of', 'Sürmene'],
+  'Samsun': ['Samsun (Merkez)', 'Bafra', 'Çarşamba', 'Terme'],
+  'Konya': ['Konya (Merkez)', 'Konya Meram', 'Konya Selçuklu', 'Ereğli', 'Akşehir'],
+  'Kayseri': ['Kayseri (Merkez)', 'Kayseri Kocasinan', 'Kayseri Melikgazi', 'Develi'],
+  'Hatay': ['Hatay Antakya', 'İskenderun', 'Dörtyol', 'Reyhanlı'],
+};
+
+function onAdliyeIlChange() {
+  const il = document.getElementById('d-il')?.value || '';
+  const wrap = document.getElementById('d-adliye-wrap');
+  const sel = document.getElementById('d-adliye');
+  if (!wrap || !sel) return;
+  
+  const adliyeler = COKLU_ADLIYE[il];
+  if (adliyeler && adliyeler.length > 1) {
+    sel.innerHTML = '<option value="">Adliye seçin...</option>' + 
+      adliyeler.map(a => `<option value="${a}">${a}</option>`).join('');
+    wrap.style.display = '';
+  } else {
+    sel.innerHTML = `<option value="${il}">${il}</option>`;
+    wrap.style.display = 'none';
+  }
+  buildMahkemeAdi('dava');
+}
+
 function buildMahkemeAdi(mod) {
   if (mod === 'dava') {
     const tur = document.getElementById('d-tur').value;
@@ -4502,15 +4601,18 @@ function buildMahkemeAdi(mod) {
       return;
     }
     if (!il) return;
+    // Adliye seçimi varsa onu kullan
+    const adliyeSel = document.getElementById('d-adliye');
+    const adliyeAdi = (adliyeSel && adliyeSel.style.display !== 'none' && adliyeSel.value) ? adliyeSel.value : il;
     const ilsiz = ['Bölge Adliye', 'Bölge İdare', 'Fikri Mülkiyet'].includes(tur);
     if (ilsiz) {
       if (tur === 'Bölge Adliye') { buildIstinafMahkeme(); return; }
-      document.getElementById('d-mahkeme').value = turMap.ad.replace('{il}', il).replace(' {sira}.', '');
+      document.getElementById('d-mahkeme').value = turMap.ad.replace('{il}', adliyeAdi).replace(' {sira}.', '');
       return;
     }
     if (!sira) return;
     document.getElementById('d-mahkeme').value =
-      turMap.ad.replace('{il}', il).replace('{sira}', sira);
+      turMap.ad.replace('{il}', adliyeAdi).replace('{sira}', sira);
   } else {
     const il = document.getElementById('i-il').value;
     const sira = document.getElementById('i-sira').value;
@@ -4529,6 +4631,8 @@ function initMahkemeSelects() {
   const ilOptions = '<option value="">İl seçin...</option>' + TR_ILLER.map(il => `<option value="${il}">${il}</option>`).join('');
   const iIl = document.getElementById('i-il');
   if (iIl) iIl.innerHTML = ilOptions;
+  const dIl = document.getElementById('d-il');
+  if (dIl) dIl.innerHTML = '<option value="">İl seçin...</option>' + TR_ILLER.map(il => `<option value="${il}">${il}</option>`).join('');
   const istinafIl = document.getElementById('d-istinaf-il');
   if (istinafIl) istinafIl.innerHTML = ilOptions;
 }
@@ -5747,7 +5851,14 @@ function renderDavaDetailPage(id) {
   const tasks = DB.get('tasks').filter(t => t.ilgili && t.ilgili.includes(d.no));
 
   // Topbar
-  document.getElementById('ddp-title').textContent = d.ad ? `${d.ad}  ·  ${d.no}` : `${d.no} — ${d.konu}`;
+  const titleEl = document.getElementById('ddp-title');
+  if (d.ad) {
+    titleEl.innerHTML = `<span style="opacity:0.6;font-size:12px">${d.no}</span><br><span style="font-size:15px">(${d.ad})</span>`;
+    titleEl.style.cssText = 'text-align:center;line-height:1.3;max-height:2.8em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical';
+  } else {
+    titleEl.textContent = `${d.no}${d.konu ? ' — ' + d.konu : ''}`;
+    titleEl.style.cssText = '';
+  }
   document.getElementById('ddp-edit-btn').onclick = () => { closeDavaDetailPage(); editDava(id); };
   document.getElementById('ddp-delete-btn').onclick = () => {
     if (confirm('Bu dosyayı silmek istiyor musunuz?')) { closeDavaDetailPage(); deleteDava(id); }
@@ -5771,8 +5882,14 @@ function renderDavaDetailPage(id) {
         </div>` : `<div style="font-size:12px;color:var(--text3);margin-bottom:2px">
           <button style="background:none;border:1px dashed var(--border2);border-radius:4px;color:var(--text3);font-size:11px;padding:2px 8px;cursor:pointer" onclick="startInlineEdit('${id}','ad')">+ Dosya adı ekle</button>
         </div>`}
-        <div class="detail-name" id="ei-display-konu">${d.konu}</div>
-        <div class="detail-meta">Dosya No: <span class="mono text-gold">${d.no}</span> · ${d.tur||''}${d.yargiKolu ? ' · ' + d.yargiKolu : ''}</div>
+        <div class="detail-name" id="ei-display-konu" style="font-size:${d.ad?'13px':'18px'};font-weight:${d.ad?'400':'600'};color:${d.ad?'var(--text3)':'var(--text)'}">
+          ${d.ad ? '<span style="color:var(--text2);font-style:italic">('+d.ad+')</span>' : (d.konu||'')}
+        </div>
+        <div class="detail-meta">
+          Dosya No: <span class="mono text-gold">${d.no}</span>
+          ${d.tur ? ' · ' + d.tur : ''}${d.yargiKolu ? ' · ' + d.yargiKolu : ''}
+          ${d.tarih ? ` · <span style="color:var(--text3)">📆 ${Math.floor((Date.now()-new Date(d.tarih))/86400000)} gün</span>` : ''}
+        </div>
         <div class="detail-tags" style="margin-top:6px">
           <span class="tag tag-${d.durum==='Aktif'?'aktif':d.durum==='Bekliyor'?'bekliyor':'kapali'}" id="ei-display-durum">${d.durum}</span>
           ${d.cesit ? `<span class="tag" style="background:rgba(201,168,76,0.12);color:var(--gold2)">${d.cesit}</span>` : ''}
@@ -5825,6 +5942,71 @@ function renderDavaDetailPage(id) {
       </div>
     </div>` : ''}
 
+
+    ${(d.hakim||d.savci||d.karsiAvukat||d.bilirkisi||d.arabulucu||d.digerKisi) ? `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="color:#7ab5d4">🧑‍⚖️ Dava Kişileri</div>
+      <div class="info-grid">
+        ${d.hakim ? ei('hakim','Hâkim',d.hakim) : ''}
+        ${d.savci ? ei('savci','Savcı',d.savci) : ''}
+        ${d.karsiAvukat ? ei('karsiAvukat','Karşı Taraf Av.',d.karsiAvukat) : ''}
+        ${d.bilirkisi ? ei('bilirkisi','Bilirkişi',d.bilirkisi) : ''}
+        ${d.arabulucu ? ei('arabulucu','Arabulucu',d.arabulucu) : ''}
+        ${d.arabulucuNo ? ei('arabulucuNo','Arabuluculuk No',d.arabulucuNo) : (d.arabulucu ? `<div class="info-item"><label>Arabuluculuk No</label><span style="color:var(--text3);font-size:11px">—</span><button class="info-edit-btn" onclick="startInlineEdit('${id}','arabulucuNo')">✏</button></div>` : '')}
+        ${d.digerKisi ? ei('digerKisi','Diğer',d.digerKisi) : ''}
+      </div>
+    </div>` : ''}
+
+    <div style="margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${[
+          {key:'sonDurum',    icon:'📌', label:'Son Durum',    color:'var(--gold)',  borderColor:'rgba(201,168,76,0.35)'},
+          {key:'sonrakiAdim', icon:'➡️', label:'Sonraki Adım', color:'#7dc495',      borderColor:'rgba(74,140,92,0.35)'},
+          {key:'strateji',    icon:'⚖️', label:'Strateji',     color:'#7ab5d4',      borderColor:'rgba(58,107,140,0.35)'},
+          {key:'arabuluculuk',icon:'🤝', label:'Arabuluculuk', color:'#c4a8e0',      borderColor:'rgba(122,92,140,0.35)'},
+        ].map(kart => `
+          <div style="background:var(--bg2);border:1px solid ${kart.borderColor};border-radius:10px;padding:12px;cursor:pointer;transition:border-color 0.15s"
+               onclick="editDavaNotKartInline('${id}','${kart.key}')">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-size:11px;color:${kart.color};font-weight:600;text-transform:uppercase;letter-spacing:0.06em">${kart.icon} ${kart.label}</div>
+              <button onclick="event.stopPropagation();editDavaNotKartInline('${id}','${kart.key}')" style="background:none;border:1px solid var(--border);border-radius:5px;color:var(--text3);font-size:10px;padding:2px 6px;cursor:pointer">✏</button>
+            </div>
+            <div style="font-size:12.5px;color:${d[kart.key]?'var(--text2)':'var(--text3)'};line-height:1.6;white-space:pre-wrap;min-height:32px" id="dnk-content-inline-${id}-${kart.key}">${d[kart.key] || '<span style="font-style:italic;opacity:0.5">Eklemek için tıklayın</span>'}</div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:8px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer"
+           onclick="editDavaNotKartInline('${id}','notlar')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">📝 Genel Notlar</div>
+          <button onclick="event.stopPropagation();editDavaNotKartInline('${id}','notlar')" style="background:none;border:1px solid var(--border);border-radius:5px;color:var(--text3);font-size:10px;padding:2px 6px;cursor:pointer">✏</button>
+        </div>
+        <div style="font-size:12.5px;color:${d.notlar?'var(--text2)':'var(--text3)'};line-height:1.6;white-space:pre-wrap;min-height:32px">${d.notlar || '<span style="font-style:italic;opacity:0.5">Eklemek için tıklayın</span>'}</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📎 Belgeler</span>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 10px" onclick="openBelgeModal('${id}')">+ Belge Ekle</button>
+      </div>
+      <div id="belge-list-${id}">${renderBelgeler(id)}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>✅ İlgili Görevler</span>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 10px" onclick="openTaskForDava('${id}')">+ Görev Ekle</button>
+      </div>
+      ${tasks.length ? tasks.map(t => `
+        <div class="task-item">
+          <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${t.id}', ()=>renderDavaDetailPage('${id}'))"></div>
+          <div class="task-content">
+            <div class="task-title ${t.done?'done':''}">${t.baslik}</div>
+            <div class="task-meta"><span>📅 ${fmtDate(t.tarih)}</span></div>
+          </div>
+        </div>
+      `).join('') : '<div style="color:var(--text3);font-size:13px">İlgili görev yok</div>'}
+    </div>
     ${(d.akdiUcret || d.masraf) ? `
     <div class="card" style="margin-bottom:12px;border-color:rgba(74,140,92,0.4)">
       <div class="card-title" style="color:#7dc495">💰 Vekâlet Ücreti & Masraf</div>
@@ -5855,55 +6037,141 @@ function renderDavaDetailPage(id) {
       </div>
     </div>` : ''}
 
-    ${(d.hakim||d.savci||d.karsiAvukat||d.bilirkisi||d.arabulucu||d.digerKisi) ? `
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title" style="color:#7ab5d4">🧑‍⚖️ Dava Kişileri</div>
-      <div class="info-grid">
-        ${d.hakim ? ei('hakim','Hâkim',d.hakim) : ''}
-        ${d.savci ? ei('savci','Savcı',d.savci) : ''}
-        ${d.karsiAvukat ? ei('karsiAvukat','Karşı Taraf Av.',d.karsiAvukat) : ''}
-        ${d.bilirkisi ? ei('bilirkisi','Bilirkişi',d.bilirkisi) : ''}
-        ${d.arabulucu ? ei('arabulucu','Arabulucu',d.arabulucu) : ''}
-        ${d.digerKisi ? ei('digerKisi','Diğer',d.digerKisi) : ''}
-      </div>
-    </div>` : ''}
 
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title">📝 Notlar
-        <button class="info-edit-btn" style="opacity:1;position:static;margin-left:6px" onclick="startInlineEdit('${id}','notlar','textarea')">✏</button>
-      </div>
-      <div class="info-item" id="ei-notlar" style="padding:0">
-        <span class="ei-val" style="color:var(--text2);line-height:1.6;font-size:13px;white-space:pre-wrap">${d.notlar||'—'}</span>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>📎 Belgeler</span>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 10px" onclick="openBelgeModal('${id}')">+ Belge Ekle</button>
-      </div>
-      <div id="belge-list-${id}">${renderBelgeler(id)}</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>✅ İlgili Görevler</span>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 10px" onclick="openTaskForDava('${id}')">+ Görev Ekle</button>
-      </div>
-      ${tasks.length ? tasks.map(t => `
-        <div class="task-item">
-          <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${t.id}', ()=>renderDavaDetailPage('${id}'))"></div>
-          <div class="task-content">
-            <div class="task-title ${t.done?'done':''}">${t.baslik}</div>
-            <div class="task-meta"><span>📅 ${fmtDate(t.tarih)}</span></div>
-          </div>
-        </div>
-      `).join('') : '<div style="color:var(--text3);font-size:13px">İlgili görev yok</div>'}
-    </div>
   `;
 
   // Sağ panel — chatter
   renderChatter(id);
+}
+
+// ===== DAVA NOT KARTLARI =====
+function editDavaNotKartInline(davaId, key) {
+  const d = DB.get('davalar').find(x => x.id === davaId);
+  if (!d) return;
+  const labels = {
+    sonDurum:'📌 Son Durum', sonrakiAdim:'➡️ Sonraki Adım',
+    strateji:'⚖️ Strateji', arabuluculuk:'🤝 Arabuluculuk', notlar:'📝 Genel Notlar'
+  };
+
+  // Mini modal oluştur
+  const existing = document.getElementById('dnk-quick-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'dnk-quick-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+      <div style="font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);margin-bottom:14px">${labels[key]||key}</div>
+      <textarea id="dnk-modal-ta" style="width:100%;min-height:120px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:13.5px;padding:10px 12px;resize:vertical;font-family:'DM Sans',sans-serif;outline:none;line-height:1.7">${d[key]||''}</textarea>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button onclick="document.getElementById('dnk-quick-modal').remove()" class="btn btn-outline">İptal</button>
+        ${d[key] ? `<button onclick="dnkSilInline('${davaId}','${key}')" class="btn btn-ghost" style="color:var(--red)">🗑 Sil</button>` : ''}
+        <button onclick="dnkKaydetInline('${davaId}','${key}')" class="btn btn-gold">Kaydet</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  setTimeout(() => document.getElementById('dnk-modal-ta')?.focus(), 50);
+}
+
+function dnkKaydetInline(davaId, key) {
+  const ta = document.getElementById('dnk-modal-ta');
+  if (!ta) return;
+  let arr = DB.get('davalar');
+  arr = arr.map(d => d.id === davaId ? {...d, [key]: ta.value.trim()} : d);
+  DB.set('davalar', arr);
+  document.getElementById('dnk-quick-modal')?.remove();
+  renderDavaDetailPage(davaId);
+  notify('Kaydedildi ✓');
+}
+
+function dnkSilInline(davaId, key) {
+  if (!confirm('Bu notu silmek istiyor musunuz?')) return;
+  let arr = DB.get('davalar');
+  arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
+  DB.set('davalar', arr);
+  document.getElementById('dnk-quick-modal')?.remove();
+  renderDavaDetailPage(davaId);
+}
+
+const DAVA_NOT_LABELS = {
+  sonDurum:   {label:'📌 Son Durum',    color:'var(--gold)'},
+  sonrakiAdim:{label:'➡️ Sonraki Adım', color:'#7dc495'},
+  strateji:   {label:'⚖️ Strateji',     color:'#7ab5d4'},
+  arabuluculuk:{label:'🤝 Arabuluculuk',color:'#c4a8e0'},
+  notlar:     {label:'📝 Genel Not',    color:'var(--text2)'}
+};
+let _activeNotKart = {};
+
+function toggleDavaNotKart(davaId, key) {
+  const d = DB.get('davalar').find(x => x.id === davaId);
+  if (!d) return;
+  const panel = document.getElementById('dava-not-panel-' + davaId);
+  const labelEl = document.getElementById('dnk-label-' + davaId);
+  const contentEl = document.getElementById('dnk-content-' + davaId);
+  if (!panel) return;
+
+  // Aynı butona tekrar tıklanırsa kapat
+  if (_activeNotKart[davaId] === key && panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    _activeNotKart[davaId] = null;
+    return;
+  }
+
+  _activeNotKart[davaId] = key;
+  const info = DAVA_NOT_LABELS[key];
+  labelEl.textContent = info.label;
+  labelEl.style.color = info.color;
+  contentEl.textContent = d[key] || '(Henüz not girilmemiş)';
+  contentEl.style.color = d[key] ? 'var(--text2)' : 'var(--text3)';
+  panel.dataset.activeKey = key;
+  panel.style.display = '';
+}
+
+function editDavaNotKart(davaId) {
+  const d = DB.get('davalar').find(x => x.id === davaId);
+  const panel = document.getElementById('dava-not-panel-' + davaId);
+  const key = panel?.dataset?.activeKey;
+  if (!d || !key) return;
+  const info = DAVA_NOT_LABELS[key];
+
+  const contentEl = document.getElementById('dnk-content-' + davaId);
+  const mevcut = d[key] || '';
+
+  const taStyle = 'width:100%;min-height:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:8px;resize:vertical;outline:none';
+  contentEl.innerHTML = '<textarea id="dnk-ta-' + davaId + '" style="' + taStyle + '">' + escHtml(mevcut) + '</textarea>';
+  const saveBtn = panel.querySelector('button');
+  if (saveBtn) {
+    saveBtn.textContent = '✓ Kaydet';
+    saveBtn.onclick = () => saveDavaNotKart(davaId, key);
+  }
+  document.getElementById('dnk-ta-' + davaId)?.focus();
+}
+
+function saveDavaNotKart(davaId, key) {
+  const ta = document.getElementById('dnk-ta-' + davaId);
+  if (!ta) return;
+  const val = ta.value;
+  let arr = DB.get('davalar');
+  arr = arr.map(d => d.id === davaId ? {...d, [key]: val} : d);
+  DB.set('davalar', arr);
+  notify('Kaydedildi ✓');
+  renderDavaDetailPage(davaId);
+  // Paneli tekrar aç
+  setTimeout(() => toggleDavaNotKart(davaId, key), 50);
+}
+
+function clearDavaNotKart(davaId) {
+  const panel = document.getElementById('dava-not-panel-' + davaId);
+  const key = panel?.dataset?.activeKey;
+  if (!key || !confirm('Bu notu silmek istiyor musunuz?')) return;
+  let arr = DB.get('davalar');
+  arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
+  DB.set('davalar', arr);
+  panel.style.display = 'none';
+  _activeNotKart[davaId] = null;
+  renderDavaDetailPage(davaId);
 }
 
 // ========== INLINE EDIT (sol panel) ==========
@@ -5969,23 +6237,207 @@ function saveInlineEdit(davaId, field, type) {
 
 // ========== CHATTER ==========
 function renderChatter(davaId) {
-  const allPosts = DB.get('chatter_' + davaId) || [];
-  const posts = allPosts
-    .filter(p => !p.parentId)
-    .sort((a, b) => new Date(b.tarih) - new Date(a.tarih)); // Yeni üstte
-
-  document.getElementById('ddp-post-count').textContent = allPosts.length + ' not';
-
-  document.getElementById('chatter-feed').innerHTML = posts.length
-    ? posts.map(p => renderPost(p, allPosts, davaId)).join('')
-    : `<div style="text-align:center;padding:40px 20px;color:var(--text3)">
-        <div style="font-size:32px;margin-bottom:10px">💬</div>
-        <div style="font-size:13px">Henüz not yok. Aşağıdan ilk notu ekleyin.</div>
-       </div>`;
-
-  const feed = document.getElementById('chatter-feed');
-  feed.scrollTop = 0;
+  const all = (DB.get('chatter_' + davaId) || []);
+  // Sadece kök (ana) mesajları göster, yeniden eskiye
+  const roots = all.filter(p => !p.parentId).sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
+  document.getElementById('ddp-post-count').textContent = all.length + ' mesaj';
+  document.getElementById('chatter-feed').innerHTML = roots.length
+    ? roots.map(p => renderPost(p, all, davaId)).join('')
+    : '<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">💬</div><div style="font-size:13px">Henüz mesaj yok</div></div>';
 }
+
+function renderPost(post, all, davaId) {
+  const ini = (post.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const replies = all.filter(p => p.parentId === post.id).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+  const replyCount = replies.length;
+
+  // Önizleme: son 2 yanıt
+  const preview = replies.slice(-2);
+  const previewHtml = preview.map(r => {
+    const ri = (r.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return `<div style="display:flex;gap:7px;align-items:flex-start;padding:5px 0;border-top:1px solid var(--border)">
+      <div style="width:20px;height:20px;border-radius:50%;background:rgba(58,107,140,0.2);border:1px solid rgba(58,107,140,0.4);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#7ab5d4;flex-shrink:0;margin-top:1px">${ri}</div>
+      <div style="flex:1;min-width:0">
+        <span style="font-size:11px;font-weight:600;color:var(--text2)">${escHtml(r.yazar||'Avukat')}</span>
+        <span style="font-size:11px;color:var(--text3);margin-left:4px">${fmtDate(r.tarih)}</span>
+        <div style="font-size:12.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${escHtml((r.metin||'').slice(0,60))}${(r.metin||'').length>60?'…':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const threadBtn = replyCount > 0
+    ? `<button onclick="openThread('${post.id}','${davaId}')"
+        style="display:flex;align-items:center;gap:5px;margin-top:8px;padding:5px 10px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:6px;color:var(--gold);font-size:12px;cursor:pointer;font-weight:500;width:fit-content">
+        <span>💬 ${replyCount} yanıt</span>
+        ${replyCount > 2 ? `<span style="color:var(--text3);font-size:11px">· Tamamını gör</span>` : ''}
+        <span style="font-size:10px;opacity:0.7">→</span>
+      </button>`
+    : `<button onclick="openThread('${post.id}','${davaId}')"
+        style="margin-top:8px;padding:3px 10px;background:none;border:1px dashed var(--border);border-radius:6px;color:var(--text3);font-size:11px;cursor:pointer;opacity:0;transition:opacity 0.15s" class="reply-trigger">
+        ↩ Yanıtla
+      </button>`;
+
+  return `<div id="post-${post.id}" style="padding:12px 16px;border-bottom:1px solid var(--border)"
+      onmouseover="const rt=this.querySelector('.reply-trigger');if(rt)rt.style.opacity='1'"
+      onmouseout="const rt=this.querySelector('.reply-trigger');if(rt)rt.style.opacity='0'">
+    <div style="display:flex;gap:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(post.yazar||'Avukat')}</span>
+          <span style="font-size:11px;color:var(--text3)">${fmtDate(post.tarih)}</span>
+          <span style="margin-left:auto;display:flex;gap:4px">
+            <button onclick="startChatterEdit('${post.id}','${davaId}')" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:1px 5px;border-radius:3px;opacity:0" class="post-btn">✏</button>
+            <button onclick="deletePost('${post.id}','${davaId}')" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:1px 5px;border-radius:3px;opacity:0" class="post-btn del-btn">🗑</button>
+          </span>
+        </div>
+        <div id="cbody-${post.id}" style="font-size:13.5px;color:var(--text2);line-height:1.65;white-space:pre-wrap">${escHtml(post.metin)}</div>
+        ${renderTepkiBar(post, davaId, false)}
+        ${previewHtml ? `<div style="margin-top:6px">${previewHtml}</div>` : ''}
+        ${threadBtn}
+        <div id="cactions-${post.id}"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// Thread paneli aç
+let _threadDavaId = null, _threadRootId = null;
+
+function openThread(postId, davaId) {
+  _threadDavaId = davaId;
+  _threadRootId = postId;
+  document.getElementById('thread-panel').style.display = 'flex';
+  renderThread(postId, davaId);
+  setTimeout(() => document.getElementById('thread-input')?.focus(), 100);
+}
+
+function closeThread() {
+  document.getElementById('thread-panel').style.display = 'none';
+  _threadDavaId = null; _threadRootId = null;
+}
+
+function renderThread(postId, davaId) {
+  const all = DB.get('chatter_' + davaId) || [];
+  const root = all.find(p => p.id === postId);
+  if (!root) return;
+
+  // Tüm yanıtları topla (doğrudan ve zincir)
+  const getReplies = (id) => {
+    const direct = all.filter(p => p.parentId === id).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+    return direct.reduce((acc, r) => [...acc, r, ...getReplies(r.id)], []);
+  };
+  const replies = getReplies(postId);
+
+  document.getElementById('thread-count').textContent = replies.length + ' yanıt';
+
+  // Ana mesaj
+  const rIni = (root.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('thread-root').innerHTML = `
+    <div style="display:flex;gap:10px">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0">${rIni}</div>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(root.yazar||'Avukat')}</span>
+          <span style="font-size:11px;color:var(--text3)">${fmtDate(root.tarih)}</span>
+          <span style="font-size:10px;color:var(--gold);background:var(--gold-dim);padding:1px 6px;border-radius:10px;margin-left:4px">Ana Mesaj</span>
+        </div>
+        <div style="font-size:13.5px;color:var(--text2);line-height:1.65;white-space:pre-wrap">${escHtml(root.metin)}</div>
+      </div>
+    </div>`;
+
+  // Yanıtlar — zincir yapısı
+  document.getElementById('thread-replies').innerHTML = replies.length
+    ? replies.map(r => renderThreadReply(r, all, davaId)).join('')
+    : '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">Henüz yanıt yok. Aşağıdan ilk yanıtı ekle.</div>';
+}
+
+function renderThreadReply(r, all, davaId) {
+  const ini = (r.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  // Bu yanıtın parentı root değilse — yani bir yanıta yanıt — alıntı kutusu göster
+  const isNestedReply = r.parentId !== _threadRootId;
+  const parent = isNestedReply ? all.find(p => p.id === r.parentId) : null;
+
+  const quoteHtml = parent
+    ? `<div style="margin:4px 0 6px;border-left:2px solid var(--border2);padding:3px 10px;background:rgba(255,255,255,0.03);border-radius:0 4px 4px 0">
+        <span style="font-size:11px;font-weight:600;color:var(--gold)">↩ ${escHtml(parent.yazar||'')}</span>
+        <div style="font-size:12px;color:var(--text3);margin-top:1px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical">${escHtml((parent.metin||'').slice(0,80))}</div>
+      </div>`
+    : '';
+
+  // Girinti seviyesi — kaç kat nested
+  const depth = isNestedReply ? 1 : 0; // max 1 girinti, daha fazlası karmaşıklaştırır
+  const indent = depth * 20;
+
+  return `<div style="padding:10px 16px 10px ${16+indent}px;border-bottom:1px solid var(--border)"
+      onmouseover="const b=this.querySelector('.tr-actions');if(b)b.style.opacity='1'"
+      onmouseout="const b=this.querySelector('.tr-actions');if(b)b.style.opacity='0'">
+    <div style="display:flex;gap:8px">
+      <div style="width:26px;height:26px;border-radius:50%;background:rgba(58,107,140,0.2);border:1px solid rgba(58,107,140,0.4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#7ab5d4;flex-shrink:0">${ini}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${escHtml(r.yazar||'Avukat')}</span>
+          <span style="font-size:10px;color:var(--text3)">${fmtDate(r.tarih)}</span>
+        </div>
+        ${quoteHtml}
+        <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${escHtml(r.metin)}</div>
+        <div class="tr-actions" style="display:flex;gap:4px;margin-top:5px;opacity:0;transition:opacity 0.15s">
+          <button onclick="startThreadReply('${r.id}','${escHtml(r.yazar||'').replace(/'/g,"\\'")}','${escHtml((r.metin||'').slice(0,60)).replace(/'/g,"\\'")}' )"
+            style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 7px;border-radius:4px"
+            onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text3)'">↩ Yanıtla</button>
+          <button onclick="deletePost('${r.id}','${davaId}');renderThread('${_threadRootId}','${davaId}')"
+            style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 7px;border-radius:4px"
+            onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">🗑</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+let _threadReplyToId = null, _threadReplyToYazar = null;
+
+function startThreadReply(postId, yazarAdi, metin) {
+  _threadReplyToId = postId;
+  _threadReplyToYazar = yazarAdi;
+  const input = document.getElementById('thread-input');
+  if (!input) return;
+  input.placeholder = '↩ ' + yazarAdi + ' kişisine yanıt...';
+  input.focus();
+}
+
+function sendThreadReply() {
+  const input = document.getElementById('thread-input');
+  if (!input || !_threadRootId || !_threadDavaId) return;
+  const metin = input.value.trim();
+  if (!metin) return;
+
+  // parentId: yanıtlanılan mesaj (thread reply ise o, yoksa root)
+  const parentId = _threadReplyToId || _threadRootId;
+  const parentAll = DB.get('chatter_' + _threadDavaId) || [];
+  const parent = parentAll.find(p => p.id === parentId);
+
+  const post = {
+    id: DB.genId(),
+    parentId,
+    parentYazar: parent?.yazar || null,
+    parentMetin: (parent?.metin||'').slice(0,100),
+    yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
+    metin, tarih: new Date().toISOString()
+  };
+  const arr = [...parentAll, post];
+  DB.set('chatter_' + _threadDavaId, arr);
+  input.value = '';
+  input.placeholder = 'Yanıt ekle...';
+  _threadReplyToId = null; _threadReplyToYazar = null;
+  renderThread(_threadRootId, _threadDavaId);
+  renderChatter(_threadDavaId);
+}
+
+function startReply(postId, yazarAdi, metin) {
+  // Ana feed'de yanıtla = thread'i aç
+  openThread(postId, _threadDavaId || currentDavaId);
+}
+
 
 const TEPKILER = ['👍','❤️','😂','😮','😢','🔥'];
 
@@ -6001,9 +6453,11 @@ function renderTepkiBar(post, davaId, isReply=false) {
     >${emoji} ${sayi}</span>`;
   }).filter(Boolean).join('');
 
-  const ekleBtn = `<span class="chatter-btn" onclick="tepkiPanelAc('${post.id}','${davaId}',${isReply})" style="font-size:13px;padding:1px 5px;cursor:pointer;opacity:0.5" title="Tepki ekle">😊+</span>`;
+  const ekleBtn = `<button onclick="tepkiPanelAc('${post.id}','${davaId}',${isReply})"
+    style="background:none;border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:11px;padding:2px 7px;cursor:pointer;line-height:1.4"
+    title="Tepki ekle">+ 😊</button>`;
 
-  return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px" id="tepki-bar-${post.id}">${mevcut}${ekleBtn}</div>`;
+  return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:5px" id="tepki-bar-${post.id}">${mevcut}${ekleBtn}</div>`;
 }
 
 function tepkiPanelAc(postId, davaId, isReply) {
@@ -6039,29 +6493,6 @@ function tepkiVer(postId, davaId, emoji, isReply) {
   renderChatter(davaId);
 }
 
-function renderPost(post, allPosts, davaId) {
-  const replies = allPosts.filter(p => p.parentId === post.id)
-    .sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
-  const initials = post.yazar ? post.yazar.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() : 'AV';
-  return `
-    <div class="chatter-post" id="post-${post.id}">
-      <div class="chatter-post-header">
-        <div class="chatter-avatar">${initials}</div>
-        <div class="chatter-meta">
-          <div class="chatter-author">${post.yazar || 'Avukat'}</div>
-          <div class="chatter-time">${fmtDate(post.tarih)}${post.duzenlemeTarih ? ' · <span style="color:var(--text3);font-style:italic">düzenlendi</span>' : ''}</div>
-        </div>
-      </div>
-      <div class="chatter-body" id="cbody-${post.id}">${escHtml(post.metin)}</div>
-      ${renderTepkiBar(post, davaId, false)}
-      <div class="chatter-actions" id="cactions-${post.id}">
-        <button class="chatter-btn reply-btn" onclick="startReply('${post.id}','${escHtml(post.yazar||'Avukat')}')">↩ Yanıtla</button>
-        <button class="chatter-btn" onclick="startChatterEdit('${post.id}','${davaId}')">✏ Düzenle</button>
-        <button class="chatter-btn del-btn" onclick="deletePost('${post.id}','${davaId}')">🗑 Sil</button>
-      </div>
-      ${replies.length ? `<div class="chatter-replies">${replies.map(r => renderReply(r, davaId)).join('')}</div>` : ''}
-    </div>`;
-}
 
 function renderReply(reply, davaId) {
   const initials = reply.yazar ? reply.yazar.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : 'AV';
@@ -6132,13 +6563,22 @@ function saveChatterEdit(postId, davaId) {
 function sendChatterPost() {
   const metin = document.getElementById('chatter-input').value.trim();
   if (!metin || !currentDavaId) return;
+
+  // Yanıt bilgilerini al (banner'dan)
+  let parentYazar = null, parentMetin = null;
+  if (replyToPostId) {
+    const allPosts = DB.get('chatter_' + currentDavaId) || [];
+    const parent = allPosts.find(p => p.id === replyToPostId);
+    if (parent) { parentYazar = parent.yazar; parentMetin = (parent.metin||'').slice(0,100); }
+  }
+
   const post = {
     id: DB.genId(),
     davaId: currentDavaId,
     parentId: replyToPostId || null,
+    parentYazar, parentMetin,
     yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
-    metin,
-    tarih: new Date().toISOString()
+    metin, tarih: new Date().toISOString()
   };
   const key = 'chatter_' + currentDavaId;
   const arr = DB.get(key) || [];
@@ -6147,17 +6587,9 @@ function sendChatterPost() {
   document.getElementById('chatter-input').value = '';
   cancelReply();
   renderChatter(currentDavaId);
-  // Post sayısını güncelle başlıkta
   document.getElementById('ddp-post-count').textContent = arr.length + ' not';
 }
 
-function startReply(postId, yazarAdi) {
-  replyToPostId = postId;
-  document.getElementById('chatter-reply-banner').style.display = 'flex';
-  document.getElementById('chatter-reply-label').textContent = `↩ ${yazarAdi} kişisinin notuna yanıtlanıyor`;
-  document.getElementById('chatter-input').focus();
-  document.getElementById('chatter-input').placeholder = 'Yanıtınızı yazın...';
-}
 
 function cancelReply() {
   replyToPostId = null;
@@ -6237,10 +6669,27 @@ function editDava(id) {
   openModal('modal-dava');
 }
 
+function bkOtomatikVer() {
+  const davalar = DB.get('davalar');
+  const nums = davalar.map(d => {
+    const m = (d.no||'').match(/^BK(\d+)$/);
+    return m ? parseInt(m[1]) : 0;
+  });
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  const no = 'BK' + String(next).padStart(3,'0');
+  document.getElementById('d-no').value = no;
+  davaAdOtomatic();
+  notify('Büro No: ' + no);
+}
+
 function saveDava() {
-  const no = document.getElementById('d-no').value.trim();
+  let no = document.getElementById('d-no').value.trim();
   const konu = document.getElementById('d-konu').value.trim();
-  if (!no || !konu) return notify('Dosya no ve konu zorunludur!');
+  if (!no) {
+    const existing = DB.get('davalar');
+    const nums = existing.map(x => { const m = (x.no||'').match(/BK(\d+)/); return m ? parseInt(m[1]) : 0; });
+    no = 'BK' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3,'0');
+  }
   const tur = document.getElementById('d-tur').value || 'Asliye Hukuk';
   const yargiKolu = DAVA_TUR_MAP[tur] ? DAVA_TUR_MAP[tur].yargi : '';
   const cesitVal = document.getElementById('d-cesit').value;
@@ -6248,7 +6697,27 @@ function saveDava() {
   const obj = {
     id: editingId || DB.genId(),
     no, konu, cesit,
-    ad: document.getElementById('d-ad').value.trim(),
+    ad: (function(){
+      const muv = document.getElementById('d-muvekkil').value || '';
+      const karsi = document.getElementById('d-karsi').value || '';
+      const mahkeme = document.getElementById('d-mahkeme').value || '';
+      const esas = document.getElementById('d-esas').value || '';
+      const kisaltma = mahkeme
+        .replace('Asliye Ticaret Mahkemesi','ATM').replace('Asliye Hukuk Mahkemesi','ASH')
+        .replace('Sulh Hukuk Mahkemesi','SHM').replace('Ağır Ceza Mahkemesi','ACM')
+        .replace('Asliye Ceza Mahkemesi','ACzM').replace('Aile Mahkemesi','AM')
+        .replace('İş Mahkemesi','İş Mah.').replace('Tüketici Mahkemesi','TM')
+        .replace('İcra Hukuk Mahkemesi','İHM').replace('İdare Mahkemesi','İdM')
+        .replace('Vergi Mahkemesi','VM').replace('Kadastro Mahkemesi','KM')
+        .replace('Çocuk Mahkemesi','ÇM').replace('Fikri ve Sınai Haklar Mahkemesi','FSHM')
+        .replace('Mahkemesi','Mah.');
+      const parts = [];
+      if(muv) parts.push(muv);
+      if(karsi) parts.push('vs '+karsi);
+      if(kisaltma) parts.push(kisaltma);
+      if(esas) parts.push(esas);
+      return parts.join(' – ');
+    })(),
     muvekkil: document.getElementById('d-muvekkil').value,
     mahkeme: document.getElementById('d-mahkeme').value,
     esas: document.getElementById('d-esas').value,
@@ -6274,6 +6743,7 @@ function saveDava() {
     karsiAvukat: document.getElementById('d-karsi-avukat').value,
     bilirkisi: document.getElementById('d-bilirkisi').value,
     arabulucu: document.getElementById('d-arabulucu').value,
+    arabulucuNo: document.getElementById('d-arabulucu-no')?.value || '',
     digerKisi: document.getElementById('d-diger-kisi').value,
     notlar: document.getElementById('d-notlar').value,
     tarih: new Date().toISOString()
@@ -6580,22 +7050,41 @@ function showIcraDetail(id) {
       </div>`:''}
     </div>
 
-    <!-- SAĞ PANEL - CHATTER -->
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;max-height:720px;position:sticky;top:10px">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:8px">
-        💬 Dosya Günlüğü <span id="icra-post-cnt-${id}" style="font-size:11px;color:var(--text3)">0 not</span>
-      </div>
-      <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px" id="icra-feed-${id}"></div>
-      <div style="border-top:1px solid var(--border);padding:10px 12px;background:var(--bg2)">
-        <div id="icra-reply-banner-${id}" style="display:none;background:var(--gold-dim);border-radius:6px;padding:4px 8px;margin-bottom:6px;font-size:11px;color:var(--gold);display:none;align-items:center;justify-content:space-between">
-          <span id="icra-reply-label-${id}"></span>
-          <button onclick="cancelIcraReply('${id}')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px">×</button>
+    <!-- SAĞ PANEL - CHATTER (Thread sistemi) -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;max-height:720px;position:sticky;top:10px;position:relative">
+      <!-- ANA FEED -->
+      <div style="display:flex;flex-direction:column;height:100%;overflow:hidden" id="icra-main-${id}">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:8px">
+          💬 Dosya Günlüğü <span id="icra-post-cnt-${id}" style="font-size:11px;color:var(--text3)">0 not</span>
         </div>
-        <textarea id="icra-input-${id}" placeholder="Not ekle... (Enter = gönder)"
-          style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;width:100%;resize:none;min-height:55px;outline:none"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendIcraPost('${id}');event.preventDefault()}"></textarea>
-        <div style="display:flex;justify-content:flex-end;margin-top:6px">
-          <button class="btn btn-gold" style="font-size:12px;padding:6px 14px" onclick="sendIcraPost('${id}')">Gönder →</button>
+        <div style="flex:1;overflow-y:auto" id="icra-feed-${id}"></div>
+        <div style="border-top:1px solid var(--border);padding:10px 12px;background:var(--bg2)">
+          <textarea id="icra-input-${id}" placeholder="Yeni mesaj... (Enter = gönder)"
+            style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;width:100%;resize:none;min-height:50px;outline:none"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendIcraPost('${id}');event.preventDefault()}"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:6px">
+            <button class="btn btn-gold" style="font-size:12px;padding:6px 14px" onclick="sendIcraPost('${id}')">Gönder →</button>
+          </div>
+        </div>
+      </div>
+      <!-- THREAD PANELİ -->
+      <div id="icra-thread-${id}" style="display:none;position:absolute;inset:0;background:var(--bg2);z-index:10;flex-direction:column;overflow:hidden;border-radius:10px">
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <button onclick="closeIcraThread('${id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px">←</button>
+          <span style="font-size:13px;font-weight:600;color:var(--text);flex:1">Thread</span>
+          <span id="icra-thread-cnt-${id}" style="font-size:11px;color:var(--text3)"></span>
+        </div>
+        <div id="icra-thread-root-${id}" style="padding:12px 14px;border-bottom:2px solid var(--border);flex-shrink:0;background:var(--bg3)"></div>
+        <div id="icra-thread-replies-${id}" style="flex:1;overflow-y:auto;padding:4px 0"></div>
+        <div style="border-top:1px solid var(--border);padding:8px 12px;flex-shrink:0">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:5px" id="icra-tr-label-${id}">Bu thread'e yanıt ver:</div>
+          <textarea id="icra-thread-input-${id}" rows="2"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;resize:none;outline:none;font-family:'DM Sans',sans-serif"
+            placeholder="Yanıt yaz... (Enter = gönder)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendIcraThreadReply('${id}');event.preventDefault()}"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:5px">
+            <button class="btn btn-gold" style="font-size:12px;padding:5px 12px" onclick="sendIcraThreadReply('${id}')">Yanıtla →</button>
+          </div>
         </div>
       </div>
     </div>
@@ -6705,46 +7194,179 @@ function icraAracSil(icraId, idx) {
 // İcra chatter
 let icraReplyTo = {};
 function renderIcraChatter(icraId) {
-  const allPosts = DB.get('icra_chatter_' + icraId) || [];
-  const posts = allPosts.filter(p=>!p.parentId).sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
+  const all = DB.get('icra_chatter_' + icraId) || [];
+  const roots = all.filter(p => !p.parentId).sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
   const cntEl = document.getElementById('icra-post-cnt-' + icraId);
-  if (cntEl) cntEl.textContent = allPosts.length + ' not';
+  if (cntEl) cntEl.textContent = all.length + ' mesaj';
   const feed = document.getElementById('icra-feed-' + icraId);
   if (!feed) return;
 
-  feed.innerHTML = posts.length ? posts.map(p => {
-    const replies = allPosts.filter(r=>r.parentId===p.id).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+  feed.innerHTML = roots.length ? roots.map(p => {
     const ini = (p.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const tepkiHtml = renderIcraTepkiBar(p, icraId);
-    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px" id="ipost-${p.id}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="width:26px;height:26px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)">${ini}</div>
-        <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">${p.yazar||'Avukat'}</div><div style="font-size:10px;color:var(--text3)">${fmtDate(p.tarih)}</div></div>
-        <button onclick="deleteIcraPost('${p.id}','${icraId}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">🗑</button>
+    const tepki = renderIcraTepkiBar(p, icraId);
+    const replies = all.filter(r => r.parentId === p.id).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+    const replyCount = replies.length;
+    // Son 2 yanıt önizlemesi
+    const preview = replies.slice(-2).map(r => {
+      const ri = (r.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return `<div style="display:flex;gap:6px;align-items:flex-start;padding:4px 0;border-top:1px solid var(--border)">
+        <div style="width:18px;height:18px;border-radius:50%;background:rgba(58,107,140,0.2);border:1px solid rgba(58,107,140,0.4);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#7ab5d4;flex-shrink:0;margin-top:1px">${ri}</div>
+        <div style="flex:1;min-width:0">
+          <span style="font-size:11px;font-weight:600;color:var(--text2)">${escHtml(r.yazar||'Avukat')}</span>
+          <span style="font-size:10px;color:var(--text3);margin-left:4px">${fmtDate(r.tarih)}</span>
+          <div style="font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml((r.metin||'').slice(0,60))}${(r.metin||'').length>60?'…':''}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const threadBtn = replyCount > 0
+      ? `<button onclick="openIcraThread('${icraId}','${p.id}')"
+          style="display:flex;align-items:center;gap:5px;margin-top:7px;padding:4px 10px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:6px;color:var(--gold);font-size:11px;cursor:pointer;font-weight:500">
+          💬 ${replyCount} yanıt${replyCount>2?' · Tamamını gör':''} →
+        </button>`
+      : `<button onclick="openIcraThread('${icraId}','${p.id}')"
+          style="margin-top:6px;padding:2px 8px;background:none;border:1px dashed var(--border);border-radius:5px;color:var(--text3);font-size:10px;cursor:pointer;opacity:0;transition:opacity 0.15s" class="icra-reply-trigger">
+          ↩ Yanıtla
+        </button>`;
+
+    return `<div style="padding:10px 14px;border-bottom:1px solid var(--border)"
+        onmouseover="const b=this.querySelector('.icra-reply-trigger');if(b)b.style.opacity='1'"
+        onmouseout="const b=this.querySelector('.icra-reply-trigger');if(b)b.style.opacity='0'">
+      <div style="display:flex;gap:9px">
+        <div style="width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:600;color:var(--text)">${escHtml(p.yazar||'Avukat')}</span>
+            <span style="font-size:10px;color:var(--text3)">${fmtDate(p.tarih)}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${escHtml(p.metin)}</div>
+          ${tepki}
+          ${preview ? `<div style="margin-top:5px">${preview}</div>` : ''}
+          ${threadBtn}
+        </div>
       </div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${escHtml(p.metin)}</div>
-      ${tepkiHtml}
-      <div style="margin-top:6px">
-        <button data-icraid="${icraId}" data-postid="${p.id}" data-yazar="${escHtml(p.yazar||'Avukat')}" onclick="startIcraReply(this.dataset.icraid,this.dataset.postid,this.dataset.yazar)" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text3)'">↩ Yanıtla</button>
-      </div>
-      ${replies.length ? `<div style="margin-top:8px;padding-left:14px;border-left:2px solid var(--gold)">
-        ${replies.map(r => {
-          const ri = (r.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-          return `<div style="background:var(--bg);border-radius:6px;padding:8px 10px;margin-bottom:6px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-              <div style="width:20px;height:20px;border-radius:50%;background:rgba(58,107,140,0.2);border:1px solid #3a6b8c;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#7ab5d4">${ri}</div>
-              <div style="font-size:11px;font-weight:600;color:var(--text)">${r.yazar||'Avukat'}</div>
-              <div style="font-size:10px;color:var(--text3)">${fmtDate(r.tarih)}</div>
-              <button onclick="deleteIcraPost('${r.id}','${icraId}')" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:10px">🗑</button>
-            </div>
-            <div style="font-size:12px;color:var(--text2);white-space:pre-wrap">${escHtml(r.metin)}</div>
-            ${renderIcraTepkiBar(r, icraId)}
-          </div>`;
-        }).join('')}
-      </div>` : ''}
     </div>`;
-  }).join('') : `<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">💬</div><div style="font-size:12px">Henüz not yok</div></div>`;
+  }).join('') : '<div style="text-align:center;padding:24px;color:var(--text3)"><div style="font-size:26px;margin-bottom:8px">💬</div><div style="font-size:12px">Henüz mesaj yok</div></div>';
 }
+
+// İcra thread fonksiyonları
+let _icraTRootId = {}, _icraTReplyId = {};
+
+function openIcraThread(icraId, postId) {
+  _icraTRootId[icraId] = postId;
+  _icraTReplyId[icraId] = null;
+  const panel = document.getElementById('icra-thread-' + icraId);
+  if (panel) { panel.style.display = 'flex'; renderIcraThread(icraId, postId); }
+  setTimeout(() => document.getElementById('icra-thread-input-' + icraId)?.focus(), 100);
+}
+
+function closeIcraThread(icraId) {
+  const panel = document.getElementById('icra-thread-' + icraId);
+  if (panel) panel.style.display = 'none';
+  _icraTRootId[icraId] = null;
+}
+
+function renderIcraThread(icraId, postId) {
+  const all = DB.get('icra_chatter_' + icraId) || [];
+  const root = all.find(p => p.id === postId);
+  if (!root) return;
+
+  const getReplies = (id) => {
+    const direct = all.filter(p => p.parentId === id).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+    return direct.reduce((acc, r) => [...acc, r, ...getReplies(r.id)], []);
+  };
+  const replies = getReplies(postId);
+
+  const cntEl = document.getElementById('icra-thread-cnt-' + icraId);
+  if (cntEl) cntEl.textContent = replies.length + ' yanıt';
+
+  // Root göster
+  const rootIni = (root.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const rootEl = document.getElementById('icra-thread-root-' + icraId);
+  if (rootEl) rootEl.innerHTML = `
+    <div style="display:flex;gap:9px">
+      <div style="width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">${rootIni}</div>
+      <div>
+        <div style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px">
+          <span style="font-size:12px;font-weight:600;color:var(--text)">${escHtml(root.yazar||'Avukat')}</span>
+          <span style="font-size:10px;color:var(--text3)">${fmtDate(root.tarih)}</span>
+          <span style="font-size:9px;color:var(--gold);background:var(--gold-dim);padding:1px 5px;border-radius:8px;margin-left:3px">Ana Mesaj</span>
+        </div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${escHtml(root.metin)}</div>
+      </div>
+    </div>`;
+
+  // Yanıtlar
+  const repliesEl = document.getElementById('icra-thread-replies-' + icraId);
+  if (!repliesEl) return;
+  repliesEl.innerHTML = replies.length ? replies.map(r => {
+    const ini = (r.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const isNested = r.parentId !== postId;
+    const parent = isNested ? all.find(p => p.id === r.parentId) : null;
+    const quoteHtml = parent
+      ? `<div style="margin:3px 0 5px;border-left:2px solid var(--border2);padding:2px 8px;background:rgba(255,255,255,0.03);border-radius:0 4px 4px 0">
+          <span style="font-size:10px;font-weight:600;color:var(--gold)">↩ ${escHtml(parent.yazar||'')}</span>
+          <div style="font-size:11px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${escHtml((parent.metin||'').slice(0,70))}</div>
+        </div>` : '';
+    return `<div style="padding:8px 14px;border-bottom:1px solid var(--border)"
+        onmouseover="const b=this.querySelector('.itr-act');if(b)b.style.opacity='1'"
+        onmouseout="const b=this.querySelector('.itr-act');if(b)b.style.opacity='0'">
+      <div style="display:flex;gap:8px">
+        <div style="width:24px;height:24px;border-radius:50%;background:rgba(58,107,140,0.2);border:1px solid rgba(58,107,140,0.4);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#7ab5d4;flex-shrink:0">${ini}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:baseline;gap:5px;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:600;color:var(--text)">${escHtml(r.yazar||'Avukat')}</span>
+            <span style="font-size:10px;color:var(--text3)">${fmtDate(r.tarih)}</span>
+          </div>
+          ${quoteHtml}
+          <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${escHtml(r.metin)}</div>
+          <div class="itr-act" style="display:flex;gap:3px;margin-top:4px;opacity:0;transition:opacity 0.15s">
+            <button onclick="startIcraThreadReply('${icraId}','${r.id}','${escHtml(r.yazar||'').replace(/'/g,"\\'")}','${escHtml((r.metin||'').slice(0,60)).replace(/'/g,"\\'")}' )"
+              style="font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:3px"
+              onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text3)'">↩ Yanıtla</button>
+            <button onclick="deleteIcraPost('${r.id}','${icraId}');renderIcraThread('${icraId}','${postId}')"
+              style="font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:3px"
+              onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">Henüz yanıt yok</div>';
+}
+
+function startIcraThreadReply(icraId, postId, yazarAdi, metin) {
+  _icraTReplyId[icraId] = postId;
+  const label = document.getElementById('icra-tr-label-' + icraId);
+  if (label) label.innerHTML = '↩ <b>' + escHtml(yazarAdi) + '</b>: <span style="color:var(--text3);font-style:italic">' + escHtml((metin||'').slice(0,50)) + '</span>';
+  document.getElementById('icra-thread-input-' + icraId)?.focus();
+}
+
+function sendIcraThreadReply(icraId) {
+  const input = document.getElementById('icra-thread-input-' + icraId);
+  if (!input) return;
+  const metin = input.value.trim();
+  if (!metin) return;
+  const rootId = _icraTRootId[icraId];
+  const parentId = _icraTReplyId[icraId] || rootId;
+  const all = DB.get('icra_chatter_' + icraId) || [];
+  const parent = all.find(p => p.id === parentId);
+  const post = {
+    id: DB.genId(), parentId,
+    parentYazar: parent?.yazar || null,
+    parentMetin: (parent?.metin||'').slice(0,100),
+    yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
+    metin, tarih: new Date().toISOString()
+  };
+  const arr = [...all, post];
+  DB.set('icra_chatter_' + icraId, arr);
+  input.value = '';
+  _icraTReplyId[icraId] = null;
+  const label = document.getElementById('icra-tr-label-' + icraId);
+  if (label) label.textContent = 'Yanıt ekle...';
+  renderIcraThread(icraId, rootId);
+  renderIcraChatter(icraId);
+}
+
 
 function renderIcraTepkiBar(post, icraId) {
   const tepkiler = post.tepkiler || {};
@@ -6795,15 +7417,15 @@ function icraTezkiPanel(postId, icraId) {
   setTimeout(() => panel.remove(), 5000);
 }
 
-function startIcraReply(icraId, postId, yazarAdiOrEl) {
-  const yazarAdi = typeof yazarAdiOrEl === 'string' ? yazarAdiOrEl : (yazarAdiOrEl?.dataset?.yazar || 'Avukat');
+function startIcraReply(icraId, postId, yazarAdi, metin) {
   icraReplyTo[icraId] = postId;
   const banner = document.getElementById('icra-reply-banner-' + icraId);
   const label = document.getElementById('icra-reply-label-' + icraId);
   if (banner) { banner.style.display = 'flex'; }
-  if (label) label.textContent = '↩ ' + yazarAdi + ' kişisine yanıt veriliyor';
+  const preview = (metin||'').slice(0,60);
+  if (label) label.innerHTML = '↩ <b>' + escHtml(yazarAdi||'Avukat') + '</b>: <span style="color:var(--text3);font-style:italic">' + escHtml(preview) + (preview.length >= 60 ? '…' : '') + '</span>';
   const input = document.getElementById('icra-input-' + icraId);
-  if (input) input.focus();
+  if (input) { input.focus(); input.placeholder = 'Yanıtınızı yazın...'; }
 }
 
 function cancelIcraReply(icraId) {
@@ -6817,8 +7439,16 @@ function sendIcraPost(icraId) {
   if (!input) return;
   const metin = input.value.trim();
   if (!metin) return;
+  // Yanıt zinciri - parentYazar ve parentMetin kaydet
+  let parentYazar = null, parentMetin = null;
+  if (icraReplyTo[icraId]) {
+    const allPosts = DB.get('icra_chatter_' + icraId) || [];
+    const parent = allPosts.find(p => p.id === icraReplyTo[icraId]);
+    if (parent) { parentYazar = parent.yazar; parentMetin = (parent.metin||'').slice(0,100); }
+  }
   const post = {
     id: DB.genId(), parentId: icraReplyTo[icraId] || null,
+    parentYazar, parentMetin,
     yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
     metin, tarih: new Date().toISOString()
   };
