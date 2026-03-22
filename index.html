@@ -2055,7 +2055,7 @@
         </div>
         <textarea class="chatter-textarea" id="chatter-input"
           placeholder="Bu dosya hakkında not, gelişme veya bilgi yazın..."
-          onkeydown="if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){sendChatterPost();event.preventDefault()}">
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendChatterPost();event.preventDefault()}else if((event.ctrlKey||event.metaKey)&&event.key==='Enter'){sendChatterPost();event.preventDefault()}">
         </textarea>
         <div class="chatter-send-row">
           <span class="chatter-send-hint">Ctrl + Enter ile gönder</span>
@@ -3093,18 +3093,17 @@ window.appReady = function() {
   }
   const hint = document.getElementById('login-hint');
   if (hint) hint.innerHTML = 'E-posta adresiniz ve şifrenizle giriş yapın';
-  if (window._appStarted) return;
-  window._appStarted = true;
-  initSampleData(); renderDashboard(); initMahkemeSelects();
+  // initSampleData ve renderDashboard ana script'te tanımlı, oradan çağrılır
+  if (typeof initSampleData === 'function') {
+    initSampleData(); renderDashboard(); initMahkemeSelects();
+    if (typeof startFaizTimer === 'function') startFaizTimer();
+  }
 };
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => setTimeout(window.appReady, 100));
 } else { setTimeout(window.appReady, 100); }
-</script>
-</script>
 
-<script>
 // ========== TAKVİM GÜN POPUP ==========
 function calGunAc(anahtar) {
   const gorevler = DB.get('tasks').filter(g => g.tarih && g.tarih.slice(0,10) === anahtar);
@@ -6010,10 +6009,10 @@ function saveInlineEdit(davaId, field, type) {
 
 // ========== CHATTER ==========
 function renderChatter(davaId) {
-  const posts = (DB.get('chatter_' + davaId) || [])
-    .filter(p => !p.parentId)
-    .sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
   const allPosts = DB.get('chatter_' + davaId) || [];
+  const posts = allPosts
+    .filter(p => !p.parentId)
+    .sort((a, b) => new Date(b.tarih) - new Date(a.tarih)); // Yeni üstte
 
   document.getElementById('ddp-post-count').textContent = allPosts.length + ' not';
 
@@ -6024,9 +6023,60 @@ function renderChatter(davaId) {
         <div style="font-size:13px">Henüz not yok. Aşağıdan ilk notu ekleyin.</div>
        </div>`;
 
-  // Scroll en alta
   const feed = document.getElementById('chatter-feed');
-  feed.scrollTop = feed.scrollHeight;
+  feed.scrollTop = 0;
+}
+
+const TEPKILER = ['👍','❤️','😂','😮','😢','🔥'];
+
+function renderTepkiBar(post, davaId, isReply=false) {
+  const tepkiler = post.tepkiler || {};
+  const mevcut = Object.entries(tepkiler).map(([emoji, users]) => {
+    const sayi = (users||[]).length;
+    if (sayi === 0) return '';
+    const bende = (users||[]).includes(window.currentUser?.username || 'avukat');
+    return `<span onclick="tepkiVer('${post.id}','${davaId}','${emoji}',${isReply})"
+      style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;font-size:12px;cursor:pointer;transition:all 0.15s;
+      background:${bende?'var(--gold-dim)':'var(--bg3)'};border:1px solid ${bende?'var(--gold)':'var(--border)'}"
+    >${emoji} ${sayi}</span>`;
+  }).filter(Boolean).join('');
+
+  const ekleBtn = `<span class="chatter-btn" onclick="tepkiPanelAc('${post.id}','${davaId}',${isReply})" style="font-size:13px;padding:1px 5px;cursor:pointer;opacity:0.5" title="Tepki ekle">😊+</span>`;
+
+  return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px" id="tepki-bar-${post.id}">${mevcut}${ekleBtn}</div>`;
+}
+
+function tepkiPanelAc(postId, davaId, isReply) {
+  const existing = document.getElementById('tepki-panel-' + postId);
+  if (existing) { existing.remove(); return; }
+  const bar = document.getElementById('tepki-bar-' + postId);
+  if (!bar) return;
+  const panel = document.createElement('div');
+  panel.id = 'tepki-panel-' + postId;
+  panel.style.cssText = 'display:flex;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 10px;margin-top:4px;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
+  panel.innerHTML = TEPKILER.map(e =>
+    `<span onclick="tepkiVer('${postId}','${davaId}','${e}',${isReply});document.getElementById('tepki-panel-${postId}')?.remove()"
+      style="font-size:20px;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`
+  ).join('');
+  bar.insertAdjacentElement('afterend', panel);
+  setTimeout(() => panel.remove(), 5000);
+}
+
+function tepkiVer(postId, davaId, emoji, isReply) {
+  const key = 'chatter_' + davaId;
+  let arr = DB.get(key) || [];
+  const me = window.currentUser?.username || 'avukat';
+  arr = arr.map(p => {
+    if (p.id !== postId) return p;
+    const tepkiler = { ...(p.tepkiler || {}) };
+    const users = [...(tepkiler[emoji] || [])];
+    const idx = users.indexOf(me);
+    if (idx >= 0) users.splice(idx, 1); else users.push(me);
+    tepkiler[emoji] = users;
+    return { ...p, tepkiler };
+  });
+  DB.set(key, arr);
+  renderChatter(davaId);
 }
 
 function renderPost(post, allPosts, davaId) {
@@ -6043,6 +6093,7 @@ function renderPost(post, allPosts, davaId) {
         </div>
       </div>
       <div class="chatter-body" id="cbody-${post.id}">${escHtml(post.metin)}</div>
+      ${renderTepkiBar(post, davaId, false)}
       <div class="chatter-actions" id="cactions-${post.id}">
         <button class="chatter-btn reply-btn" onclick="startReply('${post.id}','${escHtml(post.yazar||'Avukat')}')">↩ Yanıtla</button>
         <button class="chatter-btn" onclick="startChatterEdit('${post.id}','${davaId}')">✏ Düzenle</button>
@@ -6064,7 +6115,9 @@ function renderReply(reply, davaId) {
         </div>
       </div>
       <div class="chatter-body" id="cbody-${reply.id}">${escHtml(reply.metin)}</div>
+      ${renderTepkiBar(reply, davaId, true)}
       <div class="chatter-actions" id="cactions-${reply.id}">
+        <button class="chatter-btn reply-btn" onclick="startReply('${reply.id}','${escHtml(reply.yazar||'Avukat')}')">↩ Yanıtla</button>
         <button class="chatter-btn" onclick="startChatterEdit('${reply.id}','${davaId}')">✏ Düzenle</button>
         <button class="chatter-btn del-btn" onclick="deletePost('${reply.id}','${davaId}')">🗑 Sil</button>
       </div>
@@ -6123,7 +6176,7 @@ function sendChatterPost() {
     id: DB.genId(),
     davaId: currentDavaId,
     parentId: replyToPostId || null,
-    yazar: 'Avukat',
+    yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
     metin,
     tarih: new Date().toISOString()
   };
@@ -6304,64 +6357,525 @@ function renderIcralar() {
   `).join('') : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
 }
 
+function hesaplaIcraAaüt(alacak) {
+  const ASG = 9000, ESI = 56250;
+  if (!alacak || alacak <= 0) return ASG;
+  if (alacak <= ESI) return ASG;
+  const dilimler = [
+    {limit:150000,oran:0.10},{limit:300000,oran:0.08},{limit:600000,oran:0.08},
+    {limit:1200000,oran:0.05},{limit:2400000,oran:0.03},{limit:4800000,oran:0.02},{limit:Infinity,oran:0.01}
+  ];
+  let ucret=0, kalan=alacak, prev=0;
+  for(const d of dilimler){if(kalan<=0)break;const bu=Math.min(kalan,d.limit-prev);ucret+=bu*d.oran;kalan-=bu;prev=d.limit;}
+  return Math.min(Math.max(Math.round(ucret),ASG),alacak);
+}
+
+// Türkiye İl/İlçe verisi (özet - temsili)
+const TR_IL_ILCE = {
+  'Adana':['Aladağ','Ceyhan','Çukurova','Feke','İmamoğlu','Karaisalı','Karataş','Kozan','Pozantı','Saimbeyli','Sarıçam','Seyhan','Tufanbeyli','Yumurtalık','Yüreğir'],
+  'Ankara':['Akyurt','Altındağ','Ayaş','Bala','Beypazarı','Çamlıdere','Çankaya','Çubuk','Elmadağ','Etimesgut','Evren','Gölbaşı','Güdül','Haymana','Kalecik','Kahramankazan','Keçiören','Kızılcahamam','Mamak','Nallıhan','Polatlı','Pursaklar','Sincan','Şereflikoçhisar','Yenimahalle'],
+  'İstanbul':['Adalar','Arnavutköy','Ataşehir','Avcılar','Bağcılar','Bahçelievler','Bakırköy','Başakşehir','Bayrampaşa','Beşiktaş','Beykoz','Beylikdüzü','Beyoğlu','Büyükçekmece','Çatalca','Çekmeköy','Esenler','Esenyurt','Eyüpsultan','Fatih','Gaziosmanpaşa','Güngören','Kadıköy','Kağıthane','Kartal','Küçükçekmece','Maltepe','Pendik','Sancaktepe','Sarıyer','Silivri','Sultanbeyli','Sultangazi','Şile','Şişli','Tuzla','Ümraniye','Üsküdar','Zeytinburnu'],
+  'İzmir':['Aliağa','Balçova','Bayındır','Bayraklı','Bergama','Beydağ','Bornova','Buca','Çeşme','Çiğli','Dikili','Foça','Gaziemir','Güzelbahçe','Karabağlar','Karaburun','Karşıyaka','Kemalpaşa','Kınık','Kiraz','Konak','Menderes','Menemen','Narlıdere','Ödemiş','Seferihisar','Selçuk','Tire','Torbalı','Urla'],
+  'Bursa':['Büyükorhan','Gemlik','Gürsu','Harmancık','İnegöl','İznik','Karacabey','Keles','Kestel','Mudanya','Mustafakemalpaşa','Nilüfer','Orhaneli','Orhangazi','Osmangazi','Yenişehir','Yıldırım'],
+  'Antalya':['Akseki','Aksu','Alanya','Demre','Döşemealtı','Elmalı','Finike','Gazipaşa','Gündoğmuş','İbradı','Kaş','Kemer','Kepez','Konyaaltı','Korkuteli','Kumluca','Manavgat','Muratpaşa','Serik'],
+  'Konya':['Ahırlı','Akören','Akşehir','Altınekin','Beyşehir','Bozkır','Cihanbeyli','Çeltik','Çumra','Derbent','Derebucak','Doğanhisar','Emirgazi','Ereğli','Güneysinir','Hadim','Halkapınar','Hüyük','Ilgın','Kadınhanı','Karapınar','Karatay','Kulu','Meram','Sarayönü','Selçuklu','Seydişehir','Taşkent','Tuzlukçu','Yalıhüyük','Yunak'],
+  'Gaziantep':['Araban','İslahiye','Karkamış','Nizip','Nurdağı','Oğuzeli','Şahinbey','Şehitkamil','Yavuzeli'],
+  'Kocaeli':['Başiskele','Çayırova','Darıca','Derince','Dilovası','Gebze','Gölcük','İzmit','Kandıra','Karamürsel','Kartepe','Körfez'],
+  'Mersin':['Akdeniz','Anamur','Aydıncık','Bozyazı','Çamlıyayla','Erdemli','Gülnar','Mezitli','Mut','Silifke','Tarsus','Toroslar','Yenişehir'],
+  'Diyarbakır':['Bağlar','Bismil','Çermik','Çınar','Çüngüş','Dicle','Eğil','Ergani','Hani','Hazro','Kayapınar','Kocaköy','Kulp','Lice','Silvan','Sur','Yenişehir'],
+  'Hatay':['Altınözü','Antakya','Arsuz','Belen','Defne','Dörtyol','Erzin','Hassa','İskenderun','Kırıkhan','Kumlu','Payas','Reyhanlı','Samandağ','Serinyol','Yayladağı'],
+  'Şanlıurfa':['Akçakale','Birecik','Bozova','Ceylanpınar','Eyyübiye','Halfeti','Haliliye','Harran','Hilvan','Karaköprü','Siverek','Suruç','Viranşehir'],
+  'Sakarya':['Adapazarı','Akyazı','Arifiye','Erenler','Ferizli','Geyve','Hendek','Karapürçek','Karasu','Kaynarca','Kocaali','Mithatpaşa','Pamukova','Sapanca','Serdivan','Söğütlü','Taraklı'],
+  'Kayseri':['Akkışla','Bünyan','Develi','Felahiye','Hacılar','İncesu','Kocasinan','Melikgazi','Özvatan','Pınarbaşı','Sarıoğlan','Sarız','Talas','Tomarza','Yahyalı','Yeşilhisar'],
+  'Trabzon':['Akçaabat','Araklı','Arsin','Beşikdüzü','Çarşıbaşı','Çaykara','Dernekpazarı','Düzköy','Hayrat','Köprübaşı','Maçka','Of','Ortahisar','Sürmene','Şalpazarı','Tonya','Vakfıkebir','Yomra'],
+  'Aydın':['Bozdoğan','Buharkent','Çine','Didim','Efeler','Germencik','İncirliova','Karacasu','Karpuzlu','Koçarlı','Köşk','Kuşadası','Kuyucak','Nazilli','Söke','Sultanhisar','Yenipazar'],
+  'Muğla':['Bodrum','Dalaman','Datça','Fethiye','Kavaklıdere','Köyceğiz','Marmaris','Menteşe','Milas','Ortaca','Seydikemer','Ula','Yatağan'],
+  'Tekirdağ':['Çerkezköy','Çorlu','Ergene','Hayrabolu','Kapaklı','Malkara','Marmaraereğlisi','Muratlı','Saray','Süleymanpaşa','Şarköy'],
+  'Samsun':['Alaçam','Asarcık','Atakum','Ayvacık','Bafra','Canik','Çarşamba','İlkadım','Kavak','Ladik','Ondokuzmayıs','Salıpazarı','Tekkeköy','Terme','Vezirköprü','Yakakent'],
+};
+
 function showIcraDetail(id) {
   const i = DB.get('icralar').find(x=>x.id===id);
   if (!i) return;
-  const faizTutari = i.alacak * (i.faiz/100);
+  const hacizData = JSON.parse(localStorage.getItem('icra_haciz_' + id) || '{}');
+  const asgariUcret = hesaplaIcraAaüt(Number(i.alacak)||0);
+  const bankalar = ['Ziraat Bankası','Vakıfbank','Halkbank','İş Bankası','Garanti BBVA','Yapı Kredi','Akbank','Denizbank','Finansbank (QNB)','Kuveyt Türk','HSBC'];
+  const aylar = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const yillar = Array.from({length:10},(_,k)=>new Date().getFullYear()-k);
+
+  const tarihAlani = (key, label) => {
+    const val = hacizData[key] || '';
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px">${label}</div>
+      <input type="date" value="${val}" onchange="saveIcraHaciz('${id}','${key}',this.value)"
+        style="background:none;border:none;color:${val?'var(--text)':'var(--text3)'};font-size:12px;font-family:'DM Mono',monospace;padding:0;width:100%;outline:none">
+    </div>`;
+  };
+
+  // Taşınmazlar listesi
+  const tasinmazlar = hacizData.tasinmazlarList || [];
+  const araclar = hacizData.araclarList || [];
+
+  // Satış avansı
+  const satisAvans = hacizData.satisAvans || false;
+  const satisAvanstur = hacizData.satisAvansTur || '';
+
   document.getElementById('icra-detail').innerHTML = `
     <button class="btn btn-outline" onclick="showSubpage('icra-list'); renderIcralar()">← Geri</button>
-    <div style="margin-top:20px">
-      <div class="detail-header">
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 370px;gap:14px" id="icra-det-grid">
+
+    <!-- SOL PANEL -->
+    <div>
+      <div class="detail-header" style="margin-bottom:12px">
         <div class="detail-avatar">⚡</div>
         <div class="detail-info">
+          <div style="font-size:11px;color:var(--gold);font-weight:600">${i.no}</div>
           <div class="detail-name">${i.borclu}</div>
-          <div class="detail-meta">Dosya No: <span class="mono text-gold">${i.no}</span></div>
-          <div class="detail-tags"><span class="tag tag-${i.durum==='Aktif'?'aktif':'kapali'}">${i.durum}</span></div>
+          <div class="detail-meta">${i.muvekkil} · ${i.mudurluk||'—'}</div>
+          <div class="detail-tags" style="margin-top:4px">
+            <span class="tag tag-${i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali'}">${i.durum}</span>
+            ${i.tur ? `<span class="tag tag-dava" style="font-size:10px">${i.tur}</span>` : ''}
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-shrink:0">
           <button class="btn btn-outline" onclick="editIcra('${i.id}')">✏ Düzenle</button>
+          <button class="btn btn-danger" onclick="if(confirm('Silmek istediğinize emin misiniz?')){deleteIcra('${i.id}')}">Sil</button>
         </div>
       </div>
-      <div class="info-grid">
-        <div class="info-item"><label>Alacaklı (Müvekkil)</label><span>${i.muvekkil}</span></div>
+
+      <!-- Bilgiler -->
+      <div class="info-grid" style="margin-bottom:10px">
+        <div class="info-item"><label>Alacaklı</label><span>${i.muvekkil}</span></div>
         <div class="info-item"><label>Borçlu</label><span>${i.borclu}</span></div>
         <div class="info-item"><label>İcra Müdürlüğü</label><span>${i.mudurluk||'—'}</span></div>
         <div class="info-item"><label>Esas No</label><span class="mono">${i.esas||'—'}</span></div>
         <div class="info-item"><label>Asıl Alacak</label><span class="mono text-gold">₺${fmt(i.alacak)}</span></div>
-        <div class="info-item"><label>Yıllık Faiz</label><span>%${i.faiz} (₺${fmt(faizTutari)}/yıl)</span></div>
+        <div class="info-item"><label>Faiz</label><span class="mono">%${i.faiz||0}</span></div>
       </div>
-      <div class="card" style="margin-top:12px">
-        <div class="card-title">💰 Alacak Özeti</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="finance-box"><div class="finance-box-label">Asıl Alacak</div><div class="finance-box-val finance-gold">₺${fmt(i.alacak)}</div></div>
-          <div class="finance-box"><div class="finance-box-label">Tahmini Toplam (1 yıl)</div><div class="finance-box-val finance-green">₺${fmt(Number(i.alacak)+faizTutari)}</div></div>
+
+      <!-- Vekâlet -->
+      <div class="card" style="margin-bottom:10px;border-color:rgba(74,140,92,0.3)">
+        <div class="card-title" style="color:#7dc495;font-size:12px;margin-bottom:8px">💰 Alacak & Vekâlet</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <div class="finance-box"><div class="finance-box-label">Asıl Alacak</div><div class="finance-box-val finance-gold" style="font-size:15px">₺${fmt(i.alacak)}</div></div>
+          <div class="finance-box"><div class="finance-box-label">AAÜT Asgari</div><div class="finance-box-val" style="color:#7dc495;font-size:15px">₺${fmt(asgariUcret)}</div></div>
+          <div class="finance-box"><div class="finance-box-label">Akdi Vekâlet</div><div class="finance-box-val finance-gold" style="font-size:15px">₺${fmt(i.akdiUcret||0)}</div></div>
+          <div class="finance-box"><div class="finance-box-label">Tahsil Edilen</div><div class="finance-box-val finance-green" style="font-size:15px">₺${fmt(i.tahsilEdilen||0)}</div></div>
+          <div class="finance-box"><div class="finance-box-label">Masraf</div><div class="finance-box-val finance-red" style="font-size:15px">₺${fmt(i.masraf||0)}</div></div>
+          <div class="finance-box"><div class="finance-box-label">Net Kazanç</div><div class="finance-box-val finance-gold" style="font-size:15px">₺${fmt((Number(i.tahsilEdilen)||0)-(Number(i.masraf)||0))}</div></div>
         </div>
       </div>
-      ${i.notlar ? `<div class="card" style="margin-top:12px"><div class="card-title">📝 Notlar</div><p style="color:var(--text2);line-height:1.6;font-size:13.5px">${i.notlar}</p></div>` : ''}
-      ${(i.akdiUcret || i.masraf) ? `
-      <div class="card" style="margin-top:12px;border-color:rgba(74,140,92,0.4)">
-        <div class="card-title" style="color:#7dc495">💰 Vekâlet Ücreti & Masraf</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-          <div class="finance-box"><div class="finance-box-label">Akdi Vekâlet</div><div class="finance-box-val finance-gold">₺${fmt(i.akdiUcret||0)}</div></div>
-          <div class="finance-box"><div class="finance-box-label">Tahsil Edilen</div><div class="finance-box-val finance-green">₺${fmt(i.tahsilEdilen||0)}</div></div>
-          <div class="finance-box"><div class="finance-box-label">Toplam Masraf</div><div class="finance-box-val finance-red">₺${fmt(i.masraf||0)}</div></div>
-          <div class="finance-box" style="grid-column:span 3"><div class="finance-box-label">Net Kazanç</div><div class="finance-box-val finance-gold">₺${fmt((Number(i.tahsilEdilen)||0)-(Number(i.masraf)||0))}</div></div>
+
+      <!-- HACİZ ŞABLONU -->
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title" style="font-size:13px">⚖️ Haciz & Takip Şablonu</div>
+
+        <!-- Önemli Tarihler -->
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">📅 Önemli Tarihler</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
+          ${tarihAlani('odemeEmri','Ödeme Emri Tebliği')}
+          ${tarihAlani('sonHaciz','Son Haciz Tarihi')}
+          ${tarihAlani('kiymetTakdir','Kıymet Takdiri')}
+          ${tarihAlani('satis','Satış Tarihi')}
+          ${tarihAlani('itirazSure','İtiraz Süresi Sonu')}
         </div>
-        ${i.masrafAciklama ? `<div style="font-size:12px;color:var(--text3);margin-top:10px">Masraf notu: ${i.masrafAciklama}</div>` : ''}
-      </div>` : ''}
-      ${(i.mudur||i.borcluAvukat||i.bilirkisi) ? `
-      <div class="card" style="margin-top:12px">
-        <div class="card-title" style="color:#7ab5d4">🧑‍⚖️ Dosya Kişileri</div>
+
+        <!-- Maaş Haczi -->
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">💼 Maaş Haczi</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2);text-transform:none;letter-spacing:0;margin-bottom:8px">
+            <input type="checkbox" ${hacizData.maasHaczi?'checked':''} onchange="saveIcraHaciz('${id}','maasHaczi',this.checked);document.getElementById('maas-detay-${id}').style.display=this.checked?'':'none'"
+              style="width:16px;height:16px;accent-color:var(--gold)"> Maaş haczi uygulandı
+          </label>
+          <div id="maas-detay-${id}" style="display:${hacizData.maasHaczi?'':'none'}">
+            <input type="text" value="${hacizData.maasHacziIsveren||''}" placeholder="İşveren adı..."
+              onchange="saveIcraHaciz('${id}','maasHacziIsveren',this.value)"
+              style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text2);font-size:12px;padding:6px 8px;width:100%;outline:none;margin-bottom:8px">
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Haciz Ayları</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px" id="maas-ay-${id}">
+              ${yillar.slice(0,3).map(y => aylar.map((ay,ai) => {
+                const key2 = y+'-'+String(ai+1).padStart(2,'0');
+                const secili = (hacizData.maasAylari||[]).includes(key2);
+                return `<span onclick="toggleMaasAy('${id}','${key2}')" id="may-${id}-${key2}"
+                  style="display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;cursor:pointer;
+                  background:${secili?'var(--gold-dim)':'var(--bg2)'};border:1px solid ${secili?'var(--gold)':'var(--border)'};
+                  color:${secili?'var(--gold2)':'var(--text3)'}">${ay.slice(0,3)} ${y}</span>`;
+              }).join('')).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Araçlar -->
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🚗 Hacizli Araçlar</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:12px">
+          <div id="arac-liste-${id}">
+            ${araclar.map((a,idx) => `
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="flex:1;font-size:12px;color:var(--text2)">🚗 ${a.plaka} — ${a.marka} ${a.model||''}</div>
+                <button onclick="icraAracSil('${id}',${idx})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px">✕</button>
+              </div>`).join('')}
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;margin-top:8px">
+            <input id="arac-plaka-${id}" placeholder="Plaka (34ABC123)" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+            <input id="arac-marka-${id}" placeholder="Marka" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+            <input id="arac-model-${id}" placeholder="Model/Yıl" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+            <button onclick="icraAracEkle('${id}')" class="btn btn-outline" style="font-size:11px;padding:6px 10px;white-space:nowrap">+ Ekle</button>
+          </div>
+        </div>
+
+        <!-- Taşınmazlar -->
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🏘 Hacizli Taşınmazlar</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:12px">
+          <div id="tasinmaz-liste-${id}">
+            ${tasinmazlar.map((t,idx) => `
+              <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="flex:1;font-size:12px;color:var(--text2)">🏘 ${t.il}/${t.ilce} — ${t.adres||t.ada||'—'} ${t.tarih?'(Haciz: '+t.tarih+')':''}</div>
+                <button onclick="icraTasinmazSil('${id}',${idx})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px">✕</button>
+              </div>`).join('')}
+          </div>
+          <!-- Yeni taşınmaz ekle formu -->
+          <div style="margin-top:10px">
+            <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+              <select id="tsnmz-il-${id}" onchange="tsnmzIlDegisti('${id}')"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+                <option value="">İl seç...</option>
+                ${Object.keys(TR_IL_ILCE).sort().map(il=>`<option value="${il}">${il}</option>`).join('')}
+                <option value="__diger__">Diğer İller...</option>
+              </select>
+              <select id="tsnmz-ilce-${id}"
+                style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+                <option value="">İlçe seç...</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px">
+              <input id="tsnmz-adres-${id}" placeholder="Mahalle/Ada/Parsel (veya serbest giriş)" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+              <input id="tsnmz-tarih-${id}" type="date" title="Haciz tarihi" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">
+              <button onclick="icraTasinmazEkle('${id}')" class="btn btn-outline" style="font-size:11px;padding:6px 10px;white-space:nowrap">+ Ekle</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Satış Avansı -->
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">💰 Satış Avansı</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2);text-transform:none;letter-spacing:0;margin-bottom:8px">
+            <input type="checkbox" ${satisAvans?'checked':''} onchange="saveIcraHaciz('${id}','satisAvans',this.checked);document.getElementById('satis-avans-detay-${id}').style.display=this.checked?'':'none'"
+              style="width:16px;height:16px;accent-color:var(--gold)"> Satış avansı yatırıldı
+          </label>
+          <div id="satis-avans-detay-${id}" style="display:${satisAvans?'':'none'}">
+            <div style="display:flex;gap:8px;margin-bottom:6px">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2);text-transform:none;letter-spacing:0">
+                <input type="radio" name="savans-tur-${id}" value="tasinmaz" ${satisAvanstur==='tasinmaz'?'checked':''}
+                  onchange="saveIcraHaciz('${id}','satisAvansTur','tasinmaz')"
+                  style="accent-color:var(--gold)"> 🏘 Taşınmaz
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text2);text-transform:none;letter-spacing:0">
+                <input type="radio" name="savans-tur-${id}" value="arac" ${satisAvanstur==='arac'?'checked':''}
+                  onchange="saveIcraHaciz('${id}','satisAvansTur','arac')"
+                  style="accent-color:var(--gold)"> 🚗 Araç
+              </label>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${satisAvanstur==='tasinmaz'?'Taşınmaz':'Araç'} bilgisi:</div>
+            <select onchange="saveIcraHaciz('${id}','satisAvansHacizMal',this.value)"
+              style="background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;width:100%;outline:none">
+              <option value="">— Hacizli mallardan seç —</option>
+              ${satisAvanstur==='arac' ? araclar.map(a=>`<option value="${a.plaka}">${a.plaka} — ${a.marka}</option>`).join('') : ''}
+              ${satisAvanstur==='tasinmaz' ? tasinmazlar.map(t=>`<option value="${t.il}/${t.ilce}">${t.il}/${t.ilce} — ${t.adres||'—'}</option>`).join('') : ''}
+              <option value="__manuel__">Manuel giriş...</option>
+            </select>
+            <input type="text" value="${hacizData.satisAvansManuel||''}" placeholder="veya manuel giriş..."
+              onchange="saveIcraHaciz('${id}','satisAvansManuel',this.value)"
+              style="margin-top:6px;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text2);font-size:12px;padding:6px 8px;width:100%;outline:none">
+          </div>
+        </div>
+
+        <!-- Bankalar -->
+        <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🏦 Borçlunun Bankaları</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:10px">
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${bankalar.map(b => {
+              const secili = (hacizData.bankalar||[]).includes(b);
+              return `<span onclick="toggleIcraBank('${id}','${b}')" id="bank-${id}-${b.replace(/[^a-zA-Z0-9]/g,'_')}"
+                style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;cursor:pointer;transition:all 0.15s;
+                background:${secili?'var(--gold-dim)':'var(--bg2)'};border:1px solid ${secili?'var(--gold)':'var(--border)'};
+                color:${secili?'var(--gold2)':'var(--text3)'};font-weight:${secili?'600':'400'}">${b}</span>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Notlar -->
+        <textarea onchange="saveIcraHaciz('${id}','notlar',this.value)"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:13px;padding:10px;width:100%;resize:vertical;min-height:60px;outline:none;font-family:'DM Sans',sans-serif"
+          placeholder="Dosya notları...">${hacizData.notlar||i.notlar||''}</textarea>
+      </div>
+
+      ${(i.mudur||i.borcluAvukat||i.bilirkisi)?`
+      <div class="card" style="margin-bottom:10px">
+        <div class="card-title" style="color:#7ab5d4;font-size:12px">🧑‍⚖️ Dosya Kişileri</div>
         <div class="info-grid">
-          ${i.mudur ? `<div class="info-item"><label>İcra Müdürü</label><span>${i.mudur}</span></div>` : ''}
-          ${i.borcluAvukat ? `<div class="info-item"><label>Borçlu Avukatı</label><span>${i.borcluAvukat}</span></div>` : ''}
-          ${i.bilirkisi ? `<div class="info-item"><label>Bilirkişi</label><span>${i.bilirkisi}</span></div>` : ''}
+          ${i.mudur?`<div class="info-item"><label>İcra Müdürü</label><span>${i.mudur}</span></div>`:''}
+          ${i.borcluAvukat?`<div class="info-item"><label>Borçlu Av.</label><span>${i.borcluAvukat}</span></div>`:''}
+          ${i.bilirkisi?`<div class="info-item"><label>Bilirkişi</label><span>${i.bilirkisi}</span></div>`:''}
         </div>
-      </div>` : ''}
+      </div>`:''}
+    </div>
+
+    <!-- SAĞ PANEL - CHATTER -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;max-height:720px;position:sticky;top:10px">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:8px">
+        💬 Dosya Günlüğü <span id="icra-post-cnt-${id}" style="font-size:11px;color:var(--text3)">0 not</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px" id="icra-feed-${id}"></div>
+      <div style="border-top:1px solid var(--border);padding:10px 12px;background:var(--bg2)">
+        <div id="icra-reply-banner-${id}" style="display:none;background:var(--gold-dim);border-radius:6px;padding:4px 8px;margin-bottom:6px;font-size:11px;color:var(--gold);display:none;align-items:center;justify-content:space-between">
+          <span id="icra-reply-label-${id}"></span>
+          <button onclick="cancelIcraReply('${id}')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px">×</button>
+        </div>
+        <textarea id="icra-input-${id}" placeholder="Not ekle... (Enter = gönder)"
+          style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 10px;width:100%;resize:none;min-height:55px;outline:none"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendIcraPost('${id}');event.preventDefault()}"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:6px">
+          <button class="btn btn-gold" style="font-size:12px;padding:6px 14px" onclick="sendIcraPost('${id}')">Gönder →</button>
+        </div>
+      </div>
+    </div>
+
     </div>
   `;
+
+  // Icra chatter render
+  renderIcraChatter(id);
   showSubpage('icra-detail');
 }
+
+// ---- İcra yardımcı fonksiyonlar ----
+function saveIcraHaciz(icraId, key, val) {
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  data[key] = val;
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+}
+
+function toggleIcraBank(icraId, banka) {
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  const arr = data.bankalar || [];
+  const idx = arr.indexOf(banka);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(banka);
+  data.bankalar = arr;
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+  const key = 'bank-' + icraId + '-' + banka.replace(/[^a-zA-Z0-9]/g,'_');
+  const chip = document.getElementById(key);
+  if (chip) {
+    const secili = arr.includes(banka);
+    chip.style.background = secili?'var(--gold-dim)':'var(--bg2)';
+    chip.style.borderColor = secili?'var(--gold)':'var(--border)';
+    chip.style.color = secili?'var(--gold2)':'var(--text3)';
+    chip.style.fontWeight = secili?'600':'400';
+  }
+}
+
+function toggleMaasAy(icraId, key2) {
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  const arr = data.maasAylari || [];
+  const idx = arr.indexOf(key2);
+  if (idx >= 0) arr.splice(idx, 1); else arr.push(key2);
+  data.maasAylari = arr;
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+  const chip = document.getElementById('may-' + icraId + '-' + key2);
+  if (chip) {
+    const secili = arr.includes(key2);
+    chip.style.background = secili?'var(--gold-dim)':'var(--bg2)';
+    chip.style.borderColor = secili?'var(--gold)':'var(--border)';
+    chip.style.color = secili?'var(--gold2)':'var(--text3)';
+  }
+}
+
+function tsnmzIlDegisti(icraId) {
+  const il = document.getElementById('tsnmz-il-' + icraId)?.value;
+  const ilceSel = document.getElementById('tsnmz-ilce-' + icraId);
+  if (!ilceSel) return;
+  if (il && TR_IL_ILCE[il]) {
+    ilceSel.innerHTML = '<option value="">İlçe seç...</option>' +
+      TR_IL_ILCE[il].map(ilce=>`<option value="${ilce}">${ilce}</option>`).join('');
+  } else {
+    ilceSel.innerHTML = '<option value="">İlçe (serbest)...</option>';
+  }
+}
+
+function icraTasinmazEkle(icraId) {
+  const il = document.getElementById('tsnmz-il-' + icraId)?.value;
+  const ilce = document.getElementById('tsnmz-ilce-' + icraId)?.value;
+  const adres = document.getElementById('tsnmz-adres-' + icraId)?.value;
+  const tarih = document.getElementById('tsnmz-tarih-' + icraId)?.value;
+  if (!il) return notify('İl seçiniz!');
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  const arr = data.tasinmazlarList || [];
+  arr.push({ il: il==='__diger__'?adres:il, ilce, adres, tarih });
+  data.tasinmazlarList = arr;
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+  showIcraDetail(icraId);
+}
+
+function icraTasinmazSil(icraId, idx) {
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  (data.tasinmazlarList||[]).splice(idx, 1);
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+  showIcraDetail(icraId);
+}
+
+function icraAracEkle(icraId) {
+  const plaka = document.getElementById('arac-plaka-' + icraId)?.value.trim();
+  const marka = document.getElementById('arac-marka-' + icraId)?.value.trim();
+  const model = document.getElementById('arac-model-' + icraId)?.value.trim();
+  if (!plaka) return notify('Plaka giriniz!');
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  const arr = data.araclarList || [];
+  arr.push({ plaka, marka, model });
+  data.araclarList = arr;
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+  showIcraDetail(icraId);
+}
+
+function icraAracSil(icraId, idx) {
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  (data.araclarList||[]).splice(idx, 1);
+  localStorage.setItem('icra_haciz_' + icraId, JSON.stringify(data));
+  showIcraDetail(icraId);
+}
+
+// İcra chatter
+let icraReplyTo = {};
+function renderIcraChatter(icraId) {
+  const allPosts = DB.get('icra_chatter_' + icraId) || [];
+  const posts = allPosts.filter(p=>!p.parentId).sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
+  const cntEl = document.getElementById('icra-post-cnt-' + icraId);
+  if (cntEl) cntEl.textContent = allPosts.length + ' not';
+  const feed = document.getElementById('icra-feed-' + icraId);
+  if (!feed) return;
+
+  feed.innerHTML = posts.length ? posts.map(p => {
+    const replies = allPosts.filter(r=>r.parentId===p.id).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
+    const ini = (p.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const tepkiHtml = renderIcraTepkiBar(p, icraId);
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px" id="ipost-${p.id}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="width:26px;height:26px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold)">${ini}</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">${p.yazar||'Avukat'}</div><div style="font-size:10px;color:var(--text3)">${fmtDate(p.tarih)}</div></div>
+        <button onclick="deleteIcraPost('${p.id}','${icraId}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">🗑</button>
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${escHtml(p.metin)}</div>
+      ${tepkiHtml}
+      <div style="margin-top:6px">
+        <button data-icraid="${icraId}" data-postid="${p.id}" data-yazar="${escHtml(p.yazar||'Avukat')}" onclick="startIcraReply(this.dataset.icraid,this.dataset.postid,this.dataset.yazar)" style="background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--text3)'">↩ Yanıtla</button>
+      </div>
+      ${replies.length ? `<div style="margin-top:8px;padding-left:14px;border-left:2px solid var(--gold)">
+        ${replies.map(r => {
+          const ri = (r.yazar||'AV').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+          return `<div style="background:var(--bg);border-radius:6px;padding:8px 10px;margin-bottom:6px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <div style="width:20px;height:20px;border-radius:50%;background:rgba(58,107,140,0.2);border:1px solid #3a6b8c;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#7ab5d4">${ri}</div>
+              <div style="font-size:11px;font-weight:600;color:var(--text)">${r.yazar||'Avukat'}</div>
+              <div style="font-size:10px;color:var(--text3)">${fmtDate(r.tarih)}</div>
+              <button onclick="deleteIcraPost('${r.id}','${icraId}')" style="margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;font-size:10px">🗑</button>
+            </div>
+            <div style="font-size:12px;color:var(--text2);white-space:pre-wrap">${escHtml(r.metin)}</div>
+            ${renderIcraTepkiBar(r, icraId)}
+          </div>`;
+        }).join('')}
+      </div>` : ''}
+    </div>`;
+  }).join('') : `<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">💬</div><div style="font-size:12px">Henüz not yok</div></div>`;
+}
+
+function renderIcraTepkiBar(post, icraId) {
+  const tepkiler = post.tepkiler || {};
+  const me = window.currentUser?.username || 'avukat';
+  const emojis = ['👍','❤️','😂','😮','😢','🔥'];
+  const mevcut = Object.entries(tepkiler).map(([emoji, users]) => {
+    if (!users?.length) return '';
+    const bende = users.includes(me);
+    return `<span onclick="icraTezkiVer('${post.id}','${icraId}','${emoji}')"
+      style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;font-size:12px;cursor:pointer;
+      background:${bende?'var(--gold-dim)':'var(--bg3)'};border:1px solid ${bende?'var(--gold)':'var(--border)'}"
+    >${emoji} ${users.length}</span>`;
+  }).filter(Boolean).join('');
+  const ekle = `<span onclick="icraTezkiPanel('${post.id}','${icraId}')" style="font-size:13px;padding:1px 5px;cursor:pointer;opacity:0.5;background:none;border:none">😊+</span>`;
+  return `<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:5px" id="itepki-${post.id}">${mevcut}${ekle}</div>`;
+}
+
+function icraTezkiVer(postId, icraId, emoji) {
+  const key = 'icra_chatter_' + icraId;
+  const me = window.currentUser?.username || 'avukat';
+  let arr = DB.get(key) || [];
+  arr = arr.map(p => {
+    if (p.id !== postId) return p;
+    const tepkiler = {...(p.tepkiler||{})};
+    const users = [...(tepkiler[emoji]||[])];
+    const idx = users.indexOf(me);
+    if (idx>=0) users.splice(idx,1); else users.push(me);
+    tepkiler[emoji] = users;
+    return {...p, tepkiler};
+  });
+  DB.set(key, arr);
+  renderIcraChatter(icraId);
+}
+
+function icraTezkiPanel(postId, icraId) {
+  const existing = document.getElementById('itpanel-' + postId);
+  if (existing) { existing.remove(); return; }
+  const bar = document.getElementById('itepki-' + postId);
+  if (!bar) return;
+  const panel = document.createElement('div');
+  panel.id = 'itpanel-' + postId;
+  panel.style.cssText = 'display:flex;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 10px;margin-top:4px;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
+  panel.innerHTML = ['👍','❤️','😂','😮','😢','🔥'].map(e =>
+    `<span onclick="icraTezkiVer('${postId}','${icraId}','${e}');document.getElementById('itpanel-${postId}')?.remove()"
+      style="font-size:20px;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">${e}</span>`
+  ).join('');
+  bar.insertAdjacentElement('afterend', panel);
+  setTimeout(() => panel.remove(), 5000);
+}
+
+function startIcraReply(icraId, postId, yazarAdiOrEl) {
+  const yazarAdi = typeof yazarAdiOrEl === 'string' ? yazarAdiOrEl : (yazarAdiOrEl?.dataset?.yazar || 'Avukat');
+  icraReplyTo[icraId] = postId;
+  const banner = document.getElementById('icra-reply-banner-' + icraId);
+  const label = document.getElementById('icra-reply-label-' + icraId);
+  if (banner) { banner.style.display = 'flex'; }
+  if (label) label.textContent = '↩ ' + yazarAdi + ' kişisine yanıt veriliyor';
+  const input = document.getElementById('icra-input-' + icraId);
+  if (input) input.focus();
+}
+
+function cancelIcraReply(icraId) {
+  icraReplyTo[icraId] = null;
+  const banner = document.getElementById('icra-reply-banner-' + icraId);
+  if (banner) banner.style.display = 'none';
+}
+
+function sendIcraPost(icraId) {
+  const input = document.getElementById('icra-input-' + icraId);
+  if (!input) return;
+  const metin = input.value.trim();
+  if (!metin) return;
+  const post = {
+    id: DB.genId(), parentId: icraReplyTo[icraId] || null,
+    yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
+    metin, tarih: new Date().toISOString()
+  };
+  const arr = DB.get('icra_chatter_' + icraId) || [];
+  arr.push(post);
+  DB.set('icra_chatter_' + icraId, arr);
+  input.value = '';
+  cancelIcraReply(icraId);
+  renderIcraChatter(icraId);
+}
+
+function deleteIcraPost(postId, icraId) {
+  if (!confirm('Bu notu silmek istiyor musunuz?')) return;
+  DB.set('icra_chatter_' + icraId, (DB.get('icra_chatter_' + icraId)||[]).filter(p=>p.id!==postId&&p.parentId!==postId));
+  renderIcraChatter(icraId);
+}
+
 
 function editIcra(id) {
   const i = DB.get('icralar').find(x=>x.id===id);
@@ -7091,9 +7605,178 @@ function cariExcel() {
   XLSX.writeFile(wb, `cari_${m.ad.replace(/\s+/g,'_')}.xlsx`);
 }
 
+// ========== İL/İLÇE VERİSİ ==========
+// Türkiye il ve ilçe listesi (kısmi - önemli iller tam, diğerleri temsili)
+const TR_ILCE_DATA = {
+  'İstanbul': ['Adalar','Arnavutköy','Ataşehir','Avcılar','Bağcılar','Bahçelievler','Bakırköy','Başakşehir','Bayrampaşa','Beşiktaş','Beykoz','Beylikdüzü','Beyoğlu','Büyükçekmece','Çatalca','Çekmeköy','Esenler','Esenyurt','Eyüpsultan','Fatih','Gaziosmanpaşa','Güngören','Kadıköy','Kağıthane','Kartal','Küçükçekmece','Maltepe','Pendik','Sancaktepe','Sarıyer','Silivri','Sultanbeyli','Sultangazi','Şile','Şişli','Tuzla','Ümraniye','Üsküdar','Zeytinburnu'],
+  'Ankara': ['Akyurt','Altındağ','Ayaş','Bala','Beypazarı','Çamlıdere','Çankaya','Çubuk','Elmadağ','Etimesgut','Evren','Gölbaşı','Güdül','Haymana','Kahramankazan','Kalecik','Keçiören','Kızılcahamam','Mamak','Nallıhan','Polatlı','Pursaklar','Sincan','Şereflikoçhisar','Yenimahalle'],
+  'İzmir': ['Aliağa','Balçova','Bayındır','Bayraklı','Bergama','Beydağ','Bornova','Buca','Çeşme','Çiğli','Dikili','Foça','Gaziemir','Güzelbahçe','Karabağlar','Karaburun','Karşıyaka','Kemalpaşa','Kınık','Kiraz','Konak','Menderes','Menemen','Narlıdere','Ödemiş','Seferihisar','Selçuk','Tire','Torbalı','Urla'],
+  'Bursa': ['Büyükorhan','Gemlik','Gürsu','Harmancık','İnegöl','İznik','Karacabey','Keles','Kestel','Mudanya','Mustafakemalpaşa','Nilüfer','Orhaneli','Orhangazi','Osmangazi','Yenişehir','Yıldırım'],
+  'Antalya': ['Akseki','Aksu','Alanya','Demre','Döşemealtı','Elmalı','Finike','Gazipaşa','Gündoğmuş','İbradı','Kaş','Kemer','Kepez','Konyaaltı','Korkuteli','Kumluca','Manavgat','Muratpaşa','Serik'],
+  'Adana': ['Aladağ','Ceyhan','Çukurova','Feke','İmamoğlu','Karaisalı','Karataş','Kozan','Pozantı','Saimbeyli','Sarıçam','Seyhan','Tufanbeyli','Yumurtalık','Yüreğir'],
+  'Mersin': ['Akdeniz','Anamur','Aydıncık','Bozyazı','Çamlıyayla','Erdemli','Gülnar','Mezitli','Mut','Silifke','Tarsus','Toroslar','Yenişehir'],
+  'Gaziantep': ['Araban','İslahiye','Karkamış','Nizip','Nurdağı','Oğuzeli','Şahinbey','Şehitkamil','Yavuzeli'],
+  'Konya': ['Ahırlı','Akören','Akşehir','Altınekin','Beyşehir','Bozkır','Cihanbeyli','Çeltik','Çumra','Derbent','Derebucak','Doğanhisar','Emirgazi','Ereğli','Güneysınır','Hadim','Halkapınar','Hüyük','Ilgın','Kadınhanı','Karapınar','Karatay','Kulu','Meram','Sarayönü','Selçuklu','Seydişehir','Taşkent','Tuzlukçu','Yalıhüyük','Yunak'],
+  'Kocaeli': ['Başiskele','Çayırova','Darıca','Derince','Dilovası','Gebze','Gölcük','İzmit','Kandıra','Karamürsel','Kartepe','Körfez'],
+  'Hatay': ['Altınözü','Antakya','Arsuz','Belen','Defne','Dörtyol','Erzin','Hassa','İskenderun','Kırıkhan','Kumlu','Mehmetçik','Payas','Reyhanlı','Samandağ','Yayladağı'],
+  'Diyarbakır': ['Bağlar','Bismil','Çermik','Çınar','Çüngüş','Dicle','Eğil','Ergani','Hani','Hazro','Kayapınar','Kocaköy','Kulp','Lice','Silvan','Sur','Yenişehir'],
+  'Şanlıurfa': ['Akçakale','Birecik','Bozova','Ceylanpınar','Eyyübiye','Halfeti','Haliliye','Harran','Hilvan','Karaköprü','Siverek','Suruç','Viranşehir'],
+  'Trabzon': ['Akçaabat','Araklı','Arsin','Beşikdüzü','Çarşıbaşı','Çaykara','Dernekpazarı','Düzköy','Hayrat','Köprübaşı','Maçka','Of','Ortahisar','Sürmene','Şalpazarı','Tonya','Vakfıkebir','Yomra'],
+  'Sakarya': ['Adapazarı','Akyazı','Arifiye','Erenler','Ferizli','Geyve','Hendek','Karapürçek','Karasu','Kaynarca','Kocaali','Pamukova','Sapanca','Serdivan','Söğütlü','Taraklı'],
+  'Tekirdağ': ['Çerkezköy','Çorlu','Ergene','Hayrabolu','Kapaklı','Malkara','Marmaraereğlisi','Muratlı','Saray','Süleymanpaşa','Şarköy'],
+  'Eskişehir': ['Alpu','Beylikova','Çifteler','Günyüzü','Han','İnönü','Mahmudiye','Mihalgazi','Mihallıççık','Odunpazarı','Sarıcakaya','Seyitgazi','Sivrihisar','Tepebaşı'],
+  'Balıkesir': ['Altıeylül','Ayvalık','Balya','Bandırma','Bigadiç','Burhaniye','Dursunbey','Edremit','Erdek','Gömeç','Gönen','Havran','İvrindi','Karesi','Kepsut','Manyas','Marmara','Savaştepe','Sındırgı','Susurluk'],
+  'Muğla': ['Bodrum','Dalaman','Datça','Fethiye','Kavaklıdere','Köyceğiz','Manavgat','Marmaris','Menteşe','Milas','Ortaca','Seydikemer','Ula','Yatağan'],
+  'Aydın': ['Bozdoğan','Buharkent','Çine','Didim','Efeler','Germencik','İncirliova','Karacasu','Karpuzlu','Koçarlı','Köşk','Kuşadası','Kuyucak','Nazilli','Söke','Sultanhisar','Yenipazar'],
+  'Manisa': ['Ahmetli','Akhisar','Alaşehir','Demirci','Gölmarmara','Gördes','Kırkağaç','Köprübaşı','Kula','Salihli','Sarıgöl','Saruhanlı','Selendi','Soma','Şehzadeler','Turgutlu','Yunusemre'],
+  'Denizli': ['Acıpayam','Babadağ','Baklan','Bekilli','Beyağaç','Bozkurt','Buldan','Çal','Çameli','Çardak','Çivril','Güney','Honaz','Kale','Merkezefendi','Pamukkale','Sarayköy','Serinhisar','Tavas'],
+  'Samsun': ['Alaçam','Asarcık','Atakum','Ayvacık','Bafra','Canik','Çarşamba','Havza','İlkadım','Kavak','Ladik','Ondokuzmayıs','Salıpazarı','Tekkeköy','Terme','Vezirköprü','Yakakent'],
+  'Kayseri': ['Akkışla','Bünyan','Develi','Felahiye','Hacılar','İncesu','Kocasinan','Melikgazi','Özvatan','Pınarbaşı','Sarıoğlan','Sarız','Talas','Tomarza','Yahyalı','Yeşilhisar'],
+  'Kahramanmaraş': ['Afşin','Andırın','Çağlayancerit','Dulkadiroğlu','Ekinözü','Elbistan','Göksun','Nurhak','Onikişubat','Pazarcık','Türkoğlu'],
+};
+
+// Diğer iller için basit ilçe listesi
+const TR_ILLER_LIST = Object.keys(TR_ILCE_DATA);
+
+function tsPopulateIller() {
+  const sel = document.getElementById('ts-il');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">İl seçin...</option>' +
+    TR_ILLER.map(il => `<option value="${il}">${il}</option>`).join('');
+}
+
+function tsIlChange() {
+  const il = document.getElementById('ts-il').value;
+  const ilceSel = document.getElementById('ts-ilce');
+  const mahSel = document.getElementById('ts-mahalle');
+  if (!ilceSel) return;
+  mahSel.innerHTML = '<option value="">Önce ilçe seçin</option>';
+  if (!il) { ilceSel.innerHTML = '<option value="">Önce il seçin</option>'; return; }
+  const ilceler = TR_ILCE_DATA[il] || ['Merkez'];
+  ilceSel.innerHTML = '<option value="">İlçe seçin...</option>' +
+    ilceler.map(i => `<option value="${i}">${i}</option>`).join('');
+}
+
+function tsIlceChange() {
+  const ilce = document.getElementById('ts-ilce').value;
+  const mahSel = document.getElementById('ts-mahalle');
+  if (!mahSel) return;
+  // Mahalle verisi yok, serbest giriş
+  mahSel.innerHTML = '<option value="">Mahalle/Köy seçin veya yazın</option>';
+  mahSel.innerHTML += '<option value="__serbest__">+ Manuel giriş</option>';
+  if (ilce) mahSel.innerHTML += `<option value="${ilce} Merkez Mahallesi">${ilce} Merkez Mahallesi</option>`;
+}
+
+function tsModeToggle() {
+  const elle = document.getElementById('ts-elle-gir').checked;
+  document.getElementById('ts-otomatik-form').style.display = elle ? 'none' : '';
+  document.getElementById('ts-elle-form').style.display = elle ? '' : 'none';
+}
+
+let tsIcraId = null;
+function openTasinmazModal(icraId) {
+  tsIcraId = icraId;
+  document.getElementById('modal-tasinmaz-title').textContent = 'Taşınmaz Ekle';
+  document.getElementById('ts-elle-gir').checked = false;
+  tsModeToggle();
+  tsPopulateIller();
+  document.getElementById('ts-il').value = '';
+  document.getElementById('ts-ilce').innerHTML = '<option value="">Önce il seçin</option>';
+  document.getElementById('ts-mahalle').innerHTML = '<option value="">Önce ilçe seçin</option>';
+  document.getElementById('ts-sokak').value = '';
+  document.getElementById('ts-ada').value = '';
+  document.getElementById('ts-parsel').value = '';
+  document.getElementById('ts-tur').value = 'Konut';
+  document.getElementById('ts-tarih').value = '';
+  document.getElementById('ts-aciklama').value = '';
+  document.getElementById('ts-error').textContent = '';
+  openModal('modal-tasinmaz');
+}
+
+function tsSave() {
+  const elle = document.getElementById('ts-elle-gir').checked;
+  let adres = '';
+  if (elle) {
+    adres = document.getElementById('ts-elle-metin').value.trim();
+    if (!adres) { document.getElementById('ts-error').textContent = 'Adres zorunludur.'; return; }
+  } else {
+    const il = document.getElementById('ts-il').value;
+    const ilce = document.getElementById('ts-ilce').value;
+    if (!il) { document.getElementById('ts-error').textContent = 'İl seçiniz.'; return; }
+    const mah = document.getElementById('ts-mahalle').value;
+    const sokak = document.getElementById('ts-sokak').value;
+    const ada = document.getElementById('ts-ada').value;
+    const parsel = document.getElementById('ts-parsel').value;
+    adres = [il, ilce, mah !== '__serbest__' ? mah : '', sokak].filter(Boolean).join(' / ');
+    if (ada) adres += ` Ada:${ada}`;
+    if (parsel) adres += ` Parsel:${parsel}`;
+  }
+  const tur = document.getElementById('ts-tur').value;
+  const tarih = document.getElementById('ts-tarih').value;
+  const aciklama = document.getElementById('ts-aciklama').value;
+
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + tsIcraId) || '{}');
+  if (!data.tasinmazlar_list) data.tasinmazlar_list = [];
+  data.tasinmazlar_list.push({ id: Date.now().toString(36), adres, tur, tarih, aciklama });
+  // Metin alanını da güncelle
+  data.tasinmazlar = data.tasinmazlar_list.map(t => '['+t.tur+'] '+t.adres+(t.tarih?' ('+t.tarih+')':'')).join('\n');
+  localStorage.setItem('icra_haciz_' + tsIcraId, JSON.stringify(data));
+  closeModal('modal-tasinmaz');
+  showIcraDetail(tsIcraId);
+  notify('Taşınmaz eklendi ✓');
+}
+
+// Satış avansı
+let saIcraId = null;
+function openSatisAvansi(icraId) {
+  saIcraId = icraId;
+  document.getElementById('sa-tarih').value = new Date().toISOString().slice(0,10);
+  document.getElementById('sa-tutar').value = '';
+  document.getElementById('sa-arac-plaka').value = '';
+  // Taşınmazları doldur
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
+  const tList = data.tasinmazlar_list || [];
+  const sel = document.getElementById('sa-tasinmaz-sec');
+  sel.innerHTML = '<option value="">— Seçin veya yeni —</option>' +
+    tList.map(t => `<option value="${t.id}">[${t.tur}] ${t.adres}</option>`).join('');
+  document.getElementById('sa-tasinmaz-wrap').style.display = 'none';
+  document.getElementById('sa-arac-wrap').style.display = 'none';
+  openModal('modal-satis-avansi');
+}
+
+function saVarlıkToggle() {
+  const tur = document.querySelector('input[name="sa-tur"]:checked')?.value;
+  document.getElementById('sa-tasinmaz-wrap').style.display = tur === 'tasinmaz' ? '' : 'none';
+  document.getElementById('sa-arac-wrap').style.display = tur === 'arac' ? '' : 'none';
+}
+
+function saKaydet() {
+  const tur = document.querySelector('input[name="sa-tur"]:checked')?.value;
+  if (!tur) return notify('Tür seçiniz!');
+  const tarih = document.getElementById('sa-tarih').value;
+  const tutar = parsePara(document.getElementById('sa-tutar').value);
+  let varlık = tur === 'tasinmaz'
+    ? document.getElementById('sa-tasinmaz-sec').options[document.getElementById('sa-tasinmaz-sec').selectedIndex]?.text
+    : document.getElementById('sa-arac-plaka').value;
+  const data = JSON.parse(localStorage.getItem('icra_haciz_' + saIcraId) || '{}');
+  if (!data.satisAvanslari) data.satisAvanslari = [];
+  data.satisAvanslari.push({ id: Date.now().toString(36), tur, varlık, tarih, tutar });
+  localStorage.setItem('icra_haciz_' + saIcraId, JSON.stringify(data));
+  closeModal('modal-satis-avansi');
+  showIcraDetail(saIcraId);
+  notify('Satış avansı kaydedildi ✓');
+}
+
 // ========== HELPERS ==========
 function fmt(n) {
-  return Number(n||0).toLocaleString('tr-TR', {minimumFractionDigits:0, maximumFractionDigits:2});
+  const num = Number(n||0);
+  // Her zaman 2 ondalık göster - Türk formatı: 1.250.000,50
+  return num.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtSade(n) {
+  // Ondalık yoksa gösterme
+  const num = Number(n||0);
+  return num.toLocaleString('tr-TR', {minimumFractionDigits:0, maximumFractionDigits:2});
 }
 function fmtDate(d) {
   if (!d) return '—';
