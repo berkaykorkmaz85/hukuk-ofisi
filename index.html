@@ -828,7 +828,7 @@
   .ddp-topbar-title { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ddp-body {
     display: grid;
-    grid-template-columns: 1fr 520px;
+    grid-template-columns: 1fr 420px;
     flex: 1;
     overflow: hidden;
     gap: 0;
@@ -857,12 +857,24 @@
     flex-shrink: 0;
   }
   /* CHATTER */
+  .chatter-feed {
+    display: flex;
+    flex-direction: column-reverse;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
   /* ── CHATTER: kutucuk stili ── */
   .chatter-feed { display:flex; flex-direction:column; flex:1; overflow-y:auto; padding:10px 14px; gap:8px; }
   /* Ana kart */
   .ch-post { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; transition:border-color 0.15s; }
   .ch-post:hover { border-color:var(--border2); }
   .ch-post.ch-last { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.04); }
+  /* Postlar arası belirgin ayırıcı */
+  .ch-post-gap { height:1px; background:var(--border2); margin:4px 0; border-radius:1px; }
   .ch-post-left { display:none; }
   .ch-post-right { flex:1; min-width:0; }
   .ch-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
@@ -891,15 +903,15 @@
   .chatter-btn.del-btn:hover { color:#e07060; }
   .ch-btn-sep { width:1px; height:13px; background:var(--border2); margin:0 3px; display:inline-block; vertical-align:middle; flex-shrink:0; }
   /* Nested replies */
-  .ch-replies { margin-top:10px; border-left:2px solid var(--border); padding-left:10px; display:flex; flex-direction:column; gap:6px; }
-  .ch-rply { background:var(--bg); border:1px solid var(--border2); border-radius:8px; padding:8px 10px; transition:border-color 0.15s; }
-  .ch-rply:hover { border-color:var(--gold); }
+  .ch-replies { margin-top:8px; border-left:2px solid var(--border2); padding-left:10px; display:flex; flex-direction:column; gap:5px; }
+  .ch-rply { background:var(--bg); border:1px solid var(--border); border-radius:7px; padding:7px 9px; transition:border-color 0.15s; }
+  .ch-rply:hover { border-color:var(--border2); }
   .ch-rply-right { flex:1; min-width:0; }
-  .ch-rhead { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+  .ch-rhead { display:flex; align-items:center; gap:5px; margin-bottom:3px; flex-wrap:wrap; }
   .ch-rn { font-size:12px; font-weight:600; color:var(--text); }
   .ch-rr { font-size:10px; color:var(--text3); background:var(--bg3); border:1px solid var(--border2); border-radius:4px; padding:1px 5px; }
   .ch-rt { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
-  .ch-rbody { font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:6px; white-space:pre-wrap; }
+  .ch-rbody { font-size:11px; color:var(--text2); line-height:1.55; margin-bottom:5px; white-space:pre-wrap; word-break:break-word; min-width:0; }
   .ch-ractions { display:flex; align-items:center; border-top:1px solid rgba(255,255,255,0.06); padding-top:6px; margin-top:5px; gap:0; }
   /* Ayraçlar */
   .ch-sep-date { display:flex; align-items:center; gap:8px; padding:4px 2px 8px; }
@@ -908,6 +920,10 @@
   .ch-dline-new { flex:1; height:1px; background:rgba(201,168,76,0.3); }
   .ch-dlabel { font-size:10px; color:var(--text3); letter-spacing:0.05em; white-space:nowrap; }
   .ch-new-badge { background:var(--gold-dim); border:1px solid rgba(201,168,76,0.35); color:var(--gold); border-radius:20px; font-size:10px; font-weight:700; padding:2px 10px; white-space:nowrap; }
+  .ch-more-btn { display:flex; align-items:center; gap:6px; background:none; border:none; color:var(--text3); font-size:11px; cursor:pointer; padding:6px 0; font-family:inherit; transition:color 0.12s; }
+  .ch-more-btn:hover { color:var(--gold); }
+  .ch-more-btn::before { content:''; display:inline-block; width:16px; height:1px; background:var(--border2); }
+  .ch-more-btn::after { content:''; display:inline-block; width:16px; height:1px; background:var(--border2); }
   /* INPUT */
   .chatter-input-area { border-top:1px solid var(--border); padding:10px 14px; flex-shrink:0; background:var(--bg2); }
   .chatter-reply-banner { font-size:11px; color:var(--gold); padding:6px 10px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:7px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
@@ -7589,6 +7605,19 @@ function chActions(pid, davaId, small){
     +'</div>';
 }
 
+function chGetRoot(post, all) {
+  var cur = post;
+  var visited = {};
+  while (cur.parentId) {
+    if (visited[cur.id]) break;
+    visited[cur.id] = true;
+    var parent = all.find(function(p){ return p.id === cur.parentId; });
+    if (!parent) break;
+    cur = parent;
+  }
+  return cur;
+}
+
 function renderChatter(davaId){
   var all=(DB.get('chatter_'+davaId)||[]).slice().sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
   var countEl=document.getElementById('ddp-post-count');
@@ -7596,15 +7625,29 @@ function renderChatter(davaId){
   var feed=document.getElementById('chatter-feed');
   if(!feed) return;
   if(!all.length){
-    feed.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">&#x1f4ac;</div><div style="font-size:13px">Hen&uuml;z mesaj yok</div></div>';
+    feed.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">&#x1f4ac;</div><div style="font-size:13px">Henüz mesaj yok</div></div>';
     return;
   }
-  var anaPosts=all.filter(function(p){return !p.parentId;});
-  var lastId=all[all.length-1].id;
-  feed.innerHTML=anaPosts.map(function(post){
-    return chBuildPost(post,all,davaId,post.id===lastId);
+  // Kök post: parentId yok VEYA parentId all'da bulunamıyor
+  var anaPosts = all.filter(function(p){
+    if (!p.parentId) return true;
+    return !all.find(function(x){ return x.id === p.parentId; });
+  });
+  // Her post için kökünü bul, kök altına grupla
+  var rootReplies = {};
+  all.forEach(function(p){
+    if (anaPosts.find(function(a){ return a.id === p.id; })) return;
+    var root = chGetRoot(p, all);
+    if (!rootReplies[root.id]) rootReplies[root.id] = [];
+    rootReplies[root.id].push(p);
+  });
+  var lastId = all[all.length-1].id;
+  feed.innerHTML = anaPosts.map(function(post, idx){
+    var replies = rootReplies[post.id] || [];
+    var postHtml = chBuildPost(post, all, davaId, post.id===lastId, replies);
+    return idx>0 ? '<div class="ch-post-gap"></div>'+postHtml : postHtml;
   }).join('');
-  feed.scrollTop=feed.scrollHeight;
+  feed.scrollTop = feed.scrollHeight;
 }
 
 function startReplyById(pid, davaId){
@@ -7620,14 +7663,13 @@ function chBuildReply(reply,all,davaId,isLast){
   var rol=reply.rol?'<span class="ch-rr">'+escHtml(reply.rol)+'</span>':'';
   var duz=reply.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
   var tb=renderTepkiBar(reply,davaId,true);
-  var subReplies=all.filter(function(r){return r.parentId===rid;});
-  var subHtml=subReplies.length
-    ?'<div class="ch-replies">'+subReplies.map(function(sr,si){return chBuildReply(sr,all,davaId,si===subReplies.length-1);}).join('')+'</div>'
-    :'';
+  // Sub-replies artık rootReplies flat listesinde zaten var, tekrar ekleme
   return '<div class="ch-rply" id="post-'+rid+'">'
-    +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">'
-    +chAvatar(y,24)
-    +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol+'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
+    +'<div class="ch-rhead">'
+    +chAvatar(y,18)
+    +'<span class="ch-rn">'+escHtml(y)+'</span>'
+    +rol
+    +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
     +'<div class="ch-rbody" id="cbody-'+rid+'">'+escHtml(reply.metin||'')+'</div>'
@@ -7639,21 +7681,66 @@ function chBuildReply(reply,all,davaId,isLast){
     +'<span class="ch-btn-sep"></span>'
     +'<button class="chatter-btn del-btn" data-pid="'+rid+'" data-did="'+davaId+'" onclick="deletePost(this.dataset.pid,this.dataset.did)">&#x1f5d1; Sil</button>'
     +'</div>'
-    +subHtml
     +'</div>';
 }
 
-function chBuildPost(post,all,davaId,isLast){
+// Yanıt sayfalama sistemi: her post için kaç yanıt gösterileceğini tutar
+var _chReplyVisible = {};
+var CH_REPLY_PAGE = 4; // her seferinde kaç yanıt gösterilecek
+
+function chBuildRepliesSection(replies, all, davaId, pid) {
+  var total = replies.length;
+  var shown = _chReplyVisible[pid] || CH_REPLY_PAGE;
+  shown = Math.min(shown, total);
+  var hidden = total - shown;
+  // Son "shown" kadar yanıtı göster
+  var visible = replies.slice(total - shown);
+  var html = '<div class="ch-replies" id="ch-replies-'+pid+'">';
+  if (hidden > 0) {
+    html += '<button class="ch-more-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="chShowMoreReplies(this.dataset.pid,this.dataset.did)">'
+      + hidden + ' yanıt daha gör'
+      + '</button>';
+  }
+  // Flat render: her reply ve sub-reply'ları aynı seviyede
+  visible.forEach(function(r) {
+    html += chBuildReply(r, all, davaId, false);
+  });
+  html += '</div>';
+  return html;
+}
+
+function chShowMoreReplies(pid, davaId) {
+  var current = _chReplyVisible[pid] || CH_REPLY_PAGE;
+  _chReplyVisible[pid] = current + CH_REPLY_PAGE;
+  var all = (DB.get('chatter_' + davaId) || []).slice().sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
+  var post = all.find(function(p){return p.id===pid;});
+  if (!post) return;
+  var postEl = document.getElementById('post-' + pid);
+  if (!postEl) return;
+  var oldReplies = postEl.querySelector('#ch-replies-' + pid);
+  if (!oldReplies) return;
+  // Kök post'un tüm zincir yanıtlarını bul (chGetRoot ile)
+  var replies = all.filter(function(r){
+    if (r.id === pid) return false;
+    var root = chGetRoot(r, all);
+    return root.id === pid;
+  });
+  var newHtml = chBuildRepliesSection(replies, all, davaId, pid);
+  var tmp = document.createElement('div');
+  tmp.innerHTML = newHtml;
+  oldReplies.replaceWith(tmp.firstChild);
+}
+
+function chBuildPost(post, all, davaId, isLast, repliesOverride){
   var y=post.yazar||'Avukat';
   var pid=post.id;
   var rol=post.rol?'<span class="ch-role">'+escHtml(post.rol)+'</span>':'';
-  var duz=post.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
+  var duz=post.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; düzenle</span>':'';
   var lastBadge=isLast?'<span class="ch-last-badge">&#x1f514; Son mesaj</span>':'';
   var tb=renderTepkiBar(post,davaId,false);
-  var replies=all.filter(function(r){return r.parentId===pid;});
-  var repliesHtml=replies.length
-    ?'<div class="ch-replies">'+replies.map(function(r,i){return chBuildReply(r,all,davaId,i===replies.length-1);}).join('')+'</div>'
-    :'';
+  // Dışarıdan geçilen replies varsa kullan, yoksa direkt parentId ile bul
+  var replies = repliesOverride !== undefined ? repliesOverride : all.filter(function(r){return r.parentId===pid;});
+  var repliesHtml=replies.length ? chBuildRepliesSection(replies,all,davaId,pid) : '';
   return '<div class="ch-post'+(isLast?' ch-last':'')+'" id="post-'+pid+'">'
     +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">'
     +chAvatar(y,32)
@@ -8500,74 +8587,117 @@ function renderIcraChatter(icraId){
   var feed=document.getElementById('icra-feed-'+icraId);
   if(!feed) return;
   if(!all.length){
-    feed.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div style="font-size:26px">&#x1f4ac;</div><div style="font-size:12px;margin-top:8px">Hen&uuml;z mesaj yok</div></div>';
+    feed.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div style="font-size:26px">&#x1f4ac;</div><div style="font-size:12px;margin-top:8px">Henüz mesaj yok</div></div>';
     return;
   }
-  var anaPosts=all.filter(function(p){return !p.parentId;});
+  var anaPosts=all.filter(function(p){
+    if(!p.parentId) return true;
+    return !all.find(function(x){return x.id===p.parentId;});
+  });
+  var rootReplies={};
+  all.forEach(function(p){
+    if(anaPosts.find(function(a){return a.id===p.id;})) return;
+    var root=chGetRoot(p,all);
+    if(!rootReplies[root.id]) rootReplies[root.id]=[];
+    rootReplies[root.id].push(p);
+  });
   var lastId=all[all.length-1].id;
-  feed.innerHTML=anaPosts.map(function(post){
-    return icraBuildPost(post,all,icraId,post.id===lastId);
+  feed.innerHTML=anaPosts.map(function(post,idx){
+    var replies=rootReplies[post.id]||[];
+    var postHtml=icraBuildPost(post,all,icraId,post.id===lastId,replies);
+    return idx>0?'<div class="ch-post-gap"></div>'+postHtml:postHtml;
   }).join('');
   feed.scrollTop=feed.scrollHeight;
 }
 
-function startIcraReplyById(pid,icraId){
-  var all=DB.get('icra_chatter_'+icraId)||[];
-  var post=all.find(function(p){return p.id===pid;});
-  if(!post) return;
-  startIcraReply(icraId,pid,post.yazar||'Avukat',(post.metin||'').slice(0,80));
+// İcra yanıt sayfalama
+var _icraReplyVisible = {};
+
+function icraBuildRepliesSection(replies, all, icraId, pid) {
+  var total=replies.length;
+  var shown=_icraReplyVisible[pid]||CH_REPLY_PAGE;
+  shown=Math.min(shown,total);
+  var hidden=total-shown;
+  var visible=replies.slice(total-shown);
+  var html='<div class="ch-replies" id="icra-replies-'+pid+'">';
+  if(hidden>0){
+    html+='<button class="ch-more-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="icraShowMoreReplies(this.dataset.pid,this.dataset.icraid)">'
+      +hidden+' yanıt daha gör'
+      +'</button>';
+  }
+  visible.forEach(function(r){
+    html+=icraBuildReply(r,all,icraId,false);
+  });
+  html+='</div>';
+  return html;
+}
+
+function icraShowMoreReplies(pid, icraId) {
+  var current=_icraReplyVisible[pid]||CH_REPLY_PAGE;
+  _icraReplyVisible[pid]=current+CH_REPLY_PAGE;
+  var all=(DB.get('icra_chatter_'+icraId)||[]).slice().sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
+  var postEl=document.getElementById('ipost-'+pid);
+  if(!postEl) return;
+  var oldReplies=postEl.querySelector('#icra-replies-'+pid);
+  if(!oldReplies) return;
+  // Kök post'un tüm zincir yanıtlarını bul (chGetRoot ile)
+  var replies=all.filter(function(r){
+    if(r.id===pid) return false;
+    var root=chGetRoot(r,all);
+    return root.id===pid;
+  });
+  var tmp=document.createElement('div');
+  tmp.innerHTML=icraBuildRepliesSection(replies,all,icraId,pid);
+  oldReplies.replaceWith(tmp.firstChild);
 }
 
 function icraBuildReply(reply,all,icraId,isLast){
   var y=reply.yazar||'Avukat';
   var rid=reply.id;
   var rol=reply.rol?'<span class="ch-rr">'+escHtml(reply.rol)+'</span>':'';
+  var duz=reply.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
   var tb=renderIcraTepkiBar(reply,icraId);
-  var subReplies=all.filter(function(r){return r.parentId===rid;});
-  var subHtml=subReplies.length
-    ?'<div class="ch-replies">'+subReplies.map(function(sr,si){return icraBuildReply(sr,all,icraId,si===subReplies.length-1);}).join('')+'</div>'
-    :'';
+  // Sub-replies artık rootReplies flat listesinde zaten var, tekrar ekleme
   return '<div class="ch-rply" id="ipost-'+rid+'">'
-    +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">'
-    +chAvatar(y,24)
-    +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol+'<span class="ch-rt">'+fmtDate(reply.tarih)+'</span>'
+    +'<div class="ch-rhead">'
+    +chAvatar(y,18)
+    +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol
+    +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
     +'<div class="ch-rbody" id="cbody-'+rid+'">'+escHtml(reply.metin||'')+'</div>'
     +tb
     +'<div class="ch-ractions" id="cactions-'+rid+'">'
-    +'<button class="chatter-btn reply-btn" data-pid="'+rid+'" data-icraid="'+icraId+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<button class="chatter-btn reply-btn" data-icraid="'+icraId+'" data-pid="'+rid+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
     +'<span class="ch-btn-sep"></span>'
     +'<button class="chatter-btn del-btn" data-pid="'+rid+'" data-icraid="'+icraId+'" onclick="deleteIcraPost(this.dataset.pid,this.dataset.icraid)">&#x1f5d1; Sil</button>'
     +'</div>'
-    +subHtml+'</div>';
+    +'</div>';
 }
 
-function icraBuildPost(post,all,icraId,isLast){
+function icraBuildPost(post,all,icraId,isLast,repliesOverride){
   var y=post.yazar||'Avukat';
   var pid=post.id;
   var rol=post.rol?'<span class="ch-role">'+escHtml(post.rol)+'</span>':'';
   var lastBadge=isLast?'<span class="ch-last-badge">&#x1f514; Son mesaj</span>':'';
   var tb=renderIcraTepkiBar(post,icraId);
-  var replies=all.filter(function(r){return r.parentId===pid;});
-  var repliesHtml=replies.length
-    ?'<div class="ch-replies">'+replies.map(function(r,i){return icraBuildReply(r,all,icraId,i===replies.length-1);}).join('')+'</div>'
-    :'';
+  var replies=repliesOverride!==undefined?repliesOverride:all.filter(function(r){return r.parentId===pid;});
+  var repliesHtml=replies.length?icraBuildRepliesSection(replies,all,icraId,pid):'';
   return '<div class="ch-post'+(isLast?' ch-last':'')+'" id="ipost-'+pid+'">'
     +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">'
     +chAvatar(y,32)
     +'<div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
-    +'<span class="ch-name">'+escHtml(y)+'</span>'+rol+'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
+    +'<span class="ch-name">'+escHtml(y)+'</span>'+rol
+    +'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
     +'<div class="ch-body" id="cbody-'+pid+'">'+escHtml(post.metin||'')+'</div>'
     +tb
     +'<div class="ch-actions" id="cactions-'+pid+'">'
-    +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<button class="chatter-btn reply-btn" data-icraid="'+icraId+'" data-pid="'+pid+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
     +'<span class="ch-btn-sep"></span>'
     +'<button class="chatter-btn del-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="deleteIcraPost(this.dataset.pid,this.dataset.icraid)">&#x1f5d1; Sil</button>'
-    +'</div>'
-    +repliesHtml+'</div>';
+    +'</div>'+repliesHtml+'</div>';
 }
 function icraRenderAnaPost(p,id){return icraBuildPost(p,[],id,false);}
 function icraRenderReply(p,id){return icraBuildReply(p,[],id,false);}
@@ -8578,6 +8708,15 @@ function scrollToIcraPost(icraId, postId) {
   el.scrollIntoView({behavior:'smooth', block:'center'});
   el.style.background = 'rgba(201,168,76,0.08)';
   setTimeout(() => el.style.background = '', 1500);
+}
+
+function startIcraReplyById(pid, icraId) {
+  var all = DB.get('icra_chatter_' + icraId) || [];
+  var post = all.find(function(p){ return p.id === pid; });
+  if (!post) return;
+  var y = post.yazar || post.author || 'Avukat';
+  var m = (post.metin || post.text || '').slice(0, 80);
+  startIcraReply(icraId, pid, y, m);
 }
 
 function startIcraReply(icraId, postId, yazarAdi, metin) {
@@ -11483,47 +11622,151 @@ function renderIdpChatter(icraId) {
   var countEl = document.getElementById('idp-post-count');
   if (!feed) return;
   var key = 'icra_chatter_' + icraId;
-  var posts = DB.get(key) || [];
-  if (countEl) countEl.textContent = posts.length + ' not';
-  if (!posts.length) {
-    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">💬</div><div style="font-size:13px">Henüz not yok</div></div>';
+  var raw = DB.get(key) || [];
+  var all = raw.slice().sort(function(a,b){return new Date(a.tarih||a.time)-new Date(b.tarih||b.time);});
+  all = all.map(function(p){
+    return {id:p.id, yazar:p.yazar||p.author||'Kullanıcı', metin:p.metin||p.text||'',
+      tarih:p.tarih||p.time||new Date().toISOString(), parentId:p.parentId||null,
+      parentYazar:p.parentYazar||null, parentMetin:p.parentMetin||null,
+      tepkiler:p.tepkiler||{}, rol:p.rol||null, duzenlemeTarih:p.duzenlemeTarih||null};
+  });
+  if (countEl) countEl.textContent = all.length + ' mesaj';
+  if (!all.length) {
+    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">&#x1f4ac;</div><div style="font-size:13px">Henüz mesaj yok</div></div>';
     return;
   }
-  feed.innerHTML = posts.map(function(p) {
-    var initials = (p.author||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-    var timeStr = p.time ? new Date(p.time).toLocaleString('tr-TR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-    var isReply = p.parentId;
-    var parentPost = isReply ? posts.find(function(x){return x.id===p.parentId;}) : null;
-    var quoteHtml = parentPost ? '<div class="chatter-quote"><div class="chatter-quote-author">↩ '+escHtml(parentPost.author||'')+'</div><div class="chatter-quote-text">'+escHtml(parentPost.text||'')+'</div></div>' : '';
-    return '<div class="chatter-post">'
-      + '<div class="chatter-post-header">'
-      + '<div class="chatter-avatar'+(isReply?' reply-av':'')+'">' + initials + '</div>'
-      + '<div class="chatter-meta"><span class="chatter-author">'+escHtml(p.author||'')+'</span><span class="chatter-time">'+timeStr+'</span></div>'
-      + '<div class="chatter-actions">'
-      + '<button class="chatter-btn reply-btn" onclick="idpReply(\''+p.id+'\')">↩</button>'
-      + '<button class="chatter-btn del-btn" onclick="deleteIdpPost(\''+p.id+'\')">🗑</button>'
-      + '</div></div>'
-      + quoteHtml
-      + '<div class="chatter-body">'+escHtml(p.text||'')+'</div>'
-      + '</div>';
+  var anaPosts = all.filter(function(p){
+    if(!p.parentId) return true;
+    return !all.find(function(x){return x.id===p.parentId;});
+  });
+  var rootReplies={};
+  all.forEach(function(p){
+    if(anaPosts.find(function(a){return a.id===p.id;})) return;
+    var root=chGetRoot(p,all);
+    if(!rootReplies[root.id]) rootReplies[root.id]=[];
+    rootReplies[root.id].push(p);
+  });
+  var lastId = all[all.length-1].id;
+  feed.innerHTML = anaPosts.map(function(post,idx){
+    var replies=rootReplies[post.id]||[];
+    return idpBuildPost(post, all, icraId, post.id===lastId, replies);
   }).join('');
+  feed.scrollTop = feed.scrollHeight;
+}
+
+var _idpReplyVisible = {};
+
+function idpBuildRepliesSection(replies, all, icraId, pid) {
+  var total=replies.length;
+  var shown=_idpReplyVisible[pid]||CH_REPLY_PAGE;
+  shown=Math.min(shown,total);
+  var hidden=total-shown;
+  var visible=replies.slice(total-shown);
+  var html='<div class="ch-replies" id="idp-replies-'+pid+'">';
+  if(hidden>0){
+    html+='<button class="ch-more-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="idpShowMoreReplies(this.dataset.pid,this.dataset.icraid)">'
+      +hidden+' yanıt daha gör'
+      +'</button>';
+  }
+  visible.forEach(function(r){html+=idpBuildReply(r,all,icraId,false);});
+  html+='</div>';
+  return html;
+}
+
+function idpShowMoreReplies(pid, icraId) {
+  var current=_idpReplyVisible[pid]||CH_REPLY_PAGE;
+  _idpReplyVisible[pid]=current+CH_REPLY_PAGE;
+  var key='icra_chatter_'+icraId;
+  var raw=DB.get(key)||[];
+  var all=raw.map(function(p){return {id:p.id,yazar:p.yazar||p.author||'Kullanıcı',metin:p.metin||p.text||'',tarih:p.tarih||p.time||'',parentId:p.parentId||null,parentYazar:p.parentYazar||null,parentMetin:p.parentMetin||null,tepkiler:p.tepkiler||{},rol:p.rol||null};});
+  var postEl=document.getElementById('idp-post-'+pid);
+  if(!postEl) return;
+  var oldReplies=postEl.querySelector('#idp-replies-'+pid);
+  if(!oldReplies) return;
+  // Kök post'un tüm zincir yanıtlarını bul (chGetRoot ile)
+  var replies=all.filter(function(r){
+    if(r.id===pid) return false;
+    var root=chGetRoot(r,all);
+    return root.id===pid;
+  });
+  var tmp=document.createElement('div');
+  tmp.innerHTML=idpBuildRepliesSection(replies,all,icraId,pid);
+  oldReplies.replaceWith(tmp.firstChild);
+}
+
+function idpBuildReply(reply, all, icraId, isLast) {
+  var y=reply.yazar||'Kullanıcı';
+  var rid=reply.id;
+  var rol=reply.rol?'<span class="ch-rr">'+escHtml(reply.rol)+'</span>':'';
+  var tb=renderIcraTepkiBar(reply,icraId);
+  // Sub-replies artık rootReplies flat listesinde zaten var, tekrar ekleme
+  return '<div class="ch-rply" id="idp-post-'+rid+'">'
+    +'<div class="ch-rhead">'
+    +chAvatar(y,18)
+    +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol
+    +'<span class="ch-rt">'+fmtDate(reply.tarih)+'</span>'
+    +'</div>'
+    +chReplyTo(reply.parentYazar,reply.parentMetin)
+    +'<div class="ch-rbody" id="cbody-idp-'+rid+'">'+escHtml(reply.metin)+'</div>'
+    +tb
+    +'<div class="ch-ractions">'
+    +'<button class="chatter-btn reply-btn" data-rid="'+rid+'" onclick="idpReply(this.dataset.rid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn del-btn" data-rid="'+rid+'" onclick="deleteIdpPost(this.dataset.rid)">&#x1f5d1; Sil</button>'
+    +'</div>'
+    +'</div>';
+}
+
+function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
+  var y=post.yazar||'Kullanıcı';
+  var pid=post.id;
+  var rol=post.rol?'<span class="ch-role">'+escHtml(post.rol)+'</span>':'';
+  var lastBadge=isLast?'<span class="ch-last-badge">&#x1f514; Son mesaj</span>':'';
+  var tb=renderIcraTepkiBar(post,icraId);
+  var replies=repliesOverride!==undefined?repliesOverride:all.filter(function(r){return r.parentId===pid;});
+  var repliesHtml=replies.length?idpBuildRepliesSection(replies,all,icraId,pid):'';
+  return '<div class="ch-post'+(isLast?' ch-last':'')+'" id="idp-post-'+pid+'">'
+    +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">'
+    +chAvatar(y,32)
+    +'<div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +'<span class="ch-name">'+escHtml(y)+'</span>'+rol
+    +'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
+    +'</div></div>'
+    +chReplyTo(post.parentYazar,post.parentMetin)
+    +'<div class="ch-body" id="cbody-idp-'+pid+'">'+escHtml(post.metin)+'</div>'
+    +tb
+    +'<div class="ch-actions">'
+    +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" onclick="idpReply(this.dataset.pid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn del-btn" data-pid="'+pid+'" onclick="deleteIdpPost(this.dataset.pid)">&#x1f5d1; Sil</button>'
+    +'</div>'+repliesHtml+'</div>';
 }
 
 function sendIdpPost() {
   if (!currentIcraId) return;
   var input = document.getElementById('idp-chatter-input');
   if (!input) return;
-  var text = input.value.trim();
-  if (!text) return;
+  var metin = input.value.trim();
+  if (!metin) return;
   var user = window.currentUser || {};
   var key = 'icra_chatter_' + currentIcraId;
   var posts = DB.get(key) || [];
+  var parentYazar = null, parentMetin = null;
+  if (idpReplyToId) {
+    var parent = posts.find(function(p){ return p.id === idpReplyToId; });
+    if (parent) {
+      parentYazar = parent.yazar || parent.author || '';
+      parentMetin = (parent.metin || parent.text || '').slice(0, 100);
+    }
+  }
   posts.push({
-    id: 'ip_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
-    text: text,
-    author: user.adSoyad || user.username || 'Kullanıcı',
-    time: new Date().toISOString(),
-    parentId: idpReplyToId || null
+    id: DB.genId(),
+    yazar: user.adSoyad || user.username || 'Kullanıcı',
+    metin: metin,
+    tarih: new Date().toISOString(),
+    parentId: idpReplyToId || null,
+    parentYazar: parentYazar,
+    parentMetin: parentMetin
   });
   DB.set(key, posts);
   input.value = '';
@@ -11539,8 +11782,8 @@ function idpReply(postId) {
   if (!p) return;
   idpReplyToId = postId;
   document.getElementById('idp-reply-banner').style.display = '';
-  document.getElementById('idp-reply-who').textContent = '↩ ' + (p.author||'');
-  document.getElementById('idp-reply-preview').textContent = p.text||'';
+  document.getElementById('idp-reply-who').textContent = '↩ ' + (p.yazar||p.author||'');
+  document.getElementById('idp-reply-preview').textContent = p.metin||p.text||'';
   document.getElementById('idp-chatter-input').focus();
 }
 
