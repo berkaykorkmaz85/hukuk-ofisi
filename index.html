@@ -828,7 +828,7 @@
   .ddp-topbar-title { font-family: 'Playfair Display', serif; font-size: 17px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ddp-body {
     display: grid;
-    grid-template-columns: 1fr 420px;
+    grid-template-columns: 1fr 520px;
     flex: 1;
     overflow: hidden;
     gap: 0;
@@ -857,121 +857,64 @@
     flex-shrink: 0;
   }
   /* CHATTER */
-  .chatter-feed {
-    display: flex;
-    flex-direction: column-reverse;
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  /* ── CHATTER: Twitter/X tarzı flat timeline ── */
-  .chatter-post {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    transition: background 0.12s;
-  }
-  .chatter-post:hover { background: rgba(255,255,255,0.015); }
-  .chatter-post:last-child { border-bottom: none; }
-  .chatter-post-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-  .chatter-avatar {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: var(--gold-dim);
-    border: 1.5px solid rgba(201,168,76,0.4);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    color: var(--gold);
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .chatter-avatar.reply-av { background: rgba(58,107,140,0.15); border-color: rgba(58,107,140,0.4); color: #7ab5d4; }
-  .chatter-meta { flex: 1; display: flex; align-items: baseline; gap: 6px; }
-  .chatter-author { font-size: 13px; font-weight: 600; color: var(--text); }
-  .chatter-time { font-size: 11px; color: var(--text3); }
-  .chatter-body { font-size: 13.5px; color: var(--text2); line-height: 1.65; white-space: pre-wrap; padding-left: 38px; }
-  /* Yanıt alıntısı kutusu */
-  .chatter-quote {
-    margin: 6px 0 6px 38px;
-    border-left: 2px solid var(--border2);
-    padding: 4px 10px;
-    border-radius: 0 4px 4px 0;
-    background: rgba(255,255,255,0.025);
-  }
-  .chatter-quote-author { font-size: 11px; color: var(--gold); font-weight: 600; margin-bottom: 2px; }
-  .chatter-quote-text { font-size: 12px; color: var(--text3); line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .chatter-actions {
-    display: flex;
-    gap: 2px;
-    margin-top: 6px;
-    padding-left: 34px;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-  .chatter-post:hover .chatter-actions { opacity: 1; }
-  .chatter-btn {
-    font-size: 11px;
-    color: var(--text3);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 3px 8px;
-    border-radius: 4px;
-    transition: all 0.12s;
-  }
-  .chatter-btn:hover { background: rgba(255,255,255,0.07); color: var(--text2); }
-  .chatter-btn.reply-btn:hover { color: var(--gold); }
-  .chatter-btn.del-btn:hover { color: var(--red); }
-  .chatter-replies { display: none; }
-  /* CHATTER INPUT */
-  .chatter-input-area {
-    border-top: 1px solid var(--border);
-    padding: 12px 16px;
-    flex-shrink: 0;
-    background: var(--bg2);
-  }
-  .chatter-reply-banner {
-    font-size: 11px;
-    color: var(--gold);
-    padding: 4px 8px;
-    background: var(--gold-dim);
-    border-radius: 5px;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .chatter-textarea {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13.5px;
-    padding: 10px 12px;
-    resize: none;
-    outline: none;
-    min-height: 72px;
-    transition: border-color 0.15s;
-    box-sizing: border-box;
-  }
-  .chatter-textarea:focus { border-color: var(--gold); }
-  .chatter-send-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 8px;
-  }
-  .chatter-send-hint { font-size: 11px; color: var(--text3); }
+  /* ── CHATTER: kutucuk stili ── */
+  .chatter-feed { display:flex; flex-direction:column; flex:1; overflow-y:auto; padding:10px 14px; gap:8px; }
+  /* Ana kart */
+  .ch-post { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; transition:border-color 0.15s; }
+  .ch-post:hover { border-color:var(--border2); }
+  .ch-post.ch-last { border-color:rgba(201,168,76,0.3); background:rgba(201,168,76,0.04); }
+  .ch-post-left { display:none; }
+  .ch-post-right { flex:1; min-width:0; }
+  .ch-head { display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+  .ch-name { font-size:13px; font-weight:600; color:var(--text); }
+  .ch-role { font-size:10px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:1px 6px; }
+  .ch-time { font-size:11px; color:var(--text3); font-family:'DM Mono',monospace; }
+  .ch-last-badge { font-size:10px; color:var(--gold); background:var(--gold-dim); border:1px solid rgba(201,168,76,0.25); border-radius:4px; padding:1px 7px; margin-left:auto; white-space:nowrap; }
+  .ch-body { font-size:13px; color:var(--text2); line-height:1.65; margin-bottom:8px; white-space:pre-wrap; }
+  /* Yanıt göstergesi */
+  .ch-reply-to { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--text3); margin-bottom:6px; }
+  .ch-reply-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .ch-reply-name { color:var(--text2); font-weight:600; }
+  .ch-reply-snip { color:var(--text3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px; }
+  /* Tepkiler */
+  .ch-rxns { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+  .ch-rxn { background:var(--bg3); border:1px solid var(--border); border-radius:20px; font-size:11px; padding:2px 8px; color:var(--text2); cursor:pointer; transition:border-color 0.12s; }
+  .ch-rxn:hover { border-color:var(--border2); }
+  .ch-rxn.mine { background:var(--gold-dim); border-color:rgba(201,168,76,0.4); color:var(--gold); font-weight:700; }
+  /* Aksiyonlar — border-top ile kartın altında */
+  .ch-actions { display:flex; align-items:center; border-top:1px solid var(--border); padding-top:7px; margin-top:6px; gap:0; }
+  .chatter-btn { background:none; border:none; font-size:12px; color:var(--text2); cursor:pointer; padding:4px 10px; border-radius:6px; font-family:inherit; display:inline-flex; align-items:center; gap:4px; transition:all 0.12s; letter-spacing:0.01em; }
+  .chatter-btn:first-child { padding-left:0; }
+  .chatter-btn:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+  .chatter-btn.reply-btn:hover { color:var(--gold2); font-weight:600; }
+  .chatter-btn.edit-btn:hover { color:var(--text); }
+  .chatter-btn.del-btn:hover { color:#e07060; }
+  .ch-btn-sep { width:1px; height:13px; background:var(--border2); margin:0 3px; display:inline-block; vertical-align:middle; flex-shrink:0; }
+  /* Nested replies */
+  .ch-replies { margin-top:10px; border-left:2px solid var(--border); padding-left:10px; display:flex; flex-direction:column; gap:6px; }
+  .ch-rply { background:var(--bg); border:1px solid var(--border2); border-radius:8px; padding:8px 10px; transition:border-color 0.15s; }
+  .ch-rply:hover { border-color:var(--gold); }
+  .ch-rply-right { flex:1; min-width:0; }
+  .ch-rhead { display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap; }
+  .ch-rn { font-size:12px; font-weight:600; color:var(--text); }
+  .ch-rr { font-size:10px; color:var(--text3); background:var(--bg3); border:1px solid var(--border2); border-radius:4px; padding:1px 5px; }
+  .ch-rt { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
+  .ch-rbody { font-size:12px; color:var(--text2); line-height:1.6; margin-bottom:6px; white-space:pre-wrap; }
+  .ch-ractions { display:flex; align-items:center; border-top:1px solid rgba(255,255,255,0.06); padding-top:6px; margin-top:5px; gap:0; }
+  /* Ayraçlar */
+  .ch-sep-date { display:flex; align-items:center; gap:8px; padding:4px 2px 8px; }
+  .ch-sep-new { display:flex; align-items:center; gap:8px; padding:4px 0; }
+  .ch-dline { flex:1; height:1px; background:var(--border); }
+  .ch-dline-new { flex:1; height:1px; background:rgba(201,168,76,0.3); }
+  .ch-dlabel { font-size:10px; color:var(--text3); letter-spacing:0.05em; white-space:nowrap; }
+  .ch-new-badge { background:var(--gold-dim); border:1px solid rgba(201,168,76,0.35); color:var(--gold); border-radius:20px; font-size:10px; font-weight:700; padding:2px 10px; white-space:nowrap; }
+  /* INPUT */
+  .chatter-input-area { border-top:1px solid var(--border); padding:10px 14px; flex-shrink:0; background:var(--bg2); }
+  .chatter-reply-banner { font-size:11px; color:var(--gold); padding:6px 10px; background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.25); border-radius:7px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+  .chatter-textarea { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 12px; resize:none; outline:none; min-height:68px; transition:border-color 0.15s; box-sizing:border-box; }
+  .chatter-textarea:focus { border-color:var(--gold); }
+  .chatter-send-row { display:flex; align-items:center; justify-content:space-between; margin-top:8px; }
+  .chatter-send-hint { font-size:11px; color:var(--text3); }
 
   /* INLINE EDIT */
   .info-item { position: relative; }
@@ -1780,16 +1723,6 @@
     <!-- FİNANS -->
     <div id="page-finans" class="page">
       <!-- Özet - JS tarafından doldurulur -->
-      <!-- Dönem Filtresi -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <span style="font-size:12px;color:var(--text3)">📅 Dönem:</span>
-        <div style="display:flex;gap:4px">
-          <button id="finans-donem-ay" class="btn btn-gold" style="font-size:12px;padding:5px 14px" onclick="finansDonemSec('ay',this)">Bu Ay</button>
-          <button id="finans-donem-yil" class="btn btn-outline" style="font-size:12px;padding:5px 14px" onclick="finansDonemSec('yil',this)">Bu Yıl</button>
-          <button id="finans-donem-tumü" class="btn btn-outline" style="font-size:12px;padding:5px 14px" onclick="finansDonemSec('tumü',this)">Tüm Zamanlar</button>
-        </div>
-        <span id="finans-donem-label" style="font-size:12px;color:var(--gold);font-weight:600;margin-left:4px"></span>
-      </div>
       <div class="finance-summary" id="finance-summary"></div>
 
       <!-- Sekme Bar -->
@@ -2460,47 +2393,6 @@
   </div>
 </div>
 
-<!-- TARİHÇE EKLE MODAL -->
-<div class="modal-overlay" id="modal-tarihce">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-header">
-      <div class="modal-title">📜 Tarihçe Kaydı Ekle</div>
-      <button class="modal-close" onclick="closeModal('modal-tarihce')">×</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="tarihce-dava-id">
-      <div class="form-grid" style="margin-bottom:14px">
-        <div class="form-group">
-          <label>Tarih</label>
-          <input type="date" id="tarihce-tarih">
-        </div>
-        <div class="form-group">
-          <label>Tür</label>
-          <select id="tarihce-tip">
-            <option>Duruşma</option>
-            <option>Karar</option>
-            <option>Belge</option>
-            <option>Yazışma</option>
-            <option>Diğer</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:14px">
-        <label>Başlık</label>
-        <input type="text" id="tarihce-baslik" placeholder="Örn: İlk duruşma yapıldı, Bilirkişi raporu alındı...">
-      </div>
-      <div class="form-group">
-        <label>Açıklama <span style="color:var(--text3);font-weight:400">(isteğe bağlı)</span></label>
-        <textarea id="tarihce-aciklama" style="min-height:80px" placeholder="Detaylı not..."></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modal-tarihce')">İptal</button>
-      <button class="btn btn-gold" onclick="saveTarihce()">💾 Kaydet</button>
-    </div>
-  </div>
-</div>
-
 <!-- RAPOR MODAL -->
 <div class="modal-overlay" id="modal-rapor">
   <div class="modal" style="max-width:520px">
@@ -3102,7 +2994,7 @@
               <option value="Vekalet Ücreti Tahsilatı">⚖️ Vekalet Ücreti Tahsilatı</option>
               <option value="Karşı Vekalet Ücreti">⚖️ Karşı Vekalet Ücreti (Mahkemece)</option>
               <option value="İcra Vekalet Ücreti">⚡ İcra Vekalet Ücreti</option>
-              <!-- Taksit Tahsilatı sadece ödeme planından otomatik eklenir -->
+              <option value="Taksit Tahsilatı">📅 Taksit Tahsilatı (Ödeme Planı)</option>
             </optgroup>
             <optgroup label="── Dosya Masrafları">
               <option value="Masraf (Ofis Avansı)">🧾 Masraf — Büro Karşıladı</option>
@@ -4004,7 +3896,7 @@ function renderRaporlarPage() {
   const tasks   = DB.get('tasks') || [];
   const today   = new Date(); today.setHours(0,0,0,0);
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'];
   const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const topMas  = finans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const mvOpts  = muvekkiller.map(m=>`<option value="${m.ad}">${m.ad}</option>`).join('');
@@ -4119,7 +4011,7 @@ function raporOnizle(tur) {
   const davalar = DB.get('davalar')||[];
   const icralar = DB.get('icralar')||[];
   const finans  = DB.get('finans')||[];
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'];
 
   if (tur === 'davalar') {
     const durum = document.getElementById('r-dava-durum')?.value||'';
@@ -5373,7 +5265,9 @@ function hesaplaVekaletUcreti(mod) {
     const deger = Number(document.getElementById('d-dava-degeri').value) || 0;
     const asgari = AAUT.hesapla(tur, deger, ucretTuru);
     document.getElementById('d-asgari-ucret').value = asgari > 0 ? fmt(asgari) + ' ₺' : '—';
-    // Sadece asgari ücret alanını güncelle, akdi ücrete dokunma
+    // Akdi ücret boşsa asgariyi öner
+    const akdiEl = document.getElementById('d-akdi-ucret');
+    if (!akdiEl.value) akdiEl.value = asgari || '';
     updateDavaFinans();
   }
 }
@@ -5683,8 +5577,8 @@ function ortakTakvimTamAc() {
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'modal-ortak-takvim';
-    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
-    modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:1200px;display:flex;flex-direction:column;overflow:hidden;margin:auto">'
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:stretch;justify-content:center;padding:20px';
+    modal.innerHTML = '<div style="background:var(--bg1);border:1px solid var(--border);border-radius:16px;width:100%;max-width:1200px;display:flex;flex-direction:column;overflow:hidden">'
       + '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
       +   '<div style="font-size:16px;font-weight:700;color:var(--text)">🗓 Ortak Takvim — Tüm Etkinlikler</div>'
       +   '<button data-close-modal="modal-ortak-takvim">×</button>'
@@ -5754,7 +5648,7 @@ function ortakTakvimTamAc() {
       });
       
       var cell = document.createElement('div');
-      cell.style.cssText = 'min-height:70px;padding:4px;border-radius:8px;border:1px solid '+(isToday?'rgba(201,168,76,0.5)':'var(--border)')+';background:'+(isToday?'rgba(201,168,76,0.06)':evler.length?'rgba(255,255,255,0.03)':'var(--bg3)')+(evler.length?';cursor:pointer':'');
+      cell.style.cssText = 'min-height:70px;padding:4px;border-radius:8px;border:1px solid '+(isToday?'rgba(201,168,76,0.5)':'rgba(255,255,255,0.05)')+';background:'+(isToday?'rgba(201,168,76,0.06)':evler.length?'rgba(255,255,255,0.02)':'transparent')+(evler.length?';cursor:pointer':'');
       if(evler.length) { cell.onmouseover=function(){this.style.background='rgba(255,255,255,0.05)';}; cell.onmouseout=function(){this.style.background=evler.length?'rgba(255,255,255,0.02)':'transparent';}; }
       
       var numEl = document.createElement('div');
@@ -5862,7 +5756,7 @@ function renderDavaDash() {
   var mahkemeler = [...new Set(davalar0.map(function(d){return d.mahkeme;}).filter(Boolean))].sort();
   var filtFinans = mvF ? finans.filter(function(f){return f.muvekkil===mvF;}) : finans.slice();
 
-  var GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  var GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'];
   var MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
   var topTah = filtFinans.filter(function(f){return GELIR_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
   var topMas = filtFinans.filter(function(f){return MASRAF_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
@@ -6716,8 +6610,6 @@ function showPage(page) {
   else if (page === 'kullanicilar') { renderKullanicilar(); }
   else if (page === 'tasks') {
     populateTaskDosyaFilter();
-    var dsf = document.getElementById('task-dosya-filter'); if(dsf) dsf.value = '';
-    var dh = document.getElementById('task-dosya-header'); if(dh) dh.style.display = 'none';
     // Liste view zorla
     ['kanban','cal','person'].forEach(function(v){
       var el = document.getElementById('task-view-'+v);
@@ -6729,23 +6621,18 @@ function showPage(page) {
     if(lv) lv.style.display='';
     var lb = document.getElementById('task-view-list-btn');
     if(lb) lb.className='btn btn-gold';
+    // tab sıfırla - gecikmiş varsa gecikmiş seç, yoksa tümü
+    var tl = document.getElementById('task-list');
+    if(tl) {
+      var allTasks = DB.get('tasks') || [];
+      var todayCheck = new Date(); todayCheck.setHours(0,0,0,0);
+      var hasGecikmus = allTasks.some(function(t){ return !t.done && t.tarih && new Date(t.tarih.slice(0,10)) < todayCheck; });
+      tl.dataset.activeTab = hasGecikmus ? 'gecikmus' : 'tumü';
+    }
     taskFilter = 'all';
     document.querySelectorAll('#page-tasks .tab').forEach(function(t){t.classList.remove('active');});
     var at = document.getElementById('task-tab-all');
     if(at) at.classList.add('active');
-    var tl = document.getElementById('task-list');
-    if(tl) { tl.dataset.activeTab = ''; }
-    // liste görünümünü zorla aç
-    var lv = document.getElementById('task-view-list');
-    if(lv) lv.style.display = '';
-    var lb = document.getElementById('task-view-list-btn');
-    if(lb) lb.className = 'btn btn-gold';
-    ['person','cal'].forEach(function(v){
-      var el = document.getElementById('task-view-'+v);
-      if(el) el.style.display = 'none';
-      var btn = document.getElementById('task-view-'+v+'-btn');
-      if(btn) btn.className = 'btn btn-outline';
-    });
     renderTasks();
   }
   else if (page === 'notlar') { showSubpage('note-list'); renderNotes(); }
@@ -7269,7 +7156,7 @@ function renderDavaTab(id, sekme) {
       <button class="info-edit-btn" onclick="startInlineEdit('${id}','${field}','${type}')">✏</button>
     </div>`;
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'];
   const MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
   const finans = DB.get('finans').filter(f => f.muvekkil === d.muvekkil || f.davaId === id);
   const tahsilat = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
@@ -7319,8 +7206,6 @@ function renderDavaTab(id, sekme) {
       </div>`:''}
       <!-- Notlar -->
       ${d.notlar?`<div style="margin-top:14px;background:var(--bg3);border-radius:8px;padding:12px 14px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Notlar</div><div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${escHtml(d.notlar)}</div></div>`:''}
-
-      ${renderProfesyonelBolum(d, id)}
     </div>`;
 
   } else if (sekme === 'durusma') {
@@ -7668,297 +7553,130 @@ function saveInlineEdit(davaId, field, type) {
   notify('✓ ' + field + ' güncellendi');
 }
 
-// ========== RAPOR İNDİR ==========
-function raporIndir(tur) {
-  if (typeof XLSX === 'undefined') { notify('❌ Excel kütüphanesi yüklenemedi'); return; }
-  const wb = XLSX.utils.book_new();
-
-  if (tur === 'davalar' || tur === 'genel') {
-    const davalar = DB.get('davalar') || [];
-    const durum = document.getElementById('r-dava-durum')?.value || '';
-    const muv   = document.getElementById('r-dava-muvekkil')?.value || '';
-    const bas   = document.getElementById('r-dava-bas')?.value || '';
-    const bit   = document.getElementById('r-dava-bit')?.value || '';
-    let liste = davalar;
-    if (durum) liste = liste.filter(d => d.durum === durum);
-    if (muv)   liste = liste.filter(d => d.muvekkil === muv);
-    if (bas)   liste = liste.filter(d => d.tarih >= bas);
-    if (bit)   liste = liste.filter(d => d.tarih <= bit);
-    const rows = [['Dosya No','Dosya Adı','Müvekkil','Karşı Taraf','Mahkeme','Esas No','Durum','Son Duruşma','Sonraki Duruşma','Tür','Vekâlet Ücreti','Tahsil Edilen','Kalan','Masraf','Notlar']];
-    liste.forEach(d => rows.push([
-      d.no||'', d.ad||d.konu||'', d.muvekkil||'', d.karsi||'', d.mahkeme||'', d.esas||'',
-      d.durum||'', d.durusma||'', d.sonraki||'', d.tur||'',
-      Number(d.akdiUcret)||0, Number(d.tahsilEdilen)||0,
-      (Number(d.akdiUcret)||0)-(Number(d.tahsilEdilen)||0),
-      Number(d.masraf)||0, d.notlar||''
-    ]));
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = rows[0].map(() => ({wch:18}));
-    XLSX.utils.book_append_sheet(wb, ws, 'Davalar');
-  }
-
-  if (tur === 'icralar' || tur === 'genel') {
-    const icralar = DB.get('icralar') || [];
-    const durum = document.getElementById('r-icra-durum')?.value || '';
-    const muv   = document.getElementById('r-icra-muvekkil')?.value || '';
-    let liste = icralar;
-    if (durum) liste = liste.filter(i => i.durum === durum);
-    if (muv)   liste = liste.filter(i => i.muvekkil === muv);
-    const rows = [['Dosya No','Borçlu','Müvekkil','Müdürlük','Esas No','Alacak Tutarı','Durum','Notlar']];
-    liste.forEach(i => rows.push([i.bki||i.no||'', i.borclu||'', i.muvekkil||'', i.mudurluk||'', i.esas||'', Number(i.alacak)||0, i.durum||'', i.notlar||'']));
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = rows[0].map(() => ({wch:18}));
-    XLSX.utils.book_append_sheet(wb, ws, 'İcralar');
-  }
-
-  if (tur === 'muvekkiller' || tur === 'genel') {
-    const muvekkiller = DB.get('muvekkiller') || [];
-    const davalar = DB.get('davalar') || [];
-    const icralar = DB.get('icralar') || [];
-    const turFilt = document.getElementById('r-mv-tur')?.value || '';
-    let liste = muvekkiller;
-    if (turFilt) liste = liste.filter(m => (m.tur||'Bireysel') === turFilt);
-    const rows = [['Ad','Tür','TC/Vergi No','Telefon','E-posta','Adres','Sektör','Toplam Dava','Toplam İcra','Notlar']];
-    liste.forEach(m => rows.push([
-      m.ad||'', m.tur||'Bireysel', m.tc||'', m.tel||'', m.email||'', m.adres||'', m.sektor||'',
-      davalar.filter(d=>d.muvekkil===m.ad).length,
-      icralar.filter(i=>i.muvekkil===m.ad).length,
-      m.notlar||''
-    ]));
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = rows[0].map(() => ({wch:18}));
-    XLSX.utils.book_append_sheet(wb, ws, 'Müvekkiller');
-  }
-
-  if (tur === 'finans' || tur === 'genel') {
-    const finans = DB.get('finans') || [];
-    const turFilt = document.getElementById('r-finans-tur')?.value || '';
-    const muv     = document.getElementById('r-finans-muvekkil')?.value || '';
-    const bas     = document.getElementById('r-finans-bas')?.value || '';
-    const bit     = document.getElementById('r-finans-bit')?.value || '';
-    let liste = finans;
-    if (turFilt) liste = liste.filter(f => f.tur.includes(turFilt));
-    if (muv)     liste = liste.filter(f => f.muvekkil === muv);
-    if (bas)     liste = liste.filter(f => f.tarih >= bas);
-    if (bit)     liste = liste.filter(f => f.tarih <= bit);
-    liste = liste.slice().sort((a,b) => new Date(b.tarih)-new Date(a.tarih));
-    const rows = [['Tarih','Tür','Müvekkil','İlgili Dosya','Açıklama','Tutar']];
-    liste.forEach(f => rows.push([f.tarih||'', f.tur||'', f.muvekkil||'', f.ilgili||'', f.aciklama||'', Number(f.tutar)||0]));
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = rows[0].map(() => ({wch:20}));
-    XLSX.utils.book_append_sheet(wb, ws, 'Finans');
-  }
-
-  if (tur === 'gorevler' || tur === 'genel') {
-    const tasks = DB.get('tasks') || [];
-    const durumFilt  = document.getElementById('r-gorev-durum')?.value || '';
-    const oncelik    = document.getElementById('r-gorev-oncelik')?.value || '';
-    const dosya      = document.getElementById('r-gorev-dosya')?.value || '';
-    const bas        = document.getElementById('r-gorev-bas')?.value || '';
-    const bit        = document.getElementById('r-gorev-bit')?.value || '';
-    let liste = tasks;
-    if (durumFilt === 'bekleyen') liste = liste.filter(t => !t.done);
-    else if (durumFilt === 'tamam') liste = liste.filter(t => t.done);
-    if (oncelik) liste = liste.filter(t => t.oncelik === oncelik);
-    if (dosya)   liste = liste.filter(t => t.ilgili === dosya);
-    if (bas)     liste = liste.filter(t => (t.tarih||'') >= bas);
-    if (bit)     liste = liste.filter(t => (t.tarih||'') <= bit);
-    const rows = [['Başlık','Tip','Öncelik','Durum','Tarih','İlgili Dosya','Açıklama']];
-    liste.forEach(t => rows.push([t.baslik||t.text||'', t.tip||'Görev', t.oncelik||'Normal', t.done?'Tamamlandı':'Bekliyor', t.tarih||'', t.ilgili||'', t.aciklama||'']));
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = rows[0].map(() => ({wch:20}));
-    XLSX.utils.book_append_sheet(wb, ws, 'Görevler');
-  }
-
-  if (wb.SheetNames.length === 0) { notify('Veri bulunamadı'); return; }
-
-  const bugun = new Date().toISOString().slice(0,10);
-  const dosyaAdi = 'hukuk-rapor-' + tur + '-' + bugun + '.xlsx';
-  XLSX.writeFile(wb, dosyaAdi);
-  closeModal('modal-rapor');
-  notify('✅ ' + dosyaAdi + ' indirildi');
-}
-
-// ========== PROFESYONEL HUKUK BÖLÜMÜ ==========
-function renderProfesyonelBolum(d, id) {
-  function alan(baslik, ikon, renk, borderRenk, field, icerik) {
-    var dolu = d[field];
-    return '<div style="background:var(--bg2);border:1px solid '+borderRenk+';border-radius:12px;overflow:hidden">'
-      + '<div style="padding:10px 14px;border-bottom:1px solid '+borderRenk+';display:flex;align-items:center;justify-content:space-between">'
-      + '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px">'+ikon+'</span>'
-      + '<span style="font-size:12px;font-weight:700;color:'+renk+';text-transform:uppercase;letter-spacing:0.05em">'+baslik+'</span></div>'
-      + '<button class="btn btn-outline" style="font-size:11px;padding:3px 10px" onclick="startInlineEdit(\'' + id + '\',\'' + field + '\',\'textarea\')">✏ Düzenle</button>'
-      + '</div>'
-      + '<div id="ei-'+field+'" style="padding:12px 14px">'
-      + (dolu
-        ? '<div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">'+escHtml(dolu)+'</div>'
-        : '<div style="font-size:12px;color:var(--text3);font-style:italic">'+icerik+'</div>')
-      + '</div></div>';
-  }
-
-  var html = '<div style="margin-top:20px;display:flex;flex-direction:column;gap:12px">';
-
-  // Son Durum + Sonraki Adım yan yana
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
-  html += alan('Son Durum', '📍', 'var(--text)', 'var(--border)', 'sonDurum', 'Davanın güncel durumunu yazın...');
-  html += alan('Sonraki Adım', '🎯', 'var(--gold)', 'rgba(201,168,76,0.2)', 'sonrakiAdim', 'Atılacak hukuki adımı yazın...');
-  html += '</div>';
-
-  // Strateji
-  html += alan('Dava Stratejisi', '⚖️', '#7ab5d4', 'rgba(122,181,212,0.2)', 'strateji', 'Hukuki strateji ve savunma yaklaşımını yazın...');
-
-  // Güçlü Yönler + Riskler yan yana
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
-  html += '<div style="background:var(--bg2);border:1px solid rgba(74,140,92,0.2);border-radius:12px;overflow:hidden">'
-    + '<div style="padding:10px 14px;border-bottom:1px solid rgba(74,140,92,0.15);display:flex;align-items:center;justify-content:space-between">'
-    + '<div style="display:flex;align-items:center;gap:6px"><span>💪</span><span style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase">Güçlü Yönler</span></div>'
-    + '<button class="btn btn-outline" style="font-size:11px;padding:2px 8px" onclick="startInlineEdit(\'' + id + '\',\'gucluYon\',\'textarea\')">✏</button>'
-    + '</div>'
-    + '<div id="ei-gucluYon" style="padding:10px 14px">'
-    + (d.gucluYon ? '<div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap">'+escHtml(d.gucluYon)+'</div>'
-                  : '<div style="font-size:11px;color:var(--text3);font-style:italic">Davanın güçlü yönleri...</div>')
-    + '</div></div>';
-  html += '<div style="background:var(--bg2);border:1px solid rgba(192,83,58,0.2);border-radius:12px;overflow:hidden">'
-    + '<div style="padding:10px 14px;border-bottom:1px solid rgba(192,83,58,0.15);display:flex;align-items:center;justify-content:space-between">'
-    + '<div style="display:flex;align-items:center;gap:6px"><span>⚠️</span><span style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase">Riskler</span></div>'
-    + '<button class="btn btn-outline" style="font-size:11px;padding:2px 8px" onclick="startInlineEdit(\'' + id + '\',\'riskler\',\'textarea\')">✏</button>'
-    + '</div>'
-    + '<div id="ei-riskler" style="padding:10px 14px">'
-    + (d.riskler ? '<div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap">'+escHtml(d.riskler)+'</div>'
-                 : '<div style="font-size:11px;color:var(--text3);font-style:italic">Risk faktörleri...</div>')
-    + '</div></div>';
-  html += '</div>';
-
-  // Tarihçe
-  html += '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">'
-    + '<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
-    + '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px">📜</span>'
-    + '<span style="font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.05em">Dava Tarihçesi</span></div>'
-    + '<button class="btn btn-outline" style="font-size:11px;padding:4px 10px" onclick="tarihceEkleModal(\'' + id + '\')">+ Ekle</button>'
-    + '</div>'
-    + '<div style="padding:12px 14px">' + renderTarihceHTML(d) + '</div>'
-    + '</div>';
-
-  html += '</div>';
-  return html;
-}
-
-// ========== TARİHÇE ==========
-function renderTarihceHTML(d) {
-  var tarihce = d.tarihce || [];
-  if (!tarihce.length) return '<div style="font-size:12px;color:var(--text3);font-style:italic;text-align:center;padding:12px">Henüz tarihçe kaydı yok</div>';
-  var renkMap = {'Duruşma':'var(--gold)','Karar':'var(--green)','Belge':'#7ab5d4','Yazışma':'var(--text2)','Diğer':'var(--text3)'};
-  var ikonMap = {'Duruşma':'⚖️','Karar':'📋','Belge':'📎','Yazışma':'✉️','Diğer':'📌'};
-  var sorted = tarihce.slice().sort(function(a,b){ return new Date(b.tarih)-new Date(a.tarih); });
-  var html = '<div style="display:flex;flex-direction:column;gap:0">';
-  sorted.forEach(function(t, i) {
-    var renk = renkMap[t.tip] || 'var(--text3)';
-    var ikon = ikonMap[t.tip] || '📌';
-    var border = i < sorted.length-1 ? 'border-bottom:1px solid rgba(255,255,255,0.04)' : '';
-    html += '<div style="display:flex;gap:12px;padding:8px 0;' + border + '">'
-      + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:2px">'
-      + '<div style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid '+renk+';display:flex;align-items:center;justify-content:center;font-size:13px">'+ikon+'</div>'
-      + (i < sorted.length-1 ? '<div style="width:1px;flex:1;background:var(--border);margin-top:4px;margin-bottom:-4px"></div>' : '')
-      + '</div>'
-      + '<div style="flex:1;min-width:0;padding-bottom:8px">'
-      + '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:3px">'
-      + '<span style="font-size:12px;font-weight:700;color:'+renk+'">'+escHtml(t.tip||'')+'</span>'
-      + '<span style="font-size:11px;color:var(--text3)">'+fmtDate(t.tarih)+'</span>'
-      + '</div>'
-      + '<div style="font-size:13px;color:var(--text2);font-weight:600">'+escHtml(t.baslik||'')+'</div>'
-      + (t.aciklama ? '<div style="font-size:12px;color:var(--text3);margin-top:3px;line-height:1.5">'+escHtml(t.aciklama)+'</div>' : '')
-      + '</div>'
-      + '<button onclick="tarihceSil(\\\'' + escHtml(d.id) + '\\\',\\\'' + escHtml(t.id) + '\\\')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;flex-shrink:0;padding:2px 4px;opacity:0.5" title="Sil">🗑</button>'
-      + '</div>';
-  });
-  html += '</div>';
-  return html;
-}
-
-
-function tarihceEkleModal(davaId) {
-  document.getElementById('tarihce-dava-id').value = davaId;
-  document.getElementById('tarihce-tarih').value = new Date().toISOString().slice(0,10);
-  document.getElementById('tarihce-tip').value = 'Duruşma';
-  document.getElementById('tarihce-baslik').value = '';
-  document.getElementById('tarihce-aciklama').value = '';
-  openModal('modal-tarihce');
-}
-
-function saveTarihce() {
-  const davaId = document.getElementById('tarihce-dava-id').value;
-  const tarih  = document.getElementById('tarihce-tarih').value;
-  const tip    = document.getElementById('tarihce-tip').value;
-  const baslik = document.getElementById('tarihce-baslik').value.trim();
-  const aciklama = document.getElementById('tarihce-aciklama').value.trim();
-  if (!baslik) { notify('Başlık zorunlu'); return; }
-  let davalar = DB.get('davalar');
-  davalar = davalar.map(function(d) {
-    if (d.id !== davaId) return d;
-    var tarihce = d.tarihce || [];
-    tarihce.push({ id: DB.genId(), tarih, tip, baslik, aciklama, created: new Date().toISOString() });
-    return { ...d, tarihce };
-  });
-  DB.set('davalar', davalar);
-  closeModal('modal-tarihce');
-  renderDavaDetailPage(davaId);
-  notify('✓ Tarihçe kaydı eklendi');
-}
-
-function tarihceSil(davaId, tarihceId) {
-  if (!confirm('Bu tarihçe kaydını silmek istiyor musunuz?')) return;
-  let davalar = DB.get('davalar');
-  davalar = davalar.map(function(d) {
-    if (d.id !== davaId) return d;
-    return { ...d, tarihce: (d.tarihce||[]).filter(function(t){ return t.id !== tarihceId; }) };
-  });
-  DB.set('davalar', davalar);
-  renderDavaDetailPage(davaId);
-  notify('Tarihçe silindi');
-}
-
 // ========== CHATTER ==========
-function renderChatter(davaId) {
-  const all = (DB.get('chatter_' + davaId) || [])
-    .sort((a,b) => new Date(b.tarih) - new Date(a.tarih)); // yeniden eskiye
-  document.getElementById('ddp-post-count').textContent = all.length + ' mesaj';
-  document.getElementById('chatter-feed').innerHTML = all.length
-    ? all.map(p => renderPost(p, all, davaId)).join('')
-    : '<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">💬</div><div style="font-size:13px">Henüz mesaj yok</div></div>';
+// ── AVATAR RENK SİSTEMİ ──
+var CH_COLORS=[
+  {bg:'var(--gold-dim)',border:'rgba(201,168,76,0.4)',color:'var(--gold)'},
+  {bg:'rgba(122,92,140,0.2)',border:'rgba(122,92,140,0.4)',color:'#c4a0e0'},
+  {bg:'rgba(74,140,92,0.2)',border:'rgba(74,140,92,0.4)',color:'#7dc495'},
+  {bg:'rgba(58,107,140,0.2)',border:'rgba(58,107,140,0.4)',color:'#7ab5d4'},
+  {bg:'rgba(192,83,58,0.2)',border:'rgba(192,83,58,0.4)',color:'#e08878'},
+];
+var _chCM={},_chCI=0;
+function chColor(y){if(!_chCM[y]){_chCM[y]=CH_COLORS[_chCI%CH_COLORS.length];_chCI++;}return _chCM[y];}
+
+function chAvatar(y,s){
+  var ini=(y||'AV').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var cv=chColor(y),sz=s||32;
+  return '<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:'+cv.bg+';border:1.5px solid '+cv.border+';display:flex;align-items:center;justify-content:center;font-size:'+(sz<26?9:11)+'px;font-weight:700;color:'+cv.color+';flex-shrink:0;font-family:DM Mono,monospace">'+ini+'</div>';
 }
 
-function renderPost(post, all, davaId) {
-  var ini=(post.yazar||"AV").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();
-  var pp=post.parentId?all.find(function(x){return x.id===post.parentId;}):null;
-  var pY=pp?escHtml(post.parentYazar||pp.yazar||"?"):"";
-  var pM=pp?escHtml((post.parentMetin||pp.metin||"").slice(0,80)):"";
-  var pid=post.id,yazar=escHtml(post.yazar||"Avukat"),metin=escHtml(post.metin||""),m80=escHtml((post.metin||"").slice(0,80));
-  var tb=renderTepkiBar(post,davaId,false);
-  var quote=pp
-    ?'<div data-pid="'+post.parentId+'" onclick="scrollToPost(this)" style="margin:0 0 6px 38px;border-left:3px solid rgba(201,168,76,0.5);padding:5px 10px;background:rgba(201,168,76,0.06);border-radius:0 6px 6px 0;cursor:pointer"><b style="font-size:11px;color:var(--gold)">&#x21a9; '+pY+'</b><div style="font-size:12px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+pM+'</div></div>'
-    :"";
-  var el=document.createElement("div");
-  el.id="post-"+pid;
-  el.className="chat-msg";
-  el.style.cssText="padding:10px 14px;border-bottom:1px solid var(--border);transition:background 0.1s";
-  el.addEventListener("mouseover",function(){var a=this.querySelector(".chat-act");if(a)a.style.opacity="1";});
-  el.addEventListener("mouseout",function(){var a=this.querySelector(".chat-act");if(a)a.style.opacity="0";});
-  el.innerHTML='<div style="display:flex;gap:9px">'
-    +'<div style="width:30px;height:30px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:1px">'+ini+'</div>'
-    +'<div style="flex:1;min-width:0">'
-    +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:5px">'
-    +'<span style="font-size:13px;font-weight:600;color:var(--text)">'+yazar+'</span>'
-    +'<span style="font-size:11px;color:var(--text3)">'+fmtDate(post.tarih)+'</span></div>'
-    +quote
-    +'<div id="cbody-'+pid+'" style="font-size:13.5px;color:var(--text2);line-height:1.65;white-space:pre-wrap">'+metin+'</div>'
-    +tb
-    +'<div class="chat-act" style="display:flex;gap:2px;margin-top:5px;opacity:0;transition:opacity 0.15s" id="cactions-'+pid+'">'
-    +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" data-y="'+yazar+'" data-m="'+m80+'" onclick="startReply(this.dataset.pid,this.dataset.y,this.dataset.m)">&#x21a9; Yanıtla</button>'
-    +'<button class="chatter-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startChatterEdit(this.dataset.pid,this.dataset.did)">&#x270f; D&#xfc;zenle</button>'
-    +'<button class="chatter-btn del-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="deletePost(this.dataset.pid,this.dataset.did)">&#x1f5d1; Sil</button>'
-    +'</div></div></div></div>';
-  return el.outerHTML;
+function chReplyTo(pY,pM){
+  if(!pY) return '';
+  var cv=chColor(pY);
+  var snip=escHtml((pM||'').slice(0,45))+((pM||'').length>45?'...':'');
+  return '<div class="ch-reply-to"><span class="ch-reply-dot" style="background:'+cv.color+'"></span><span style="color:var(--text3)">&#x21a9;</span><span class="ch-reply-name">'+escHtml(pY)+'</span><span class="ch-reply-snip">&middot; '+snip+'</span></div>';
 }
+
+function chActions(pid, davaId, small){
+  var b = small ? 'chatter-btn' : 'chatter-btn';
+  return '<div class="ch-actions" id="cactions-'+pid+'">'
+    +'<button class="'+b+' reply-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="'+b+' edit-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startChatterEdit(this.dataset.pid,this.dataset.did)">&#x270f; D&#xfc;zenle</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="'+b+' del-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="deletePost(this.dataset.pid,this.dataset.did)">&#x1f5d1; Sil</button>'
+    +'</div>';
+}
+
+function renderChatter(davaId){
+  var all=(DB.get('chatter_'+davaId)||[]).slice().sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
+  var countEl=document.getElementById('ddp-post-count');
+  if(countEl) countEl.textContent=all.length+' mesaj';
+  var feed=document.getElementById('chatter-feed');
+  if(!feed) return;
+  if(!all.length){
+    feed.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:10px">&#x1f4ac;</div><div style="font-size:13px">Hen&uuml;z mesaj yok</div></div>';
+    return;
+  }
+  var anaPosts=all.filter(function(p){return !p.parentId;});
+  var lastId=all[all.length-1].id;
+  feed.innerHTML=anaPosts.map(function(post){
+    return chBuildPost(post,all,davaId,post.id===lastId);
+  }).join('');
+  feed.scrollTop=feed.scrollHeight;
+}
+
+function startReplyById(pid, davaId){
+  var all=DB.get('chatter_'+davaId)||[];
+  var post=all.find(function(p){return p.id===pid;});
+  if(!post) return;
+  startReply(pid, post.yazar||'Avukat', (post.metin||'').slice(0,80));
+}
+
+function chBuildReply(reply,all,davaId,isLast){
+  var y=reply.yazar||'Avukat';
+  var rid=reply.id;
+  var rol=reply.rol?'<span class="ch-rr">'+escHtml(reply.rol)+'</span>':'';
+  var duz=reply.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
+  var tb=renderTepkiBar(reply,davaId,true);
+  var subReplies=all.filter(function(r){return r.parentId===rid;});
+  var subHtml=subReplies.length
+    ?'<div class="ch-replies">'+subReplies.map(function(sr,si){return chBuildReply(sr,all,davaId,si===subReplies.length-1);}).join('')+'</div>'
+    :'';
+  return '<div class="ch-rply" id="post-'+rid+'">'
+    +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">'
+    +chAvatar(y,24)
+    +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol+'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
+    +'</div>'
+    +chReplyTo(reply.parentYazar,reply.parentMetin)
+    +'<div class="ch-rbody" id="cbody-'+rid+'">'+escHtml(reply.metin||'')+'</div>'
+    +tb
+    +'<div class="ch-ractions" id="cactions-'+rid+'">'
+    +'<button class="chatter-btn reply-btn" data-pid="'+rid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn edit-btn" data-pid="'+rid+'" data-did="'+davaId+'" onclick="startChatterEdit(this.dataset.pid,this.dataset.did)">&#x270f; D&uuml;zenle</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn del-btn" data-pid="'+rid+'" data-did="'+davaId+'" onclick="deletePost(this.dataset.pid,this.dataset.did)">&#x1f5d1; Sil</button>'
+    +'</div>'
+    +subHtml
+    +'</div>';
+}
+
+function chBuildPost(post,all,davaId,isLast){
+  var y=post.yazar||'Avukat';
+  var pid=post.id;
+  var rol=post.rol?'<span class="ch-role">'+escHtml(post.rol)+'</span>':'';
+  var duz=post.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
+  var lastBadge=isLast?'<span class="ch-last-badge">&#x1f514; Son mesaj</span>':'';
+  var tb=renderTepkiBar(post,davaId,false);
+  var replies=all.filter(function(r){return r.parentId===pid;});
+  var repliesHtml=replies.length
+    ?'<div class="ch-replies">'+replies.map(function(r,i){return chBuildReply(r,all,davaId,i===replies.length-1);}).join('')+'</div>'
+    :'';
+  return '<div class="ch-post'+(isLast?' ch-last':'')+'" id="post-'+pid+'">'
+    +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">'
+    +chAvatar(y,32)
+    +'<div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +'<span class="ch-name">'+escHtml(y)+'</span>'+rol+'<span class="ch-time">'+fmtDate(post.tarih)+duz+'</span>'+lastBadge
+    +'</div></div>'
+    +chReplyTo(post.parentYazar,post.parentMetin)
+    +'<div class="ch-body" id="cbody-'+pid+'">'+escHtml(post.metin||'')+'</div>'
+    +tb
+    +'<div class="ch-actions" id="cactions-'+pid+'">'
+    +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn edit-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startChatterEdit(this.dataset.pid,this.dataset.did)">&#x270f; D&uuml;zenle</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn del-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="deletePost(this.dataset.pid,this.dataset.did)">&#x1f5d1; Sil</button>'
+    +'</div>'
+    +repliesHtml
+    +'</div>';
+}
+
+function renderPost(post,all,davaId){return chBuildPost(post,all,davaId,false);}
+function chRenderAnaPost(p,d){return chBuildPost(p,[],d,false);}
+function chRenderReply(p,d){return chBuildReply(p,[],d,false);}
 
 function scrollToPost(postId) {
   const el = document.getElementById('post-' + postId);
@@ -8775,46 +8493,84 @@ function icraAracSil(icraId, idx) {
 
 // İcra chatter
 let icraReplyTo = {};
-function renderIcraChatter(icraId) {
-  var all=(DB.get("icra_chatter_"+icraId)||[]).sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
-  var cntEl=document.getElementById("icra-post-cnt-"+icraId);
-  if(cntEl) cntEl.textContent=all.length+" mesaj";
-  var feed=document.getElementById("icra-feed-"+icraId);
+function renderIcraChatter(icraId){
+  var all=(DB.get('icra_chatter_'+icraId)||[]).slice().sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
+  var cntEl=document.getElementById('icra-post-cnt-'+icraId);
+  if(cntEl) cntEl.textContent=all.length+' mesaj';
+  var feed=document.getElementById('icra-feed-'+icraId);
   if(!feed) return;
   if(!all.length){
     feed.innerHTML='<div style="text-align:center;padding:24px;color:var(--text3)"><div style="font-size:26px">&#x1f4ac;</div><div style="font-size:12px;margin-top:8px">Hen&uuml;z mesaj yok</div></div>';
     return;
   }
-  feed.innerHTML=all.map(function(p){
-    var ini=(p.yazar||"AV").split(" ").map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();
-    var tb=renderIcraTepkiBar(p,icraId);
-    var pp=p.parentId?all.find(function(x){return x.id===p.parentId;}):null;
-    var pY=pp?escHtml(p.parentYazar||pp.yazar||"?"):"";
-    var pM=pp?escHtml((p.parentMetin||pp.metin||"").slice(0,70)):"";
-    var yazar=escHtml(p.yazar||"Avukat"),metin=escHtml(p.metin||""),m80=escHtml((p.metin||"").slice(0,80));
-    var quote=pp
-      ?'<div data-icraid="'+icraId+'" data-pid="'+p.parentId+'" onclick="scrollToIcraPost(this)" style="margin:0 0 5px 0;border-left:3px solid rgba(201,168,76,0.5);padding:4px 10px;background:rgba(201,168,76,0.06);border-radius:0 5px 5px 0;cursor:pointer"><b style="font-size:10px;color:var(--gold)">&#x21a9; '+pY+'</b><div style="font-size:11px;color:var(--text3);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+pM+'</div></div>'
-      :"";
-    var el=document.createElement("div");
-    el.id="ipost-"+p.id;
-    el.style.cssText="padding:9px 13px;border-bottom:1px solid var(--border);transition:background 0.1s";
-    el.addEventListener("mouseover",function(){var a=this.querySelector(".icra-act");if(a)a.style.opacity="1";});
-    el.addEventListener("mouseout",function(){var a=this.querySelector(".icra-act");if(a)a.style.opacity="0";});
-    el.innerHTML='<div style="display:flex;gap:8px">'
-      +'<div style="width:28px;height:28px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--gold);flex-shrink:0;margin-top:1px">'+ini+'</div>'
-      +'<div style="flex:1;min-width:0"><div style="display:flex;align-items:baseline;gap:5px;margin-bottom:4px">'
-      +'<span style="font-size:12px;font-weight:600;color:var(--text)">'+yazar+'</span>'
-      +'<span style="font-size:10px;color:var(--text3)">'+fmtDate(p.tarih)+'</span></div>'
-      +quote
-      +'<div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">'+metin+'</div>'
-      +tb
-      +'<div class="icra-act" style="display:flex;gap:2px;margin-top:4px;opacity:0;transition:opacity 0.15s">'
-      +'<button class="chatter-btn reply-btn" data-icraid="'+icraId+'" data-pid="'+p.id+'" data-y="'+yazar+'" data-m="'+m80+'" onclick="startIcraReply(this.dataset.icraid,this.dataset.pid,this.dataset.y,this.dataset.m)">&#x21a9; Yanıtla</button>'
-      +'<button class="chatter-btn del-btn" data-pid="'+p.id+'" data-icraid="'+icraId+'" onclick="deleteIcraPost(this.dataset.pid,this.dataset.icraid)">&#x1f5d1; Sil</button>'
-      +'</div></div></div></div>';
-    return el.outerHTML;
-  }).join("");
+  var anaPosts=all.filter(function(p){return !p.parentId;});
+  var lastId=all[all.length-1].id;
+  feed.innerHTML=anaPosts.map(function(post){
+    return icraBuildPost(post,all,icraId,post.id===lastId);
+  }).join('');
+  feed.scrollTop=feed.scrollHeight;
 }
+
+function startIcraReplyById(pid,icraId){
+  var all=DB.get('icra_chatter_'+icraId)||[];
+  var post=all.find(function(p){return p.id===pid;});
+  if(!post) return;
+  startIcraReply(icraId,pid,post.yazar||'Avukat',(post.metin||'').slice(0,80));
+}
+
+function icraBuildReply(reply,all,icraId,isLast){
+  var y=reply.yazar||'Avukat';
+  var rid=reply.id;
+  var rol=reply.rol?'<span class="ch-rr">'+escHtml(reply.rol)+'</span>':'';
+  var tb=renderIcraTepkiBar(reply,icraId);
+  var subReplies=all.filter(function(r){return r.parentId===rid;});
+  var subHtml=subReplies.length
+    ?'<div class="ch-replies">'+subReplies.map(function(sr,si){return icraBuildReply(sr,all,icraId,si===subReplies.length-1);}).join('')+'</div>'
+    :'';
+  return '<div class="ch-rply" id="ipost-'+rid+'">'
+    +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">'
+    +chAvatar(y,24)
+    +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol+'<span class="ch-rt">'+fmtDate(reply.tarih)+'</span>'
+    +'</div>'
+    +chReplyTo(reply.parentYazar,reply.parentMetin)
+    +'<div class="ch-rbody" id="cbody-'+rid+'">'+escHtml(reply.metin||'')+'</div>'
+    +tb
+    +'<div class="ch-ractions" id="cactions-'+rid+'">'
+    +'<button class="chatter-btn reply-btn" data-pid="'+rid+'" data-icraid="'+icraId+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn del-btn" data-pid="'+rid+'" data-icraid="'+icraId+'" onclick="deleteIcraPost(this.dataset.pid,this.dataset.icraid)">&#x1f5d1; Sil</button>'
+    +'</div>'
+    +subHtml+'</div>';
+}
+
+function icraBuildPost(post,all,icraId,isLast){
+  var y=post.yazar||'Avukat';
+  var pid=post.id;
+  var rol=post.rol?'<span class="ch-role">'+escHtml(post.rol)+'</span>':'';
+  var lastBadge=isLast?'<span class="ch-last-badge">&#x1f514; Son mesaj</span>':'';
+  var tb=renderIcraTepkiBar(post,icraId);
+  var replies=all.filter(function(r){return r.parentId===pid;});
+  var repliesHtml=replies.length
+    ?'<div class="ch-replies">'+replies.map(function(r,i){return icraBuildReply(r,all,icraId,i===replies.length-1);}).join('')+'</div>'
+    :'';
+  return '<div class="ch-post'+(isLast?' ch-last':'')+'" id="ipost-'+pid+'">'
+    +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">'
+    +chAvatar(y,32)
+    +'<div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+    +'<span class="ch-name">'+escHtml(y)+'</span>'+rol+'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
+    +'</div></div>'
+    +chReplyTo(post.parentYazar,post.parentMetin)
+    +'<div class="ch-body" id="cbody-'+pid+'">'+escHtml(post.metin||'')+'</div>'
+    +tb
+    +'<div class="ch-actions" id="cactions-'+pid+'">'
+    +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn del-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="deleteIcraPost(this.dataset.pid,this.dataset.icraid)">&#x1f5d1; Sil</button>'
+    +'</div>'
+    +repliesHtml+'</div>';
+}
+function icraRenderAnaPost(p,id){return icraBuildPost(p,[],id,false);}
+function icraRenderReply(p,id){return icraBuildReply(p,[],id,false);}
 
 function scrollToIcraPost(icraId, postId) {
   const el = document.getElementById('ipost-' + postId);
@@ -9053,7 +8809,7 @@ function showMuvekkilDetail(id) {
   const contacts= DB.get('contacts').filter(c => c.muvekkilId === id);
   const isKurumsal = mv.tur === 'kurumsal';
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'];
   const MASRAF_T= ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
   const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const topMas  = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
@@ -9190,7 +8946,7 @@ function showMuvekkilDetail(id) {
     ${finans.length?`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text)">💸 Son İşlemler</div>
       ${finans.sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5).map(f=>{
-        const isG=['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'].includes(f.tur);
+        const isG=['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'].includes(f.tur);
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
           <div style="width:30px;height:30px;border-radius:7px;background:${isG?'rgba(74,140,92,0.15)':'rgba(192,83,58,0.15)'};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${isG?'↗':'↘'}</div>
           <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text2)">${escHtml(f.tur)}</div><div style="font-size:11px;color:var(--text3)">${fmtDate(f.tarih)}${f.aciklama?' · '+escHtml(f.aciklama):''}</div></div>
@@ -9477,20 +9233,11 @@ function taksitiOde(planId, taksitIdx) {
   var t = plan.taksitler[taksitIdx];
   if(t.durum==='bekliyor') {
     t.durum='odendi'; t.odenmeTarihi=new Date().toISOString().slice(0,10);
-    // Finans'a ekle - önce aynı kayıt var mı kontrol et
+    // Finans'a da ekle
     var finans = DB.get('finans')||[];
-    var aciklama = escHtml(t.label)+' — '+escHtml(plan.aciklama||'');
-    var zatenVar = finans.some(function(f){ return f.tur==='Taksit Tahsilatı' && f.tarih===t.tarih && f.tutar===t.tutar && f.aciklama===aciklama && f.muvekkil===plan.muvekkil; });
-    if(!zatenVar) {
-      finans.push({id:DB.genId(), tur:'Taksit Tahsilatı', tarih:t.tarih, tutar:t.tutar, muvekkil:plan.muvekkil, ilgili:plan.dosya||'', aciklama:aciklama, odenmeTarihi:t.odenmeTarihi, created:new Date().toISOString()});
-      DB.set('finans', finans);
-    }
-  } else {
-    // Geri al - finans'tan da sil
-    var aciklama = escHtml(t.label)+' — '+escHtml(plan.aciklama||'');
-    var finans = DB.get('finans')||[];
-    finans = finans.filter(function(f){ return !(f.tur==='Taksit Tahsilatı' && f.tarih===t.tarih && f.tutar===t.tutar && f.muvekkil===plan.muvekkil && f.aciklama===aciklama); });
+    finans.push({id:DB.genId(), tur:'Taksit Tahsilatı', tarih:t.odenmeTarihi, tutar:t.tutar, muvekkil:plan.muvekkil, ilgili:plan.dosya||'', aciklama:escHtml(t.label)+' — '+escHtml(plan.aciklama||''), created:new Date().toISOString()});
     DB.set('finans', finans);
+  } else {
     t.durum='bekliyor'; delete t.odenmeTarihi;
   }
   DB.set('odeme_planlari', planlar);
@@ -9585,18 +9332,6 @@ function renderOfisGider() {
         +'</tbody></table></div></div>');
 }
 
-let finansDonem = 'ay'; // ay | yil | tumü
-
-function finansDonemSec(donem, btn) {
-  finansDonem = donem;
-  ['ay','yil','tumü'].forEach(function(d){
-    var b = document.getElementById('finans-donem-'+d);
-    if(b) b.className = d===donem ? 'btn btn-gold' : 'btn btn-outline';
-    if(b) b.style.fontSize='12px'; if(b) b.style.padding='5px 14px';
-  });
-  renderFinans();
-}
-
 function renderFinans() {
   const mvSel = document.getElementById('finans-mv-filter');
   if (mvSel) {
@@ -9615,45 +9350,27 @@ function renderFinans() {
   if (mvFilt) finans = finans.filter(f => f.muvekkil === mvFilt);
   if (turFilt) finans = finans.filter(f => f.tur === turFilt);
 
-  // Dönem filtresi uygula
-  const now = new Date();
-  const donem = typeof finansDonem !== 'undefined' ? finansDonem : 'ay';
-  let donemFinans = finans;
-  let donemLabel = '';
-  if (donem === 'ay') {
-    const ayStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-    donemFinans = finans.filter(f => f.tarih && f.tarih.startsWith(ayStr));
-    donemLabel = now.toLocaleString('tr-TR',{month:'long',year:'numeric'});
-  } else if (donem === 'yil') {
-    const yilStr = String(now.getFullYear());
-    donemFinans = finans.filter(f => f.tarih && f.tarih.startsWith(yilStr));
-    donemLabel = yilStr + ' Yılı';
-  } else {
-    donemLabel = 'Tüm Zamanlar';
-  }
-  const lbl = document.getElementById('finans-donem-label');
-  if(lbl) lbl.textContent = donemLabel;
-
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'];
   const MASRAF_T= ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
 
-  const topTah  = donemFinans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const topMas  = donemFinans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masOde  = donemFinans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
-  const netKar  = topTah - topMas - masOde;
+  const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topMas  = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const masOde  = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
+  const netBak  = topTah - topMas + masOde;
 
   // Özet kartlar
   const summary = document.getElementById('finance-summary');
   if (summary) {
     summary.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px';
     summary.innerHTML = [
-      {l:'Tahsilat', v:'₺'+fmt(topTah), c:'var(--green)', icon:'↗', sub:'Vekalet + İcra + Taksit'},
-      {l:'Masraf / Gider', v:'₺'+fmt(topMas+masOde), c:'var(--red)', icon:'↘', sub:'Dava masrafı + ödemeler'},
-      {l:'Net Kâr / Zarar', v:(netKar>=0?'+':'')+'₺'+fmt(Math.abs(netKar)), c:netKar>=0?'var(--green)':'var(--red)', icon:netKar>=0?'▲':'▼', sub:donemLabel},
+      {l:'Toplam Tahsilat', v:'₺'+fmt(topTah), c:'var(--green)', icon:'↗'},
+      {l:'Toplam Tahsilat', v:'₺'+fmt(topTah), c:'var(--green)', icon:'↗', sub:'Vekalet + İcra + Tahsilat'},
+      {l:'Masraf Bakiyesi', v:'₺'+fmt(Math.max(0,topMas-masOde)), c:(topMas-masOde)>0?'var(--red)':'var(--green)', icon:'💼', sub:'Cepten harcanan − müvekkil iadesi'},
+      {l:'Net Bakiye',      v:(netBak>=0?'+':'')+'₺'+fmt(netBak), c:netBak>=0?'var(--green)':'var(--red)', icon:netBak>=0?'▲':'▼', sub:'Büronun toplam kazancı'},
     ].map(x=>`
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px">
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">${x.icon} ${x.l}</div>
-        <div style="font-size:22px;font-weight:800;color:${x.c};font-family:monospace;line-height:1">${x.v}</div>
+        <div style="font-size:20px;font-weight:800;color:${x.c};font-family:monospace;line-height:1">${x.v}</div>
         ${x.sub?`<div style="font-size:10px;color:var(--text3);margin-top:5px">${x.sub}</div>`:''}
       </div>`).join('');
   }
@@ -9848,9 +9565,9 @@ function renderTasks() {
     {id:'tamam',    label:'✅ Tamam',    count:tamam.length,       clr:'var(--green)', liste:tamam},
   ];
 
-  // Default: activeTab yoksa tumü
+  // Default: Gecikmiş varsa gecikmiş, yoksa Tümü
   if(!activeTab) {
-    activeTab = 'tumü';
+    activeTab = gecikmus.length ? 'gecikmus' : 'tumü';
   }
 
   listEl.innerHTML = '';
@@ -11369,7 +11086,7 @@ function finansMvCarisi() {
   if (!mv) { cariDiv.style.display='none'; return; }
 
   const finans = DB.get('finans').filter(f=>f.muvekkil===mv);
-  const tahsilat = finans.filter(f=>['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const tahsilat = finans.filter(f=>['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const masraf = finans.filter(f=>['Masraf','Masraf (Ofis Avansı)','Masraf (Müvekkil Öder)','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const net = tahsilat - masraf;
 
@@ -11405,7 +11122,7 @@ function finansMvCarisi() {
             <span style="font-size:10px;color:var(--text3);width:80px;flex-shrink:0">${fmtDate(f.tarih)}</span>
             <span style="font-size:11px;color:${f.tur==='Tahsilat'||f.tur==='Vekalet Ücreti Tahsilatı'?'var(--green)':'var(--red)'}">${f.tur==='Tahsilat'||f.tur==='Vekalet Ücreti Tahsilatı'?'↗':'↘'} ${f.tur}</span>
             <span style="flex:1;font-size:12px;color:var(--text3)">${f.aciklama||'—'}</span>
-            <span style="font-size:13px;font-weight:600;color:${['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'].includes(f.tur)?'var(--green)':'var(--red)'};font-family:'DM Mono',monospace">₺${fmt(f.tutar)}</span>
+            <span style="font-size:13px;font-weight:600;color:${['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti'].includes(f.tur)?'var(--green)':'var(--red)'};font-family:'DM Mono',monospace">₺${fmt(f.tutar)}</span>
           </div>`).join('') || '<div style="color:var(--text3);font-size:12px">İşlem bulunamadı</div>'}
       </div>
     </div>`;
