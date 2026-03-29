@@ -585,14 +585,7 @@
     cursor: pointer;
     padding: 4px;
   }
-  @media(max-width: 768px) {
-    #sidebar { transform: translateX(-100%); }
-    #sidebar.open { transform: translateX(0); }
-    #main { margin-left: 0; }
-    #menu-toggle { display: block; }
-    .stat-grid { grid-template-columns: 1fr 1fr; }
-    .finance-summary { grid-template-columns: 1fr; }
-  }
+
   .overlay-bg {
     display: none;
     position: fixed; inset: 0;
@@ -894,10 +887,7 @@
     overflow: hidden;
   }
   #icra-detail-page.open { display: flex; }
-  @media(max-width:768px) {
-    #dava-detail-page { left: 0; top: 64px; }
-    #icra-detail-page { left: 0; top: 64px; }
-  }
+
   .ddp-topbar {
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
@@ -1503,9 +1493,7 @@
   }
   .sidebar-ayarlar-btn .sab-icon { font-size: 16px; transition: transform 0.3s; }
   .sidebar-ayarlar-btn:hover .sab-icon { transform: rotate(45deg); }
-  @media(max-width:768px) {
-    #ayarlar-panel { width: 100%; right: -100%; }
-  }
+
 
 <style>
 /* ========== PTT TEBLİGAT TAKİP ========== */
@@ -1749,6 +1737,229 @@
 .ptt-history-no { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); flex: 1; }
 .ptt-history-date { font-size: 11px; color: var(--text3); }
 .ptt-history-actions { display: flex; gap: 4px; }
+
+
+  /* ═══════════════════════════════════════════════════
+     MOBİL OPTİMİZASYON — 768px ve altı
+  ═══════════════════════════════════════════════════ */
+  @media (max-width: 768px) {
+
+    /* ── GENEL ── */
+    body { font-size: 13px; }
+
+    /* ── SİDEBAR ── */
+    #sidebar {
+      transform: translateX(-100%);
+      width: 280px;
+      z-index: 300;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.6);
+    }
+    #sidebar.open { transform: translateX(0); }
+    #sidebar.collapsed { transform: translateX(-100%); width: 280px; }
+    .sidebar-collapse-btn { display: none; }
+    #main { margin-left: 0 !important; }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      padding: 0 12px;
+      gap: 8px;
+      height: 56px;
+    }
+    #topbar h1 { font-size: 16px; }
+    #menu-toggle { display: flex; }
+    #tab-bar { display: none !important; }
+    /* Topbar sağ butonları kompakt */
+    #topbar-search { display: none !important; }
+    #topbar > button:last-of-type { font-size: 12px; padding: 6px 10px; }
+    .btn-gold#topbar-add-btn { font-size: 12px; padding: 6px 12px; }
+
+    /* ── CONTENT ALANI ── */
+    #content {
+      padding: 12px;
+      height: calc(100vh - 56px);
+    }
+
+    /* ── DASHBOARD GRID ── */
+    .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dashboard-grid { grid-template-columns: 1fr !important; }
+    .chart-row-1, .chart-row-2 { grid-template-columns: 1fr !important; }
+    .bugun-grid { grid-template-columns: 1fr !important; }
+    .finance-summary { grid-template-columns: 1fr; gap: 8px; }
+
+    /* ── KARTLAR ── */
+    .card { padding: 14px; }
+    .card-title { font-size: 14px; }
+
+    /* ── TABLO ── */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { min-width: 500px; }
+    th, td { padding: 8px 10px; font-size: 12px; }
+    /* Mobilde bazı sütunları gizle */
+    .col-hide-mobile { display: none !important; }
+
+    /* ── FORM ── */
+    .form-grid, .form-grid-3 { grid-template-columns: 1fr !important; }
+    .form-group.full { grid-column: 1 !important; }
+    input, select, textarea { font-size: 16px !important; /* iOS zoom engelle */ padding: 10px 12px; }
+    .form-actions { flex-direction: column-reverse; }
+    .form-actions .btn { justify-content: center; width: 100%; }
+
+    /* ── MODAL ── */
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal {
+      max-width: 100% !important;
+      width: 100% !important;
+      max-height: 92vh;
+      border-radius: 20px 20px 0 0;
+      animation: slideUpMobile 0.25s ease;
+    }
+    @keyframes slideUpMobile {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-header { padding: 16px 18px 14px; }
+    .modal-title { font-size: 16px; }
+    .modal-body { padding: 16px 18px; }
+
+    /* ── DAVA / İCRA DETAY ── */
+    #dava-detail-page,
+    #icra-detail-page {
+      left: 0;
+      top: 56px;
+    }
+    .ddp-body { grid-template-columns: 1fr !important; }
+    .ddp-left { padding: 12px; }
+    .ddp-topbar { padding: 0 12px; height: 48px; gap: 8px; }
+    .ddp-topbar-title { font-size: 14px; }
+    .ddp-sekme { font-size: 11px; padding: 9px 12px; }
+    /* Mobilde sağ panel (chatter) gizle — sekme ile açılabilir */
+    .ddp-right { display: none; }
+    .ddp-left { border-right: none !important; }
+
+    /* ── SEKME ÇUBUĞU (detay içi) ── */
+    #ddp-sekme-bar { overflow-x: auto; }
+
+    /* ── AYARLAR PANELİ ── */
+    #ayarlar-panel { width: 100%; right: -100%; }
+
+    /* ── FİNANS ── */
+    .finance-box { padding: 12px 8px; }
+    .finance-box-val { font-size: 16px; }
+    .finance-box-label { font-size: 10px; }
+
+    /* ── GÖREVLER ── */
+    .task-meta { flex-direction: column; gap: 3px; }
+
+    /* ── TAKVİM ── */
+    .durusma-month-grid { gap: 3px; }
+    .durusma-cal-cell { min-height: 52px; padding: 4px; }
+    .durusma-cal-day-num { font-size: 11px; }
+    .durusma-cal-event { font-size: 9px; }
+
+    /* ── BİLDİRİM ── */
+    #notification {
+      bottom: 12px; right: 12px; left: 12px;
+      max-width: none;
+    }
+
+    /* ── GLOBAL ARAMA ── */
+    #global-search-box {
+      width: calc(100% - 24px) !important;
+      max-width: none !important;
+      margin: 12px;
+    }
+
+    /* ── PTT TAKİP ── */
+    .ptt-hero { flex-direction: column; gap: 12px; padding: 16px; }
+    .ptt-hero-icon { font-size: 36px; }
+    .ptt-input-row { flex-direction: column; gap: 8px; }
+    .ptt-search-btn { width: 100%; justify-content: center; }
+    .ptt-info-grid { grid-template-columns: 1fr 1fr; }
+
+    /* ── RAPORLAR ── */
+    #raporlar-grid > div { padding: 14px !important; }
+
+    /* ── BUGUN WİDGET ── */
+    .bugun-row-title { font-size: 12px; }
+    .bugun-col-header { font-size: 11px; }
+
+    /* ── TOPBAR ARAMA BUTONU — mobilde sadece ikon ── */
+    #topbar .btn-outline[onclick*="openGlobalSearch"] { display: flex; padding: 7px 10px; }
+    #topbar .btn-outline[onclick*="openGlobalSearch"] span:not(:first-child) { display: none; }
+
+    /* ── BOTTOM NAV BAR — mobilde alt navigasyon ── */
+    #mobile-bottom-nav {
+      display: flex !important;
+    }
+
+    /* Tab bar yerine bottom nav */
+  }
+
+  /* 480px altı — küçük telefonlar */
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat-value { font-size: 22px; }
+    .stat-card { padding: 12px; }
+    th, td { padding: 6px 8px; font-size: 11.5px; }
+    .modal-body { padding: 12px 14px; }
+    .ptt-info-grid { grid-template-columns: 1fr; }
+    .ddp-topbar-title { font-size: 13px; }
+  }
+
+  /* ── MOBİL BOTTOM NAV — her zaman gizli, media query ile açılır ── */
+  #mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--bg2);
+    border-top: 1px solid var(--border2);
+    z-index: 150;
+    align-items: stretch;
+    justify-content: space-around;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0px); /* iPhone X+ */
+  }
+  .mbn-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: 8px;
+    transition: color 0.15s, background 0.15s;
+    padding: 6px 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mbn-item:active { background: var(--gold-dim); }
+  .mbn-item.active { color: var(--gold); }
+  .mbn-item .mbn-icon { font-size: 20px; line-height: 1; }
+  .mbn-badge {
+    position: absolute;
+    top: 4px; right: calc(50% - 14px);
+    background: var(--red);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 10px;
+    min-width: 14px;
+    text-align: center;
+  }
+  .mbn-item-wrap { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
+
+  /* Mobilde content'in altında bottom nav için boşluk */
+  @media (max-width: 768px) {
+    #content { padding-bottom: 72px; }
+    #dava-detail-page, #icra-detail-page { padding-bottom: 60px; }
+  }
+
 </style>
 
 </style>
@@ -1882,6 +2093,47 @@
   </button>
 </div>
 <div class="overlay-bg" id="overlay-bg" onclick="closeSidebar()"></div>
+
+<!-- MOBİL ALT NAVİGASYON -->
+<nav id="mobile-bottom-nav">
+  <div class="mbn-item-wrap">
+    <div class="mbn-item active" id="mbn-dashboard" onclick="showPage('dashboard');mbnAktiflestir('dashboard')">
+      <span class="mbn-icon">📊</span>
+      <span>Panel</span>
+    </div>
+  </div>
+  <div class="mbn-item-wrap">
+    <div class="mbn-item" id="mbn-davalar" onclick="showPage('davalar');mbnAktiflestir('davalar')">
+      <span class="mbn-icon">📁</span>
+      <span>Davalar</span>
+    </div>
+  </div>
+  <div class="mbn-item-wrap">
+    <div class="mbn-item" id="mbn-icralar" onclick="showPage('icralar');mbnAktiflestir('icralar')">
+      <span class="mbn-icon">⚡</span>
+      <span>İcralar</span>
+    </div>
+  </div>
+  <div class="mbn-item-wrap">
+    <div class="mbn-item" id="mbn-kisiler" onclick="showPage('kisiler');mbnAktiflestir('kisiler')">
+      <span class="mbn-icon">👤</span>
+      <span>Kişiler</span>
+    </div>
+  </div>
+  <div class="mbn-item-wrap" style="position:relative">
+    <div class="mbn-item" id="mbn-tasks" onclick="showPage('tasks');mbnAktiflestir('tasks')">
+      <span class="mbn-icon">✅</span>
+      <span>Görevler</span>
+    </div>
+    <span class="mbn-badge" id="mbn-task-badge" style="display:none">0</span>
+  </div>
+  <div class="mbn-item-wrap">
+    <div class="mbn-item" id="mbn-menu" onclick="toggleSidebar()">
+      <span class="mbn-icon">☰</span>
+      <span>Menü</span>
+    </div>
+  </div>
+</nav>
 <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" title="Paneli Aç/Kapat">◀</button>
 
 <!-- MAIN -->
@@ -1907,6 +2159,7 @@
         title="Global Arama (Ctrl+K)">
       <span style="font-size:10px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--text3);margin-right:8px;flex-shrink:0;white-space:nowrap">Ctrl K</span>
     </div>
+    <button id="topbar-search-mobile" class="btn btn-outline" onclick="openGlobalSearch()" title="Ara" style="display:none;padding:7px 10px;flex-shrink:0">🔍</button>
     <button class="btn btn-gold" id="topbar-add-btn" onclick="handleTopbarAdd()">+ Yeni Ekle</button>
   </div>
   <div id="content">
@@ -4966,6 +5219,7 @@ function tekrarSorgula(kod) {
 
   // Sayfa başında geçmişi render et
   document.addEventListener('DOMContentLoaded', function() {
+  initMobileTopbar();
     pttGecmisRender();
   });
 
@@ -7549,6 +7803,54 @@ function showPage(page) {
   }
 
   closeSidebar();
+  // Mobil bottom nav güncelle
+  mbnAktiflestir(page);
+}
+
+// ── MOBİL BOTTOM NAV ──
+function mbnAktiflestir(page) {
+  const map = {
+    dashboard: 'mbn-dashboard',
+    davalar:   'mbn-davalar',
+    icralar:   'mbn-icralar',
+    kisiler:   'mbn-kisiler',
+    muvekkiller:'mbn-kisiler',
+    tasks:     'mbn-tasks',
+  };
+  document.querySelectorAll('.mbn-item').forEach(el => el.classList.remove('active'));
+  const targetId = map[page];
+  if (targetId) {
+    const el = document.getElementById(targetId);
+    if (el) el.classList.add('active');
+  }
+}
+
+// Mobil task badge güncelle
+function updateMbnTaskBadge() {
+  const badge = document.getElementById('mbn-task-badge');
+  const topBadge = document.getElementById('task-badge');
+  if (!badge) return;
+  const count = topBadge ? parseInt(topBadge.textContent) || 0 : 0;
+  badge.textContent = count;
+  badge.style.display = count > 0 ? '' : 'none';
+}
+
+// Mobil topbar search toggle
+function initMobileTopbar() {
+  const isMobile = () => window.innerWidth <= 768;
+  const mobileSearch = document.getElementById('topbar-search-mobile');
+  const desktopSearch = document.getElementById('topbar-search');
+  function updateTopbar() {
+    if (isMobile()) {
+      if (mobileSearch) mobileSearch.style.display = 'flex';
+      if (desktopSearch) desktopSearch.style.display = 'none';
+    } else {
+      if (mobileSearch) mobileSearch.style.display = 'none';
+      if (desktopSearch) desktopSearch.style.display = 'flex';
+    }
+  }
+  updateTopbar();
+  window.addEventListener('resize', updateTopbar);
 }
 
 const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip'};
@@ -7816,6 +8118,7 @@ function renderDashboard() {
   const icraToplamAlacak = icralar.filter(i=>i.durum==='Aktif').reduce((a,b)=>a+Number(b.alacak),0);
 
   document.getElementById('task-badge').textContent = bekleyen;
+  if(typeof updateMbnTaskBadge==='function') updateMbnTaskBadge();
 
   // KPI CARDS
   document.getElementById('stat-grid').innerHTML = `
