@@ -1960,6 +1960,68 @@
     #dava-detail-page, #icra-detail-page { padding-bottom: 60px; }
   }
 
+
+  /* ========== CHATTER DOSYA YÜKLEME ========== */
+  .ch-file-preview-wrap {
+    display:flex; flex-wrap:wrap; gap:6px;
+    padding:8px 0 4px; min-height:0;
+  }
+  .ch-file-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--bg3); border:1px solid var(--border2);
+    border-radius:8px; padding:5px 10px; font-size:12px;
+    color:var(--text2); max-width:200px; position:relative;
+  }
+  .ch-file-chip .ch-file-icon { font-size:16px; flex-shrink:0; }
+  .ch-file-chip .ch-file-name {
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    flex:1; font-size:11px;
+  }
+  .ch-file-chip .ch-file-remove {
+    background:none; border:none; color:var(--text3);
+    cursor:pointer; font-size:14px; padding:0 2px; line-height:1;
+    flex-shrink:0;
+  }
+  .ch-file-chip .ch-file-remove:hover { color:var(--red); }
+  .ch-upload-btn {
+    background:none; border:1px dashed var(--border2);
+    border-radius:8px; color:var(--text3); cursor:pointer;
+    font-size:12px; padding:5px 12px; transition:all 0.15s;
+    font-family:'DM Sans',sans-serif; display:inline-flex;
+    align-items:center; gap:5px;
+  }
+  .ch-upload-btn:hover { border-color:var(--gold); color:var(--gold); }
+  .ch-upload-progress {
+    height:3px; border-radius:2px; background:var(--border);
+    margin:4px 0; overflow:hidden;
+  }
+  .ch-upload-progress-bar {
+    height:100%; background:var(--gold);
+    border-radius:2px; transition:width 0.2s;
+    width:0%;
+  }
+  /* Mesajdaki dosya ekleri */
+  .ch-attachments { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .ch-attach-item {
+    display:inline-flex; align-items:center; gap:6px;
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; padding:6px 12px; font-size:12px;
+    color:var(--text2); cursor:pointer; text-decoration:none;
+    transition:border-color 0.15s;
+  }
+  .ch-attach-item:hover { border-color:var(--gold); color:var(--text); }
+  .ch-attach-icon { font-size:16px; flex-shrink:0; }
+  .ch-attach-info { min-width:0; }
+  .ch-attach-name { font-size:12px; font-weight:500; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:150px; }
+  .ch-attach-size { font-size:10px; color:var(--text3); margin-top:1px; }
+  /* Resim önizleme */
+  .ch-img-preview {
+    max-width:200px; max-height:160px; border-radius:8px;
+    border:1px solid var(--border); cursor:pointer;
+    transition:opacity 0.15s; display:block;
+  }
+  .ch-img-preview:hover { opacity:0.85; }
+
 </style>
 
 </style>
@@ -2185,23 +2247,29 @@
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px" class="chart-row-1">
         <div class="card">
           <div class="card-title">📁 Dava Durumları</div>
-          <div style="position:relative;height:180px;display:flex;align-items:center;justify-content:center">
-            <canvas id="chart-dava-durum"></canvas>
-            <div id="chart-dava-legend" style="position:absolute;bottom:0;width:100%;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
+              <canvas id="chart-dava-durum"></canvas>
+            </div>
+            <div id="chart-dava-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
         </div>
         <div class="card">
           <div class="card-title">⚡ İcra Durumları</div>
-          <div style="position:relative;height:180px;display:flex;align-items:center;justify-content:center">
-            <canvas id="chart-icra-durum"></canvas>
-            <div id="chart-icra-legend" style="position:absolute;bottom:0;width:100%;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
+              <canvas id="chart-icra-durum"></canvas>
+            </div>
+            <div id="chart-icra-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
         </div>
         <div class="card">
           <div class="card-title">📋 Görev Öncelikleri</div>
-          <div style="position:relative;height:180px;display:flex;align-items:center;justify-content:center">
-            <canvas id="chart-task-oncelik"></canvas>
-            <div id="chart-task-legend" style="position:absolute;bottom:0;width:100%;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px"></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
+              <canvas id="chart-task-oncelik"></canvas>
+            </div>
+            <div id="chart-task-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
         </div>
       </div>
@@ -2959,12 +3027,23 @@
           <div style="font-size:12px;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical" id="chatter-reply-preview"></div>
           <button onclick="cancelReply()" style="float:right;margin-top:-28px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1">×</button>
         </div>
+        <!-- Seçilen dosya önizlemeleri -->
+        <div class="ch-file-preview-wrap" id="chatter-files-preview" style="display:none"></div>
+        <div class="ch-upload-progress" id="chatter-upload-progress" style="display:none">
+          <div class="ch-upload-progress-bar" id="chatter-upload-bar"></div>
+        </div>
         <textarea class="chatter-textarea" id="chatter-input"
           placeholder="Mesaj yaz... (Enter = gönder)"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey){sendChatterPost();event.preventDefault()}">
         </textarea>
         <div class="chatter-send-row">
-          <span class="chatter-send-hint">Enter · Shift+Enter yeni satır</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="ch-upload-btn" onclick="document.getElementById('chatter-file-input').click()" title="Dosya ekle (PDF, Word, Resim)">
+              📎 Dosya Ekle
+            </button>
+            <input type="file" id="chatter-file-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp" style="display:none" onchange="chatterFileSec(this,'dava')">
+            <span class="chatter-send-hint" id="chatter-file-count" style="display:none;color:var(--gold)"></span>
+          </div>
           <button class="btn btn-gold" style="font-size:13px;padding:7px 16px" onclick="sendChatterPost()">Gönder →</button>
         </div>
       </div>
@@ -2996,12 +3075,23 @@
           <div style="font-size:12px;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical" id="idp-reply-preview"></div>
           <button onclick="cancelIdpReply()" style="float:right;margin-top:-28px;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1">×</button>
         </div>
+        <!-- Seçilen dosya önizlemeleri -->
+        <div class="ch-file-preview-wrap" id="idp-files-preview" style="display:none"></div>
+        <div class="ch-upload-progress" id="idp-upload-progress" style="display:none">
+          <div class="ch-upload-progress-bar" id="idp-upload-bar"></div>
+        </div>
         <textarea class="chatter-textarea" id="idp-chatter-input"
           placeholder="Mesaj yaz... (Enter = gönder)"
           onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey){sendIdpPost();event.preventDefault()}">
         </textarea>
         <div class="chatter-send-row">
-          <span class="chatter-send-hint">Enter · Shift+Enter yeni satır</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="ch-upload-btn" onclick="document.getElementById('idp-file-input').click()" title="Dosya ekle">
+              📎 Dosya Ekle
+            </button>
+            <input type="file" id="idp-file-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.webp" style="display:none" onchange="chatterFileSec(this,'icra')">
+            <span class="chatter-send-hint" id="idp-file-count" style="display:none;color:var(--gold)"></span>
+          </div>
           <button class="btn btn-gold" style="font-size:13px;padding:7px 16px" onclick="sendIdpPost()">Gönder →</button>
         </div>
       </div>
@@ -8888,7 +8978,8 @@ function chBuildReply(reply,all,davaId,isLast){
     +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
-    +'<div class="ch-rbody" id="cbody-'+rid+'">'+escHtml(reply.metin||'')+'</div>'
+    +'<div class="ch-rbody" id="cbody-'+rid+'">'+(reply.metin ? escHtml(reply.metin) : '')+'</div>'
+    +chRenderEkler(reply.ekler)
     +tb
     +'<div class="ch-ractions" id="cactions-'+rid+'">'
     +'<button class="chatter-btn reply-btn" data-pid="'+rid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
@@ -8964,7 +9055,8 @@ function chBuildPost(post, all, davaId, isLast, repliesOverride){
     +'<span class="ch-name">'+escHtml(y)+'</span>'+rol+'<span class="ch-time">'+fmtDate(post.tarih)+duz+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
-    +'<div class="ch-body" id="cbody-'+pid+'">'+escHtml(post.metin||'')+'</div>'
+    +'<div class="ch-body" id="cbody-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
+    +chRenderEkler(post.ekler)
     +tb
     +'<div class="ch-actions" id="cactions-'+pid+'">'
     +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
@@ -9121,9 +9213,18 @@ function saveChatterEdit(postId, davaId) {
   notify('Not güncellendi ✓');
 }
 
-function sendChatterPost() {
+async function sendChatterPost() {
   const metin = document.getElementById('chatter-input').value.trim();
-  if (!metin || !currentDavaId) return;
+  const dosyalar = window._chatterDosyalar || [];
+  if (!metin && !dosyalar.length) return;
+  if (!currentDavaId) return;
+
+  // Dosyaları önce yükle
+  let ekler = [];
+  if (dosyalar.length) {
+    ekler = await chatterDosyaYukle(dosyalar, 'dava', currentDavaId);
+  }
+
   const allPosts = DB.get('chatter_' + currentDavaId) || [];
   let parentYazar = null, parentMetin = null;
   if (replyToPostId) {
@@ -9134,11 +9235,15 @@ function sendChatterPost() {
     id: DB.genId(), parentId: replyToPostId || null,
     parentYazar, parentMetin,
     yazar: window.currentUser?.adSoyad || window.currentUser?.username || 'Avukat',
-    metin, tarih: new Date().toISOString()
+    metin: metin || '',
+    ekler: ekler,
+    tarih: new Date().toISOString()
   };
   const arr = [...allPosts, post];
   DB.set('chatter_' + currentDavaId, arr);
   document.getElementById('chatter-input').value = '';
+  // Dosya önizlemelerini temizle
+  chatterDosyaTemizle('dava');
   cancelReply();
   renderChatter(currentDavaId);
   document.getElementById('ddp-post-count').textContent = arr.length + ' mesaj';
@@ -9882,7 +9987,8 @@ function icraBuildReply(reply,all,icraId,isLast){
     +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
-    +'<div class="ch-rbody" id="cbody-'+rid+'">'+escHtml(reply.metin||'')+'</div>'
+    +'<div class="ch-rbody" id="cbody-'+rid+'">'+(reply.metin ? escHtml(reply.metin) : '')+'</div>'
+    +chRenderEkler(reply.ekler)
     +tb
     +'<div class="ch-ractions" id="cactions-'+rid+'">'
     +'<button class="chatter-btn reply-btn" data-icraid="'+icraId+'" data-pid="'+rid+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
@@ -9908,7 +10014,8 @@ function icraBuildPost(post,all,icraId,isLast,repliesOverride){
     +'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
-    +'<div class="ch-body" id="cbody-'+pid+'">'+escHtml(post.metin||'')+'</div>'
+    +'<div class="ch-body" id="cbody-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
+    +chRenderEkler(post.ekler)
     +tb
     +'<div class="ch-actions" id="cactions-'+pid+'">'
     +'<button class="chatter-btn reply-btn" data-icraid="'+icraId+'" data-pid="'+pid+'" onclick="startIcraReplyById(this.dataset.pid,this.dataset.icraid)">&#x21a9; Yan&#x131;tla</button>'
@@ -13129,7 +13236,8 @@ function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
     +'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
-    +'<div class="ch-body" id="cbody-idp-'+pid+'">'+escHtml(post.metin)+'</div>'
+    +'<div class="ch-body" id="cbody-idp-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
+    +chRenderEkler(post.ekler)
     +tb
     +'<div class="ch-actions">'
     +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" onclick="idpReply(this.dataset.pid)">&#x21a9; Yan&#x131;tla</button>'
@@ -13138,12 +13246,20 @@ function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
     +'</div>'+repliesHtml+'</div>';
 }
 
-function sendIdpPost() {
+async function sendIdpPost() {
   if (!currentIcraId) return;
   var input = document.getElementById('idp-chatter-input');
   if (!input) return;
   var metin = input.value.trim();
-  if (!metin) return;
+  var dosyalar = window._idpDosyalar || [];
+  if (!metin && !dosyalar.length) return;
+
+  // Dosyaları yükle
+  var ekler = [];
+  if (dosyalar.length) {
+    ekler = await chatterDosyaYukle(dosyalar, 'icra', currentIcraId);
+  }
+
   var user = window.currentUser || {};
   var key = 'icra_chatter_' + currentIcraId;
   var posts = DB.get(key) || [];
@@ -13158,7 +13274,8 @@ function sendIdpPost() {
   posts.push({
     id: DB.genId(),
     yazar: user.adSoyad || user.username || 'Kullanıcı',
-    metin: metin,
+    metin: metin || '',
+    ekler: ekler,
     tarih: new Date().toISOString(),
     parentId: idpReplyToId || null,
     parentYazar: parentYazar,
@@ -13166,6 +13283,7 @@ function sendIdpPost() {
   });
   DB.set(key, posts);
   input.value = '';
+  chatterDosyaTemizle('icra');
   idpReplyToId = null;
   document.getElementById('idp-reply-banner').style.display = 'none';
   renderIdpChatter(currentIcraId);
@@ -13380,6 +13498,229 @@ document.body.addEventListener('click', function(e) {
 }, true); // capture=true: modal overlay'lerin altında da çalışır
 
 // ========== INIT ==========
+// ═══════════════════════════════════════════════════════
+// CHATTER DOSYA YÜKLEME — Supabase Storage
+// ═══════════════════════════════════════════════════════
+
+// Bekleyen dosyalar (henüz gönderilmemiş)
+window._chatterDosyalar = [];
+window._idpDosyalar = [];
+
+// Dosya tipine göre ikon
+function chDosyaIcon(ad, tip) {
+  if (!ad && !tip) return '📎';
+  var ext = (ad||'').toLowerCase().split('.').pop();
+  var mime = (tip||'').toLowerCase();
+  if (['png','jpg','jpeg','gif','webp'].includes(ext) || mime.startsWith('image/')) return '🖼️';
+  if (ext === 'pdf' || mime === 'application/pdf') return '📄';
+  if (['doc','docx'].includes(ext) || mime.includes('word')) return '📝';
+  if (['xls','xlsx'].includes(ext) || mime.includes('excel') || mime.includes('spreadsheet')) return '📊';
+  return '📎';
+}
+
+// Dosya boyutu formatla
+function chFmtBoyut(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+// Dosya seçildiğinde çağrılır
+function chatterFileSec(input, mod) {
+  var dosyalar = mod === 'dava' ? window._chatterDosyalar : window._idpDosyalar;
+  var previewId = mod === 'dava' ? 'chatter-files-preview' : 'idp-files-preview';
+  var countId   = mod === 'dava' ? 'chatter-file-count'   : 'idp-file-count';
+
+  // Max 5 dosya, max 20MB/dosya
+  var yeni = Array.from(input.files);
+  var hatalar = [];
+  yeni.forEach(function(f) {
+    if (f.size > 20 * 1024 * 1024) { hatalar.push(f.name + ' çok büyük (max 20MB)'); return; }
+    if (dosyalar.length >= 5) { hatalar.push('En fazla 5 dosya ekleyebilirsiniz'); return; }
+    dosyalar.push(f);
+  });
+  if (hatalar.length) notify('⚠️ ' + hatalar[0]);
+  input.value = ''; // reset seçimi
+
+  chatterPreviewGuncelle(mod);
+}
+
+// Önizleme alanını güncelle
+function chatterPreviewGuncelle(mod) {
+  var dosyalar = mod === 'dava' ? window._chatterDosyalar : window._idpDosyalar;
+  var previewEl = document.getElementById(mod === 'dava' ? 'chatter-files-preview' : 'idp-files-preview');
+  var countEl   = document.getElementById(mod === 'dava' ? 'chatter-file-count' : 'idp-file-count');
+  if (!previewEl) return;
+
+  if (!dosyalar.length) {
+    previewEl.style.display = 'none';
+    if (countEl) countEl.style.display = 'none';
+    return;
+  }
+
+  previewEl.style.display = 'flex';
+  if (countEl) { countEl.style.display = ''; countEl.textContent = dosyalar.length + ' dosya seçili'; }
+
+  previewEl.innerHTML = dosyalar.map(function(f, i) {
+    var icon = chDosyaIcon(f.name, f.type);
+    var boyut = chFmtBoyut(f.size);
+    // Resimse küçük önizleme oluştur
+    var imgHtml = '';
+    if (f.type && f.type.startsWith('image/')) {
+      var url = URL.createObjectURL(f);
+      imgHtml = '<img src="'+url+'" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">';
+    }
+    return '<div class="ch-file-chip">'
+      + (imgHtml || '<span class="ch-file-icon">'+icon+'</span>')
+      + '<div class="ch-file-name" title="'+escHtml(f.name)+'"><div style="font-size:11px;font-weight:500">'+escHtml(f.name.length>20?f.name.slice(0,18)+'…':f.name)+'</div><div style="font-size:9px;color:var(--text3)">'+boyut+'</div></div>'
+      + '<button class="ch-file-remove" onclick="chatterDosyaKaldir('+i+',\''+mod+'\')" title="Kaldır">×</button>'
+      + '</div>';
+  }).join('');
+}
+
+// Tekil dosya kaldır
+function chatterDosyaKaldir(idx, mod) {
+  var dosyalar = mod === 'dava' ? window._chatterDosyalar : window._idpDosyalar;
+  dosyalar.splice(idx, 1);
+  chatterPreviewGuncelle(mod);
+}
+
+// Gönderim sonrası temizle
+function chatterDosyaTemizle(mod) {
+  if (mod === 'dava') window._chatterDosyalar = [];
+  else window._idpDosyalar = [];
+  chatterPreviewGuncelle(mod);
+}
+
+// Supabase Storage'a yükle
+async function chatterDosyaYukle(dosyalar, mod, dosyaId) {
+  if (!dosyalar || !dosyalar.length) return [];
+  if (!window._supabaseToken) { notify('⚠️ Oturum bulunamadı'); return []; }
+
+  var progressId  = mod === 'dava' ? 'chatter-upload-progress' : 'idp-upload-progress';
+  var progressBar = document.getElementById(mod === 'dava' ? 'chatter-upload-bar' : 'idp-upload-bar');
+  var progressEl  = document.getElementById(progressId);
+
+  if (progressEl) progressEl.style.display = '';
+  if (progressBar) progressBar.style.width = '0%';
+
+  var ekler = [];
+  var toplam = dosyalar.length;
+
+  for (var i = 0; i < toplam; i++) {
+    var dosya = dosyalar[i];
+    var ts = Date.now();
+    var temizAd = dosya.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    var yol = 'chatter/' + dosyaId + '/' + ts + '_' + temizAd;
+
+    try {
+      var resp = await fetch(
+        SUPABASE_URL + '/storage/v1/object/chatter-files/' + yol,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + window._supabaseToken,
+            'apikey': SUPABASE_ANON_KEY,
+            'Content-Type': dosya.type || 'application/octet-stream',
+            'x-upsert': 'true'
+          },
+          body: dosya
+        }
+      );
+
+      if (resp.ok) {
+        var publicUrl = SUPABASE_URL + '/storage/v1/object/public/chatter-files/' + yol;
+        ekler.push({
+          ad: dosya.name,
+          tip: dosya.type,
+          boyut: dosya.size,
+          url: publicUrl,
+          yol: yol
+        });
+      } else {
+        var err = await resp.text();
+        console.error('Dosya yükleme hatası:', err);
+        notify('⚠️ ' + dosya.name + ' yüklenemedi');
+      }
+    } catch(e) {
+      console.error('Upload error:', e);
+      notify('⚠️ Bağlantı hatası: ' + dosya.name);
+    }
+
+    // Progress güncelle
+    if (progressBar) progressBar.style.width = Math.round((i+1)/toplam*100) + '%';
+  }
+
+  // Progress gizle
+  setTimeout(function() {
+    if (progressEl) progressEl.style.display = 'none';
+    if (progressBar) progressBar.style.width = '0%';
+  }, 600);
+
+  return ekler;
+}
+
+// Ekler HTML'ini render et (mesaj içinde)
+function chRenderEkler(ekler) {
+  if (!ekler || !ekler.length) return '';
+  var html = '<div class="ch-attachments">';
+  ekler.forEach(function(ek) {
+    var icon = chDosyaIcon(ek.ad, ek.tip);
+    var isResim = ek.tip && ek.tip.startsWith('image/');
+    var boyut = chFmtBoyut(ek.boyut);
+
+    if (isResim) {
+      // Resim → küçük önizleme tıklanınca büyür
+      html += '<a href="'+ek.url+'" target="_blank" class="ch-attach-item" title="'+escHtml(ek.ad)+'">'
+        + '<img src="'+ek.url+'" class="ch-img-preview" style="max-width:120px;max-height:90px;" loading="lazy">'
+        + '</a>';
+    } else {
+      html += '<a href="'+ek.url+'" target="_blank" class="ch-attach-item">'
+        + '<span class="ch-attach-icon">'+icon+'</span>'
+        + '<div class="ch-attach-info">'
+        +   '<div class="ch-attach-name">'+escHtml(ek.ad.length>25?ek.ad.slice(0,23)+'…':ek.ad)+'</div>'
+        +   (boyut ? '<div class="ch-attach-size">'+boyut+'</div>' : '')
+        + '</div>'
+        + '</a>';
+    }
+  });
+  html += '</div>';
+  return html;
+}
+
+// Ctrl+V ile clipboard'dan resim yapıştırma
+document.addEventListener('paste', function(e) {
+  // Sadece chatter odaklanmışken çalışsın
+  var aktifEl = document.activeElement;
+  if (!aktifEl) return;
+  var isDava = aktifEl.id === 'chatter-input';
+  var isIcra = aktifEl.id === 'idp-chatter-input';
+  if (!isDava && !isIcra) return;
+
+  var items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.startsWith('image/')) {
+      var dosya = items[i].getAsFile();
+      if (!dosya) continue;
+      // Dosyaya isim ver
+      var ext = items[i].type.split('/')[1] || 'png';
+      Object.defineProperty(dosya, 'name', { value: 'yapistirilan_resim_' + Date.now() + '.' + ext });
+      var mod = isDava ? 'dava' : 'icra';
+      var dosyalar = isDava ? window._chatterDosyalar : window._idpDosyalar;
+      if (dosyalar.length < 5) {
+        dosyalar.push(dosya);
+        chatterPreviewGuncelle(mod);
+        notify('📋 Resim eklendi (yapıştır)');
+      }
+      e.preventDefault();
+      break;
+    }
+  }
+});
+
 window.appReady = function() {
   if (window._appStarted) return;
   window._appStarted = true;
