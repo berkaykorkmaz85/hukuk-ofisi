@@ -13555,44 +13555,38 @@ function chFmtBoyut(bytes) {
   return (bytes/1024/1024).toFixed(1) + ' MB';
 }
 
-// Dosya seçildiğinde çağrılır
+// Dosya seçildiğinde çağrılır — anında Supabase'e yükler
 async function chatterFileSec(input, mod) {
   var yeni = Array.from(input.files);
   input.value = '';
   if (!yeni.length) return;
 
-  // Validasyon
-  var hatalar = [];
-  var gecerli = [];
-  var mevcutEkler = mod === 'dava' ? window._chatterEkler : window._idpEkler;
-  yeni.forEach(function(f) {
-    if (f.size > 20 * 1024 * 1024) { hatalar.push(f.name + ' çok büyük (max 20MB)'); return; }
-    if (mevcutEkler.length >= 5) { hatalar.push('En fazla 5 dosya ekleyebilirsiniz'); return; }
-    gecerli.push(f);
-  });
-  if (hatalar.length) { notify('⚠️ ' + hatalar[0]); }
-  if (!gecerli.length) return;
-
-  // Yüklenecek dosyaları önizlemeye ekle (yükleniyor hali)
   var dosyaId = mod === 'dava' ? currentDavaId : currentIcraId;
   if (!dosyaId) { notify('⚠️ Önce bir dosya açın'); return; }
 
-  // Her dosyayı hemen yükle
-  for (var i = 0; i < gecerli.length; i++) {
-    var f = gecerli[i];
-    // Geçici chip ekle (yükleniyor)
-    mevcutEkler.push({ ad: f.name, tip: f.type, boyut: f.size, url: null, yukleniyor: true });
+  var ekListesi = mod === 'dava' ? window._chatterEkler : window._idpEkler;
+
+  for (var i = 0; i < yeni.length; i++) {
+    var f = yeni[i];
+    if (f.size > 20 * 1024 * 1024) { notify('⚠️ ' + f.name + ' çok büyük (max 20MB)'); continue; }
+    if (ekListesi.length >= 5) { notify('⚠️ En fazla 5 dosya ekleyebilirsiniz'); break; }
+
+    // Yükleniyor chip'i göster
+    var tempObj = { ad: f.name, tip: f.type, boyut: f.size, url: null, yukleniyor: true };
+    ekListesi.push(tempObj);
     chatterPreviewGuncelle(mod);
 
     // Supabase'e yükle
     var sonuc = await chatterTekDosyaYukle(f, dosyaId);
-    // Geçici kaydı gerçek URL ile güncelle
-    var idx = mevcutEkler.findIndex(function(e){ return e.ad === f.name && e.yukleniyor; });
+
+    // Yükleniyor chip'ini güncelle
+    var idx = ekListesi.indexOf(tempObj);
     if (idx >= 0) {
       if (sonuc) {
-        mevcutEkler[idx] = sonuc;
+        ekListesi[idx] = sonuc; // URL'yi kaydet
       } else {
-        mevcutEkler.splice(idx, 1); // Hata varsa kaldır
+        ekListesi.splice(idx, 1); // Başarısız → kaldır
+        notify('⚠️ ' + f.name + ' yüklenemedi');
       }
     }
     chatterPreviewGuncelle(mod);
