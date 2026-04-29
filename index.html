@@ -13641,8 +13641,8 @@ function chatterDosyaKaldir(idx, mod) {
 
 // Gönderim sonrası temizle
 function chatterDosyaTemizle(mod) {
-  if (mod === 'dava') { window._chatterEkler = []; window._chatterDosyalar = window._chatterEkler; }
-  else { window._idpEkler = []; window._idpDosyalar = window._idpEkler; }
+  if (mod === 'dava') { window._chatterEkler.splice(0, window._chatterEkler.length); }
+  else { window._idpEkler.splice(0, window._idpEkler.length); }
   chatterPreviewGuncelle(mod);
 }
 
@@ -13797,9 +13797,10 @@ document.addEventListener('paste', function(e) {
       var ext = items[i].type.split('/')[1] || 'png';
       Object.defineProperty(dosya, 'name', { value: 'yapistirilan_resim_' + Date.now() + '.' + ext });
       var mod = isDava ? 'dava' : 'icra';
-      var dosyalar = isDava ? window._chatterDosyalar : window._idpDosyalar;
+      var dosyalar = isDava ? window._chatterEkler : window._idpEkler;
       if (dosyalar.length < 5) {
-        dosyalar.push(dosya);
+        // Paste ile eklenen resmi geçici olarak ekle, hemen yükle
+        dosyalar.push({ ad: dosya.name, tip: dosya.type, boyut: dosya.size, url: null, yukleniyor: true, _file: dosya });
         chatterPreviewGuncelle(mod);
         notify('📋 Resim eklendi (yapıştır)');
       }
