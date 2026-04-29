@@ -9215,15 +9215,12 @@ function saveChatterEdit(postId, davaId) {
 
 async function sendChatterPost() {
   const metin = document.getElementById('chatter-input').value.trim();
-  const dosyalar = window._chatterDosyalar || [];
+  const dosyalar = window._chatterEkler.filter(function(e){ return !e.yukleniyor && e.url; });
   if (!metin && !dosyalar.length) return;
   if (!currentDavaId) return;
 
-  // Dosyaları önce yükle
-  let ekler = [];
-  if (dosyalar.length) {
-    ekler = await chatterDosyaYukle(dosyalar, 'dava', currentDavaId);
-  }
+  // Dosyalar zaten yüklendi, URL'lerini kullan
+  let ekler = dosyalar;
 
   const allPosts = DB.get('chatter_' + currentDavaId) || [];
   let parentYazar = null, parentMetin = null;
@@ -9256,11 +9253,33 @@ function cancelReply() {
   document.getElementById('chatter-input').placeholder = 'Mesaj yaz... (Enter = gönder)';
 }
 
-function deletePost(postId, davaId) {
+// Supabase Storage'dan dosya sil
+async function chatterSupabaseSil(yol) {
+  if (!yol || !window._supabaseToken) return;
+  try {
+    await fetch(SUPABASE_URL + '/storage/v1/object/chatter-files/' + yol, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': 'Bearer ' + window._supabaseToken,
+        'apikey': SUPABASE_ANON_KEY
+      }
+    });
+  } catch(e) { console.warn('Dosya silinemedi:', yol); }
+}
+
+async function deletePost(postId, davaId) {
   if (!confirm('Bu notu silmek istiyor musunuz?')) return;
   const key = 'chatter_' + davaId;
-  // Ana post silinirse reply'ları da sil
   let arr = DB.get(key) || [];
+  // Silinecek postların eklerini Supabase'den de sil
+  const silinecekler = arr.filter(p => p.id === postId || p.parentId === postId);
+  for (const post of silinecekler) {
+    if (post.ekler && post.ekler.length) {
+      for (const ek of post.ekler) {
+        if (ek.yol) await chatterSupabaseSil(ek.yol);
+      }
+    }
+  }
   arr = arr.filter(p => p.id !== postId && p.parentId !== postId);
   DB.set(key, arr);
   renderChatter(davaId);
@@ -13251,14 +13270,11 @@ async function sendIdpPost() {
   var input = document.getElementById('idp-chatter-input');
   if (!input) return;
   var metin = input.value.trim();
-  var dosyalar = window._idpDosyalar || [];
+  var dosyalar = window._idpEkler.filter(function(e){ return !e.yukleniyor && e.url; });
   if (!metin && !dosyalar.length) return;
 
-  // Dosyaları yükle
-  var ekler = [];
-  if (dosyalar.length) {
-    ekler = await chatterDosyaYukle(dosyalar, 'icra', currentIcraId);
-  }
+  // Dosyalar zaten yüklendi
+  var ekler = dosyalar;
 
   var user = window.currentUser || {};
   var key = 'icra_chatter_' + currentIcraId;
@@ -13306,10 +13322,20 @@ function cancelIdpReply() {
   document.getElementById('idp-reply-banner').style.display = 'none';
 }
 
-function deleteIdpPost(postId) {
+async function deleteIdpPost(postId) {
   if (!currentIcraId || !confirm('Bu notu silmek istiyor musunuz?')) return;
   var key = 'icra_chatter_' + currentIcraId;
   var posts = DB.get(key) || [];
+  // Supabase'den dosyaları sil
+  var silinecekler = posts.filter(function(p){ return p.id === postId || p.parentId === postId; });
+  for (var i = 0; i < silinecekler.length; i++) {
+    var post = silinecekler[i];
+    if (post.ekler && post.ekler.length) {
+      for (var j = 0; j < post.ekler.length; j++) {
+        if (post.ekler[j].yol) await chatterSupabaseSil(post.ekler[j].yol);
+      }
+    }
+  }
   posts = posts.filter(function(p){ return p.id !== postId && p.parentId !== postId; });
   DB.set(key, posts);
   renderIdpChatter(currentIcraId);
@@ -13502,9 +13528,12 @@ document.body.addEventListener('click', function(e) {
 // CHATTER DOSYA YÜKLEME — Supabase Storage
 // ═══════════════════════════════════════════════════════
 
-// Bekleyen dosyalar (henüz gönderilmemiş)
-window._chatterDosyalar = [];
-window._idpDosyalar = [];
+// Yüklenmiş ekler (URL'si olan, gönderilmeye hazır)
+window._chatterEkler = [];
+window._idpEkler = [];
+// Geriye dönük uyumluluk
+window._chatterDosyalar = window._chatterEkler;
+window._idpDosyalar = window._idpEkler;
 
 // Dosya tipine göre ikon
 function chDosyaIcon(ad, tip) {
@@ -13527,28 +13556,52 @@ function chFmtBoyut(bytes) {
 }
 
 // Dosya seçildiğinde çağrılır
-function chatterFileSec(input, mod) {
-  var dosyalar = mod === 'dava' ? window._chatterDosyalar : window._idpDosyalar;
-  var previewId = mod === 'dava' ? 'chatter-files-preview' : 'idp-files-preview';
-  var countId   = mod === 'dava' ? 'chatter-file-count'   : 'idp-file-count';
-
-  // Max 5 dosya, max 20MB/dosya
+async function chatterFileSec(input, mod) {
   var yeni = Array.from(input.files);
+  input.value = '';
+  if (!yeni.length) return;
+
+  // Validasyon
   var hatalar = [];
+  var gecerli = [];
+  var mevcutEkler = mod === 'dava' ? window._chatterEkler : window._idpEkler;
   yeni.forEach(function(f) {
     if (f.size > 20 * 1024 * 1024) { hatalar.push(f.name + ' çok büyük (max 20MB)'); return; }
-    if (dosyalar.length >= 5) { hatalar.push('En fazla 5 dosya ekleyebilirsiniz'); return; }
-    dosyalar.push(f);
+    if (mevcutEkler.length >= 5) { hatalar.push('En fazla 5 dosya ekleyebilirsiniz'); return; }
+    gecerli.push(f);
   });
-  if (hatalar.length) notify('⚠️ ' + hatalar[0]);
-  input.value = ''; // reset seçimi
+  if (hatalar.length) { notify('⚠️ ' + hatalar[0]); }
+  if (!gecerli.length) return;
 
-  chatterPreviewGuncelle(mod);
+  // Yüklenecek dosyaları önizlemeye ekle (yükleniyor hali)
+  var dosyaId = mod === 'dava' ? currentDavaId : currentIcraId;
+  if (!dosyaId) { notify('⚠️ Önce bir dosya açın'); return; }
+
+  // Her dosyayı hemen yükle
+  for (var i = 0; i < gecerli.length; i++) {
+    var f = gecerli[i];
+    // Geçici chip ekle (yükleniyor)
+    mevcutEkler.push({ ad: f.name, tip: f.type, boyut: f.size, url: null, yukleniyor: true });
+    chatterPreviewGuncelle(mod);
+
+    // Supabase'e yükle
+    var sonuc = await chatterTekDosyaYukle(f, dosyaId);
+    // Geçici kaydı gerçek URL ile güncelle
+    var idx = mevcutEkler.findIndex(function(e){ return e.ad === f.name && e.yukleniyor; });
+    if (idx >= 0) {
+      if (sonuc) {
+        mevcutEkler[idx] = sonuc;
+      } else {
+        mevcutEkler.splice(idx, 1); // Hata varsa kaldır
+      }
+    }
+    chatterPreviewGuncelle(mod);
+  }
 }
 
 // Önizleme alanını güncelle
 function chatterPreviewGuncelle(mod) {
-  var dosyalar = mod === 'dava' ? window._chatterDosyalar : window._idpDosyalar;
+  var dosyalar = mod === 'dava' ? window._chatterEkler : window._idpEkler;
   var previewEl = document.getElementById(mod === 'dava' ? 'chatter-files-preview' : 'idp-files-preview');
   var countEl   = document.getElementById(mod === 'dava' ? 'chatter-file-count' : 'idp-file-count');
   if (!previewEl) return;
@@ -13581,16 +13634,51 @@ function chatterPreviewGuncelle(mod) {
 
 // Tekil dosya kaldır
 function chatterDosyaKaldir(idx, mod) {
-  var dosyalar = mod === 'dava' ? window._chatterDosyalar : window._idpDosyalar;
-  dosyalar.splice(idx, 1);
+  var ekler = mod === 'dava' ? window._chatterEkler : window._idpEkler;
+  ekler.splice(idx, 1);
   chatterPreviewGuncelle(mod);
 }
 
 // Gönderim sonrası temizle
 function chatterDosyaTemizle(mod) {
-  if (mod === 'dava') window._chatterDosyalar = [];
-  else window._idpDosyalar = [];
+  if (mod === 'dava') { window._chatterEkler = []; window._chatterDosyalar = window._chatterEkler; }
+  else { window._idpEkler = []; window._idpDosyalar = window._idpEkler; }
   chatterPreviewGuncelle(mod);
+}
+
+// Tek dosya yükle (anında yükleme için)
+async function chatterTekDosyaYukle(dosya, dosyaId) {
+  if (!window._supabaseToken) { notify('⚠️ Oturum bulunamadı'); return null; }
+  var ts = Date.now();
+  var temizAd = dosya.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  var yol = 'chatter/' + dosyaId + '/' + ts + '_' + temizAd;
+  try {
+    var resp = await fetch(SUPABASE_URL + '/storage/v1/object/chatter-files/' + yol, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + window._supabaseToken,
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': dosya.type || 'application/octet-stream',
+        'x-upsert': 'true'
+      },
+      body: dosya
+    });
+    if (resp.ok) {
+      return {
+        ad: dosya.name, tip: dosya.type, boyut: dosya.size,
+        url: SUPABASE_URL + '/storage/v1/object/public/chatter-files/' + yol,
+        yol: yol
+      };
+    } else {
+      var err = await resp.text();
+      console.error('Yükleme hatası:', err);
+      notify('⚠️ ' + dosya.name + ' yüklenemedi');
+      return null;
+    }
+  } catch(e) {
+    notify('⚠️ Bağlantı hatası');
+    return null;
+  }
 }
 
 // Supabase Storage'a yükle
@@ -13724,6 +13812,12 @@ document.addEventListener('paste', function(e) {
 window.appReady = function() {
   if (window._appStarted) return;
   window._appStarted = true;
+  // Supabase token'ı sessionStorage'dan geri yükle
+  var sbSes = checkSession();
+  if (sbSes) {
+    window._supabaseToken = sbSes.access_token;
+    window._currentUserId = sbSes.user_id;
+  }
   // Auth gate
   if (!AUTH.isLoggedIn()) {
     // show login
