@@ -13595,33 +13595,30 @@ async function chatterFileSec(input, mod) {
 
 // Önizleme alanını güncelle
 function chatterPreviewGuncelle(mod) {
-  var dosyalar = mod === 'dava' ? window._chatterEkler : window._idpEkler;
+  var ekler = mod === 'dava' ? window._chatterEkler : window._idpEkler;
   var previewEl = document.getElementById(mod === 'dava' ? 'chatter-files-preview' : 'idp-files-preview');
   var countEl   = document.getElementById(mod === 'dava' ? 'chatter-file-count' : 'idp-file-count');
   if (!previewEl) return;
-
-  if (!dosyalar.length) {
+  if (!ekler.length) {
     previewEl.style.display = 'none';
     if (countEl) countEl.style.display = 'none';
     return;
   }
-
   previewEl.style.display = 'flex';
-  if (countEl) { countEl.style.display = ''; countEl.textContent = dosyalar.length + ' dosya seçili'; }
-
-  previewEl.innerHTML = dosyalar.map(function(f, i) {
-    var icon = chDosyaIcon(f.name, f.type);
-    var boyut = chFmtBoyut(f.size);
-    // Resimse küçük önizleme oluştur
+  if (countEl) { countEl.style.display = ''; countEl.textContent = ekler.length + ' dosya'; }
+  previewEl.innerHTML = ekler.map(function(ek, i) {
+    var icon = chDosyaIcon(ek.ad, ek.tip);
+    var boyut = chFmtBoyut(ek.boyut);
+    var yukleniyor = !!ek.yukleniyor;
     var imgHtml = '';
-    if (f.type && f.type.startsWith('image/')) {
-      var url = URL.createObjectURL(f);
-      imgHtml = '<img src="'+url+'" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">';
+    if (!yukleniyor && ek.url && ek.tip && ek.tip.startsWith('image/')) {
+      imgHtml = '<img src="'+ek.url+'" style="width:32px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;">';
     }
-    return '<div class="ch-file-chip">'
-      + (imgHtml || '<span class="ch-file-icon">'+icon+'</span>')
-      + '<div class="ch-file-name" title="'+escHtml(f.name)+'"><div style="font-size:11px;font-weight:500">'+escHtml(f.name.length>20?f.name.slice(0,18)+'…':f.name)+'</div><div style="font-size:9px;color:var(--text3)">'+boyut+'</div></div>'
-      + '<button class="ch-file-remove" onclick="chatterDosyaKaldir('+i+',\''+mod+'\')" title="Kaldır">×</button>'
+    return '<div class="ch-file-chip"' + (yukleniyor ? ' style="opacity:0.6"' : '') + '>'
+      + (yukleniyor ? '<span class="ch-file-icon">⏳</span>' : (imgHtml || '<span class="ch-file-icon">'+icon+'</span>'))
+      + '<div class="ch-file-name"><div style="font-size:11px;font-weight:500">'+escHtml((ek.ad||'').length>20?(ek.ad||'').slice(0,18)+'…':(ek.ad||''))+'</div>'
+      + '<div style="font-size:9px;color:var(--text3)">'+(yukleniyor?'Yükleniyor…':boyut)+'</div></div>'
+      + (yukleniyor ? '' : '<button class="ch-file-remove" onclick="chatterDosyaKaldir('+i+',\''+mod+'\')" title="Kaldır">×</button>')
       + '</div>';
   }).join('');
 }
