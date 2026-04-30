@@ -10339,12 +10339,29 @@ function showMuvekkilDetail(id) {
   // Müvekkilin masraf avansı ödemesi (masraf borcunu kapatır)
   const AVANS_T = ['Masraf Ödemesi','Masraf (Ofis Avansı)'];
 
+  // Finans modülünden tahsilat ve masraf
   const topTah  = finans.filter(f=>UCRET_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const topMas  = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const anlaşılan = (mv.ucretAnlasmalari||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
-  const kalanUcret = Math.max(0, anlaşılan - topTah);
-  const kalanMasraf = topMas - masOde; // + ise müvekkil borçlu, - ise avans fazlası
+
+  // Anlaşılan: ucretAnlasmalari VEYA dava+icra dosyalarındaki akdiUcret toplamı
+  const ucretAnlasToplam = (mv.ucretAnlasmalari||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const davaAkdiToplam   = davalar.reduce((a,d)=>a+Number(d.akdiUcret||0),0);
+  const icraAkdiToplam   = icralar.reduce((a,i)=>a+Number(i.akdiUcret||0),0);
+  // Önce ucretAnlasmalari'na bak, yoksa dava/icra akdiUcret toplamını kullan
+  const anlaşılan = ucretAnlasToplam > 0 ? ucretAnlasToplam : (davaAkdiToplam + icraAkdiToplam);
+
+  // Tahsil edilen: finans modülü VEYA dava tahsilEdilen toplamı
+  const davaTahsilToplam = davalar.reduce((a,d)=>a+Number(d.tahsilEdilen||0),0);
+  const icraTahsilToplam = icralar.reduce((a,i)=>a+Number(i.tahsilEdilen||0),0);
+  const gercekTahsilat   = topTah > 0 ? topTah : (davaTahsilToplam + icraTahsilToplam);
+
+  // Dava/İcra bazlı masraf (dava masraf alanları)
+  const davaMasrafToplam = davalar.reduce((a,d)=>a+Number(d.masraf||0),0);
+  const gercekMasraf     = topMas > 0 ? topMas : davaMasrafToplam;
+
+  const kalanUcret  = Math.max(0, anlaşılan - gercekTahsilat);
+  const kalanMasraf = gercekMasraf - masOde; // + ise müvekkil borçlu, - ise avans fazlası
 
   const el = document.getElementById('muvekkil-detail');
   el.innerHTML = `
@@ -10434,29 +10451,29 @@ function showMuvekkilDetail(id) {
         :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
           ${[
             {l:'Anlaşılan',v:'₺'+fmt(anlaşılan),c:'var(--gold)'},
-            {l:'Tahsil Edilen',v:'₺'+fmt(topTah),c:'var(--green)'},
+            {l:'Tahsil Edilen',v:'₺'+fmt(gercekTahsilat),c:'var(--green)'},
             {l:'Kalan Borç',v:'₺'+fmt(kalanUcret),c:kalanUcret>0?'var(--red)':'var(--green)'},
           ].map(x=>'<div style="background:var(--bg3);padding:10px 12px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+x.l+'</div><div style="font-size:15px;font-weight:800;color:'+x.c+';font-family:monospace">'+x.v+'</div></div>').join('')}
         </div>
         <div style="margin-top:8px">
-          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Tahsilat İlerlemesi</span><span style="color:var(--gold);font-weight:700">${Math.min(Math.round(topTah/anlaşılan*100),100)}%</span></div>
-          <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.round(topTah/anlaşılan*100),100)}%;background:var(--gold);border-radius:4px"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Tahsilat İlerlemesi</span><span style="color:var(--gold);font-weight:700">${Math.min(Math.round(gercekTahsilat/anlaşılan*100),100)}%</span></div>
+          <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.round(gercekTahsilat/anlaşılan*100),100)}%;background:var(--gold);border-radius:4px"></div></div>
         </div>`}
       </div>
 
       <!-- CARİ 2: Masraf Carisi -->
       <div style="padding:10px 16px">
         <div style="font-size:11px;font-weight:700;color:#7ab5d4;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">🧾 Masraf Carisi</div>
-        ${topMas===0 && masOde===0
+        ${gercekMasraf===0 && masOde===0
           ?`<div style="padding:8px 12px;background:rgba(58,107,140,0.08);border:1px solid rgba(58,107,140,0.2);border-radius:8px;font-size:12px;color:var(--text3)">Henüz masraf kaydı yok.</div>`
           :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
             ${[
-              {l:'Yapılan Masraf',v:'₺'+fmt(topMas),c:'var(--red)'},
+              {l:'Yapılan Masraf',v:'₺'+fmt(gercekMasraf),c:'var(--red)'},
               {l:'Müvekkil Avansı',v:'₺'+fmt(masOde),c:'var(--green)'},
               {l:kalanMasraf>0?'Kalan Borç':'Avans Fazlası',v:(kalanMasraf<0?'+':'')+( '₺'+fmt(Math.abs(kalanMasraf))),c:kalanMasraf>0?'var(--red)':'var(--green)'},
             ].map(x=>'<div style="background:var(--bg3);padding:10px 12px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+x.l+'</div><div style="font-size:15px;font-weight:800;color:'+x.c+';font-family:monospace">'+x.v+'</div></div>').join('')}
           </div>
-          ${topMas>0?`<div style="margin-top:8px">
+          ${gercekMasraf>0?`<div style="margin-top:8px">
             <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px">
               <span>${kalanMasraf>0?'Masraf Karşılama':'Avans Kullanım'}</span>
               <span style="color:#7ab5d4;font-weight:700">${Math.min(Math.round(masOde/topMas*100),100)}%</span>
@@ -12181,10 +12198,7 @@ function notify(msg) {
   notifTimer = setTimeout(() => el.style.display = 'none', 2800);
 }
 
-// Close modals on outside click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-});
+// Modal dışına tıklayınca kapanmaz — sadece × butonu ile kapatılır
 
 
 // ========== FAİZ HESAPLAMA ==========
