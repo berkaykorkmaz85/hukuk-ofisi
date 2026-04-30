@@ -941,7 +941,7 @@
     gap: 12px;
   }
   /* ── CHATTER: kutucuk stili ── */
-  .chatter-feed { display:flex; flex-direction:column; flex:1; overflow-y:auto; padding:10px 14px; gap:8px; }
+  .chatter-feed { display:flex; flex-direction:column; flex:1; overflow-y:auto; padding:10px 14px 6px; gap:8px; justify-content:flex-start; }
   /* Ana kart */
   .ch-post { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:12px 14px; transition:border-color 0.15s; }
   .ch-post:hover { border-color:var(--border2); }
@@ -3130,7 +3130,7 @@
         </div>
         <div class="form-group">
           <label>Link / URL (opsiyonel)</label>
-          <input type="url" id="belge-url" placeholder="https://...">
+          <input type="url" id="belge-url" placeholder="https://... veya SharePoint linki">
         </div>
         <div class="form-group">
           <label>Taraf</label>
@@ -8572,7 +8572,7 @@ function renderDavaTab(id, sekme) {
     el.innerHTML = `<div style="padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div style="font-size:14px;font-weight:700;color:var(--text)">📎 Belgeler</div>
-        <button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="openModal('modal-belge');document.getElementById('belge-dava-id').value='${id}'">+ Belge Ekle</button>
+        <button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="openBelgeModal('${id}')">+ Belge Ekle</button>
       </div>
       ${belgeler.length===0
         ? '<div style="text-align:center;color:var(--text3);padding:30px 20px"><div style="font-size:36px;margin-bottom:10px">📎</div><div>Henüz belge eklenmedi</div></div>'
@@ -10302,6 +10302,27 @@ function renderMuvekkiller() {
   }).join('') : `<tr><td colspan="6"><div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Henüz müvekkil yok</div></div></td></tr>`;
 }
 
+// Hızlı anlaşılan tutar girişi — müvekkil detay sayfasından
+function hizliAnlasmaDuzenle(mvId) {
+  const mv = DB.get('muvekkiller').find(function(x){ return x.id === mvId; });
+  if (!mv) return;
+  const mevcutTutar = (mv.ucretAnlasmalari||[]).reduce(function(a,b){ return a+Number(b.tutar||0); },0);
+  const mesaj = '💰 ' + mv.ad + ' ile anlaşılan toplam ücret? (Mevcut: ₺' + (mevcutTutar||0).toLocaleString('tr-TR') + ')';
+  const girdi = prompt(mesaj, mevcutTutar||'');
+  if (girdi === null) return; // iptal
+  const tutar = parseFloat((girdi||'').replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
+  if (tutar < 0) return notify('Geçersiz tutar!');
+  const arr = DB.get('muvekkiller').map(function(m) {
+    if (m.id !== mvId) return m;
+    return Object.assign({}, m, {
+      ucretAnlasmalari: [{tur:'avukatlik', tutar: tutar, rawText: String(tutar), periyot:'', kdv:'dahil', not:''}]
+    });
+  });
+  DB.set('muvekkiller', arr);
+  notify('Anlaşılan tutar güncellendi ✓');
+  showMuvekkilDetail(mvId);
+}
+
 function showMuvekkilDetail(id) {
   const mv = DB.get('muvekkiller').find(x => x.id === id);
   if (!mv) return;
@@ -10311,13 +10332,19 @@ function showMuvekkilDetail(id) {
   const contacts= DB.get('contacts').filter(c => c.muvekkilId === id);
   const isKurumsal = mv.tur === 'kurumsal';
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
-  const MASRAF_T= ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
-  const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  // Ücret tahsilatları (avukatlık ücreti ödemeleri)
+  const UCRET_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
+  // Müvekkil adına yapılan masraflar (avukattan müvekkile borç)
+  const MASRAF_T = ['Masraf','Dava Masrafı','Harç'];
+  // Müvekkilin masraf avansı ödemesi (masraf borcunu kapatır)
+  const AVANS_T = ['Masraf Ödemesi','Masraf (Ofis Avansı)'];
+
+  const topTah  = finans.filter(f=>UCRET_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const topMas  = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masOde  = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
+  const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const anlaşılan = (mv.ucretAnlasmalari||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
-  const netBak  = topTah - topMas + masOde;
+  const kalanUcret = Math.max(0, anlaşılan - topTah);
+  const kalanMasraf = topMas - masOde; // + ise müvekkil borçlu, - ise avans fazlası
 
   const el = document.getElementById('muvekkil-detail');
   el.innerHTML = `
@@ -10395,19 +10422,49 @@ function showMuvekkilDetail(id) {
 
     <!-- Finans Özeti -->
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text)">📊 Finansal Özet</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)">
-        ${[
-          {l:'Anlaşılan',v:'₺'+fmt(anlaşılan),c:'var(--gold)'},
-          {l:'Tahsilat',v:'₺'+fmt(topTah),c:'var(--green)'},
-          {l:'Masraf',v:'₺'+fmt(topMas),c:'var(--red)'},
-          {l:'Net Bakiye',v:(netBak>=0?'+':'')+'₺'+fmt(netBak),c:netBak>=0?'var(--green)':'var(--red)'},
-        ].map(x=>`<div style="background:var(--bg2);padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:5px">${x.l}</div><div style="font-size:16px;font-weight:800;color:${x.c};font-family:monospace">${x.v}</div></div>`).join('')}
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:14px;font-weight:700;color:var(--text)">🏦 Finansal Özet</div>
+        ${anlaşılan===0?`<button class="btn btn-gold" style="font-size:11px;padding:4px 12px" onclick="hizliAnlasmaDuzenle('${id}')">+ Anlaşılan Tutar Gir</button>`:''}
       </div>
-      ${anlaşılan>0?`<div style="padding:12px 16px;border-top:1px solid var(--border)">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px"><span>Tahsilat İlerlemesi</span><span style="color:var(--gold);font-weight:700">${Math.min(Math.round(topTah/anlaşılan*100),100)}%</span></div>
-        <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.round(topTah/anlaşılan*100),100)}%;background:var(--gold);border-radius:4px"></div></div>
-      </div>`:''}
+
+      <!-- CARİ 1: Ücret Carisi -->
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">⚖️ Ücret Carisi</div>
+        ${anlaşılan===0?`<div style="padding:8px 12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;font-size:12px;color:var(--text3)">💡 Anlaşılan tutar girilmemiş. Müvekkilin "Düzenle" butonundan veya yukarıdaki butona basarak girebilirsiniz.</div>`
+        :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
+          ${[
+            {l:'Anlaşılan',v:'₺'+fmt(anlaşılan),c:'var(--gold)'},
+            {l:'Tahsil Edilen',v:'₺'+fmt(topTah),c:'var(--green)'},
+            {l:'Kalan Borç',v:'₺'+fmt(kalanUcret),c:kalanUcret>0?'var(--red)':'var(--green)'},
+          ].map(x=>'<div style="background:var(--bg3);padding:10px 12px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+x.l+'</div><div style="font-size:15px;font-weight:800;color:'+x.c+';font-family:monospace">'+x.v+'</div></div>').join('')}
+        </div>
+        <div style="margin-top:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Tahsilat İlerlemesi</span><span style="color:var(--gold);font-weight:700">${Math.min(Math.round(topTah/anlaşılan*100),100)}%</span></div>
+          <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.round(topTah/anlaşılan*100),100)}%;background:var(--gold);border-radius:4px"></div></div>
+        </div>`}
+      </div>
+
+      <!-- CARİ 2: Masraf Carisi -->
+      <div style="padding:10px 16px">
+        <div style="font-size:11px;font-weight:700;color:#7ab5d4;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">🧾 Masraf Carisi</div>
+        ${topMas===0 && masOde===0
+          ?`<div style="padding:8px 12px;background:rgba(58,107,140,0.08);border:1px solid rgba(58,107,140,0.2);border-radius:8px;font-size:12px;color:var(--text3)">Henüz masraf kaydı yok.</div>`
+          :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
+            ${[
+              {l:'Yapılan Masraf',v:'₺'+fmt(topMas),c:'var(--red)'},
+              {l:'Müvekkil Avansı',v:'₺'+fmt(masOde),c:'var(--green)'},
+              {l:kalanMasraf>0?'Kalan Borç':'Avans Fazlası',v:(kalanMasraf<0?'+':'')+( '₺'+fmt(Math.abs(kalanMasraf))),c:kalanMasraf>0?'var(--red)':'var(--green)'},
+            ].map(x=>'<div style="background:var(--bg3);padding:10px 12px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">'+x.l+'</div><div style="font-size:15px;font-weight:800;color:'+x.c+';font-family:monospace">'+x.v+'</div></div>').join('')}
+          </div>
+          ${topMas>0?`<div style="margin-top:8px">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px">
+              <span>${kalanMasraf>0?'Masraf Karşılama':'Avans Kullanım'}</span>
+              <span style="color:#7ab5d4;font-weight:700">${Math.min(Math.round(masOde/topMas*100),100)}%</span>
+            </div>
+            <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden"><div style="height:100%;width:${Math.min(Math.round(masOde/topMas*100),100)}%;background:#7ab5d4;border-radius:4px"></div></div>
+          </div>`:''}
+          `}
+      </div>
     </div>
 
     <!-- Dava Dosyaları -->
