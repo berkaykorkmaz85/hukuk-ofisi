@@ -3827,6 +3827,8 @@
               onfocus="finansDosyaAra(this.value)"
               onblur="setTimeout(()=>{const d=document.getElementById('f-ilgili-dropdown');if(d)d.style.display='none';},200)"
               style="width:100%;padding-right:32px">
+            <input type="hidden" id="f-ilgili-id">
+            <input type="hidden" id="f-ilgili-tip">
             <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;pointer-events:none">🔍</span>
             <div id="f-ilgili-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);max-height:240px;overflow-y:auto;margin-top:3px"></div>
           </div>
@@ -8464,7 +8466,7 @@ function renderDavaTab(id, sekme) {
 
   const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı'];
   const MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
-  const finans = DB.get('finans').filter(f => f.muvekkil === d.muvekkil || f.davaId === id);
+  const finans = DB.get('finans').filter(f => f.muvekkil === d.muvekkil || f.muvekkilId === d.id || f.davaId === id || f.ilgili === d.no);
   const tahsilat = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const masraf   = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const masrafOd = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
@@ -10961,13 +10963,22 @@ function saveFinans() {
   const tutar = parsePara(document.getElementById('f-tutar')?.value);
   const aciklama = document.getElementById('f-aciklama').value.trim();
   if (!tutar) return notify('Tutar giriniz!');
+  const ilgiliId = document.getElementById('f-ilgili-id')?.value || '';
+  const ilgiliTip = document.getElementById('f-ilgili-tip')?.value || '';
   const obj = {
     id: editingId || DB.genId(),
     tur: document.getElementById('f-tur').value,
     tarih: document.getElementById('f-tarih').value || new Date().toISOString().slice(0,10),
     tutar,
     muvekkil: document.getElementById('f-muvekkil').value,
+    muvekkilId: (function() {
+      var ad = document.getElementById('f-muvekkil').value;
+      var mv = (DB.get('muvekkiller')||[]).find(function(m){ return m.ad === ad; });
+      return mv ? mv.id : '';
+    })(),
     ilgili: document.getElementById('f-ilgili')?.value||'',
+    davaId: ilgiliTip === 'dava' ? ilgiliId : '',
+    icraId: ilgiliTip === 'icra' ? ilgiliId : '',
     aciklama,
     created: new Date().toISOString()
   };
@@ -11008,6 +11019,11 @@ function editFinans(id) {
   document.getElementById('f-tutar').value = f.tutar;
   document.getElementById('f-muvekkil').value = f.muvekkil || '';
   document.getElementById('f-aciklama').value = f.aciklama;
+  // Dosya ID bağlantısını geri yükle
+  const ilgiliIdEl = document.getElementById('f-ilgili-id');
+  const ilgiliTipEl = document.getElementById('f-ilgili-tip');
+  if (ilgiliIdEl) ilgiliIdEl.value = f.davaId || f.icraId || '';
+  if (ilgiliTipEl) ilgiliTipEl.value = f.davaId ? 'dava' : (f.icraId ? 'icra' : '');
   document.getElementById('modal-finans-title').textContent = 'İşlemi Düzenle';
   openModal('modal-finans');
 }
@@ -13079,12 +13095,12 @@ function finansDosyaAra(q) {
 
   dropdown.innerHTML = '';
 
-  function makeItem(icon, label, sub, val) {
+  function makeItem(icon, label, sub, val, id, tip) {
     const div = document.createElement('div');
     div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer';
     div.onmouseover = function() { this.style.background = 'var(--bg3)'; };
     div.onmouseout = function() { this.style.background = ''; };
-    div.onclick = function() { finansDosyaSec(val); };
+    div.onclick = function() { finansDosyaSec(val, id, tip); };
     div.innerHTML = '<span style="font-size:15px;flex-shrink:0">' + icon + '</span>'
       + '<div style="min-width:0"><div style="font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(label) + '</div>'
       + (sub ? '<div style="font-size:11px;color:var(--text3)">' + escHtml(sub) + '</div>' : '') + '</div>';
@@ -13101,23 +13117,28 @@ function finansDosyaAra(q) {
   if (dItems.length) {
     dropdown.appendChild(makeHeader('📁 Dava Dosyaları'));
     dItems.forEach(function(d) {
-      dropdown.appendChild(makeItem('📁', d.ad||d.no||'', (d.no||'')+(d.muvekkil?' · '+d.muvekkil:''), d.ad||d.no||''));
+      dropdown.appendChild(makeItem('📁', d.ad||d.no||'', (d.no||'')+(d.muvekkil?' · '+d.muvekkil:''), d.no||d.ad||'', d.id, 'dava'));
     });
   }
   if (iItems.length) {
     dropdown.appendChild(makeHeader('⚡ İcra Dosyaları'));
     iItems.forEach(function(i) {
-      dropdown.appendChild(makeItem('⚡', i.bki||i.no||'', (i.no||'')+(i.borclu?' · '+i.borclu:'')+(i.muvekkil?' · '+i.muvekkil:''), i.bki||i.no||''));
+      dropdown.appendChild(makeItem('⚡', i.bki||i.no||'', (i.no||'')+(i.borclu?' · '+i.borclu:'')+(i.muvekkil?' · '+i.muvekkil:''), i.no||i.bki||'', i.id, 'icra'));
     });
   }
   dropdown.style.display = 'block';
 }
 
-function finansDosyaSec(val) {
+function finansDosyaSec(val, id, tip) {
   const input = document.getElementById('f-ilgili');
   const dropdown = document.getElementById('f-ilgili-dropdown');
   if (input) input.value = val;
   if (dropdown) dropdown.style.display = 'none';
+  // Seçilen dosyanın ID'sini ve tipini gizli alana kaydet
+  var hiddenId = document.getElementById('f-ilgili-id');
+  var hiddenTip = document.getElementById('f-ilgili-tip');
+  if (hiddenId) hiddenId.value = id || '';
+  if (hiddenTip) hiddenTip.value = tip || '';
 }
 
 
