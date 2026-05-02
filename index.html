@@ -7320,15 +7320,13 @@ function renderDavaDash() {
 
   var GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
   var MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
-  var OFIS_GID_T = ['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
   var _ayNow = new Date().getMonth();
   var _yilNow = new Date().getFullYear();
   var filtFinansAylik = filtFinans.filter(function(f){ return new Date(f.tarih).getMonth()===_ayNow && new Date(f.tarih).getFullYear()===_yilNow; });
   var topTah = filtFinansAylik.filter(function(f){return GELIR_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
   var topMas = filtFinansAylik.filter(function(f){return MASRAF_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
-  var topOfisD = filtFinansAylik.filter(function(f){return OFIS_GID_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
   var masOde = filtFinansAylik.filter(function(f){return f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+Number(b.tutar);},0);
-  var netBakiye = topTah - topMas - topOfisD + masOde;
+  var netBakiye = topTah - topMas + masOde;
 
   var yaklasan = davalar0.filter(function(d){return d.sonraki&&d.durum==='Aktif';})
     .map(function(d){return Object.assign({},d,{diff:Math.ceil((new Date(d.sonraki)-today)/86400000)});})
@@ -8897,15 +8895,13 @@ function renderDashboard() {
 
   const GELIR_TURLER_DASH = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
   const MASRAF_TURLER_DASH = ['Masraf','Masraf (Ofis Avansı)','Dava Masrafı','Harç'];
-  const OFIS_TURLER_DASH = ['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
   const buAy = new Date().getMonth();
   const buYil = new Date().getFullYear();
   const ayFiltre = function(f){ return new Date(f.tarih).getMonth()===buAy && new Date(f.tarih).getFullYear()===buYil; };
   const tahsilat = finans.filter(f=>GELIR_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
   const masraf = finans.filter(f=>MASRAF_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
-  const ofisGider = finans.filter(f=>OFIS_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
   const masrafOdemesi = finans.filter(f=>f.tur==='Masraf Ödemesi'&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
-  const netBakiyeDash = tahsilat - masraf - ofisGider + masrafOdemesi;
+  const netBakiyeDash = tahsilat - masraf + masrafOdemesi;
   // Duruşmalar görev sayısına dahil edilmez
   const bekleyen = tasks.filter(t=>!t.done && t.tip !== 'durusma').length;
   const icraToplamAlacak = icralar.filter(i=>i.durum==='Aktif').reduce((a,b)=>a+Number(b.alacak),0);
@@ -8938,7 +8934,7 @@ function renderDashboard() {
     <div class="stat-card" style="cursor:pointer" onclick="showPage('finans')">
       <div class="stat-label">Aylık Tahsilat</div>
       <div class="stat-value" style="font-size:20px;color:var(--green)">₺${fmt(tahsilat)}</div>
-      <div class="stat-sub">Masraf: ₺${fmt(masraf)} · Ofis: ₺${fmt(ofisGider)}</div>
+      <div class="stat-sub">Masraf: ₺${fmt(masraf)}</div>
     </div>
     <div class="stat-card" style="cursor:pointer" onclick="showPage('finans')">
       <div class="stat-label">Aylık Net Bakiye</div>
