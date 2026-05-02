@@ -11046,7 +11046,22 @@ function showMuvekkilDetail(id) {
   if (!mv) return;
   const davalar = DB.get('davalar').filter(d => d.muvekkil === mv.ad);
   const icralar = DB.get('icralar').filter(i => i.muvekkil === mv.ad);
-  const finans  = DB.get('finans').filter(f => f.muvekkil === mv.ad && f.tur !== 'Karşı Vekalet Ücreti' && f.tur !== 'Taksit Planı');
+  // Müvekkil Son İşlemler — sadece o müvekkile ait, anlamlı işlemler
+  const _MV_GOSTER = [
+    'Tahsilat',
+    'Vekalet Ücreti Tahsilatı',
+    'İcra Vekalet Ücreti',
+    'Taksit Tahsilatı',
+    'Masraf',
+    'Dava Masrafı',
+    'Harç',
+    'Masraf Ödemesi',
+    'Karşı Vekalet Tahsilatı'
+  ];
+  const finans  = DB.get('finans').filter(f =>
+    f.muvekkil === mv.ad &&
+    _MV_GOSTER.includes(f.tur)
+  );
   const contacts= DB.get('contacts').filter(c => c.muvekkilId === id);
   const isKurumsal = mv.tur === 'kurumsal';
 
@@ -11059,6 +11074,8 @@ function showMuvekkilDetail(id) {
 
   // Finans modülünden tahsilat ve masraf
   const topTah  = finans.filter(f=>UCRET_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  // Karşı vekalet tahsilatı ayrıca — müvekkilden değil, karşı taraftan alınan
+  const kvTahsilat = DB.get('finans').filter(f => f.muvekkil === mv.ad && f.tur === 'Karşı Vekalet Tahsilatı').reduce((a,b)=>a+Number(b.tutar),0);
   const topMas  = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
 
