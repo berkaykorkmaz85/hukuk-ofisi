@@ -9677,9 +9677,9 @@ function ddpSekme(sekme, btn) {
 
 // T2: Update tab badges
 function _ddpUpdateBadges(d, id) {
-  var durusmalar = (DB.get('tasks')||[]).filter(function(t){return t.ilgili&&t.ilgili.includes(d.no)&&t.tip==='durusma';});
+  var durusmalar = (DB.get('tasks')||[]).filter(function(t){return t.ilgili&&(t.ilgili===d.no||t.ilgili===d.id)&&t.tip==='durusma';});
   var belgeler = (DB.get('belgeler')||[]).filter(function(b){return b.davaId===id;});
-  var tasks = DB.get('tasks').filter(function(t){return t.ilgili&&t.ilgili.includes(d.no)&&t.tip!=='durusma';});
+  var tasks = DB.get('tasks').filter(function(t){return t.ilgili&&(t.ilgili===d.no||t.ilgili===d.id)&&t.tip!=='durusma';});
   var today2 = new Date(); today2.setHours(0,0,0,0);
   var gecikmisCnt = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0;}).length;
 
@@ -9986,7 +9986,7 @@ function renderDavaTab(id, sekme) {
   const masraf   = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const masrafOd = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
   // Fix 5: Exclude duruşmalar from tasks (they have their own tab)
-  const tasks  = DB.get('tasks').filter(t => t.ilgili && t.ilgili.includes(d.no) && t.tip !== 'durusma');
+  const tasks  = DB.get('tasks').filter(t => t.ilgili && (t.ilgili === d.no || t.ilgili === id) && t.tip !== 'durusma');
   const belgeler = (DB.get('belgeler')||[]).filter(b => b.davaId === id);
 
   if (sekme === 'genel') {
@@ -10092,7 +10092,7 @@ function renderDavaTab(id, sekme) {
   } else if (sekme === 'durusma') {
     const today2 = new Date(); today2.setHours(0,0,0,0);
     // Sort: upcoming first (nearest date at top), then past dates descending
-    const durusmalar = (DB.get('tasks')||[]).filter(t=>t.ilgili&&t.ilgili.includes(d.no)&&t.tip==='durusma').sort((a,b)=>{
+    const durusmalar = (DB.get('tasks')||[]).filter(t=>t.ilgili&&(t.ilgili===d.no||t.ilgili===id)&&t.tip==='durusma').sort((a,b)=>{
       const aDate = new Date(a.tarih||'9999');
       const bDate = new Date(b.tarih||'9999');
       const aFuture = aDate >= today2;
@@ -11518,7 +11518,7 @@ function renderIcraTab(id, sekme) {
   const asgariUcret = hesaplaIcraAaüt(Number(i.alacak)||0);
   const masraflar = (DB.get('icra_masraflar')||[]).filter(function(m){return m.icraId===id;});
   const toplamMasraf = masraflar.reduce(function(a,b){return a+Number(b.tutar||0);},0) + Number(i.masraf||0);
-  const tasks = DB.get('tasks').filter(function(t){return t.ilgili && (t.ilgili.includes(i.no) || t.ilgili.includes(i.bki||'')) && t.tip!=='durusma';});
+  const tasks = DB.get('tasks').filter(function(t){return t.ilgili && (t.ilgili===i.no || t.ilgili===id || (i.bki && t.ilgili===i.bki)) && t.tip!=='durusma';});
   const belgeler = (DB.get('icra_belgeler')||[]).filter(function(b){return b.icraId===id;});
   const ageStr = _idpFileAge(i);
   const today2 = new Date(); today2.setHours(0,0,0,0);
