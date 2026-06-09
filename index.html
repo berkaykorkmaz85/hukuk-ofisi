@@ -5086,14 +5086,17 @@ async function doLogin() {
   if (!emailOrUser || !pw) { errEl.textContent = 'E-posta ve şifre gereklidir.'; return; }
   try {
     const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
-    const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
-    console.log('LOGIN DATA:', JSON.stringify(data));
-    console.log('LOGIN ERROR:', JSON.stringify(error));
-    if (error) { _loginRecordFail(); errEl.textContent = '❌ ' + (error.message || 'Hatalı e-posta veya şifre.'); document.getElementById('login-pw').value = ''; return; }
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (!res.ok) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
     _loginResetAttempts();
-    window._supabaseToken = data.session.access_token;
+    window._supabaseToken = data.access_token;
     window._currentUserId = data.user.id;
-    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.session.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.session.expires_at }));
+    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.expires_at }));
     // Beni hatırla
     if (document.getElementById('remember-me')?.checked) {
       localStorage.setItem('hukuk_remember_user', emailOrUser);
