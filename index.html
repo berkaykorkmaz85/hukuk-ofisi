@@ -5087,7 +5087,9 @@ async function doLogin() {
   try {
     const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
     const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
-    if (error) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
+    console.log('LOGIN DATA:', JSON.stringify(data));
+    console.log('LOGIN ERROR:', JSON.stringify(error));
+    if (error) { _loginRecordFail(); errEl.textContent = '❌ ' + (error.message || 'Hatalı e-posta veya şifre.'); document.getElementById('login-pw').value = ''; return; }
     _loginResetAttempts();
     window._supabaseToken = data.session.access_token;
     window._currentUserId = data.user.id;
