@@ -7416,6 +7416,14 @@ function editKisi(id) {
 function deleteKisi(id) {
   if (!confirm('Bu kişiyi silmek istiyor musunuz?')) return;
   DB.set('kisiler', DB.get('kisiler').filter(x => x.id !== id));
+  DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.accountId !== id; }));
+  // Detay görünümü açıksa listeye dön
+  var kd = document.getElementById('kisi-detail-view');
+  var kl = document.getElementById('kisi-list-view');
+  if (kd && kd.style.display !== 'none') {
+    kd.style.display = 'none';
+    if (kl) kl.style.display = '';
+  }
   renderKisiler();
   notify('Kişi silindi');
 }
@@ -11181,7 +11189,18 @@ function davaOdemePlaniOlustur(dava) {
 function deleteDava(id) {
   if (!confirm('Bu dava dosyasını silmek istiyor musunuz?')) return;
   DB.set('davalar', DB.get('davalar').filter(x=>x.id!==id));
-  showSubpage('dava-list');
+  var ddp = document.getElementById('dava-detail-page');
+  if (ddp && ddp.classList.contains('open')) {
+    ddp.classList.remove('open');
+    var ctx = document.getElementById('ddp-topbar-context');
+    if (ctx) ctx.style.display = 'none';
+    var addBtn = document.getElementById('topbar-add-btn');
+    if (addBtn) addBtn.textContent = '+ Yeni Ekle';
+    var ptEl = document.getElementById('page-title');
+    if (ptEl) ptEl.style.display = '';
+    currentDavaId = null;
+  }
+  showPage('davalar');
   renderDavalar();
   notify('Dava silindi');
 }
@@ -12161,7 +12180,13 @@ function _saveIcraInner() {
 function deleteIcra(id) {
   if (!confirm('Bu icra dosyasını silmek istiyor musunuz?')) return;
   DB.set('icralar', DB.get('icralar').filter(x=>x.id!==id));
-  showSubpage('icra-list');
+  var idp = document.getElementById('icra-detail-page');
+  if (idp && idp.classList.contains('open')) {
+    idp.classList.remove('open');
+    currentIcraId = null;
+    idpReplyToId = null;
+  }
+  showPage('icralar');
   renderIcralar();
   notify('İcra silindi');
 }
@@ -12696,7 +12721,10 @@ function _saveMuvekkilInner() {
 function deleteMuvekkil(id) {
   if (!confirm('Bu müvekkili silmek istiyor musunuz?')) return;
   DB.set('muvekkiller', DB.get('muvekkiller').filter(x=>x.id!==id));
-  showSubpage('muvekkil-list');
+  // Contact'ları da temizle
+  DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.muvekkilId !== id && c.accountId !== id; }));
+  showPage('kisiler');
+  switchKisilerTab('muvekkiller');
   renderMuvekkiller();
   notify('Müvekkil silindi');
 }
