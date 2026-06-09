@@ -4971,7 +4971,7 @@ function autoFormatDateInput(el) {
 // Bu anahtarları .env dosyasına veya derleme zamanı ortam değişkenlerine taşımayı değerlendirin.
 const _HUKUK_CONFIG = Object.freeze({
   supabaseUrl: 'https://cbxgdnwunvjndiwwzcfn.supabase.co',
-  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieGdkbnd1bnZqbmRpd3d6Y2ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTMwOTgsImV4cCI6MjA4OTY2OTA5OH0.fUiNz2GXuvx7LKaTTWqjmAj19kQbvuzwJ_HOmwQRvWM-VrILUrA_t8bxfKXv'
+  supabaseAnonKey: 'sb_publishable_VIs6hBcJMFYONt-VrILUrA_t8bxfKXv'
 });
 const SUPABASE_URL = _HUKUK_CONFIG.supabaseUrl;
 const SUPABASE_ANON_KEY = _HUKUK_CONFIG.supabaseAnonKey;
@@ -5086,17 +5086,12 @@ async function doLogin() {
   if (!emailOrUser || !pw) { errEl.textContent = 'E-posta ve şifre gereklidir.'; return; }
   try {
     const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pw })
-    });
-    const data = await res.json();
-    if (!res.ok) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
+    const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
+    if (error) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
     _loginResetAttempts();
-    window._supabaseToken = data.access_token;
+    window._supabaseToken = data.session.access_token;
     window._currentUserId = data.user.id;
-    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.expires_at }));
+    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.session.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.session.expires_at }));
     // Beni hatırla
     if (document.getElementById('remember-me')?.checked) {
       localStorage.setItem('hukuk_remember_user', emailOrUser);
