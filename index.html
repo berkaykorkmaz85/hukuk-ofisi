@@ -2,6 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co blob:; img-src 'self' data: blob: https://*.supabase.co; worker-src blob:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hukuk Asistanı — Yönetim Paneli</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4915,6 +4916,54 @@
 
 <script>
 
+
+// ============================================================
+// CONFIRM MODAL
+// ============================================================
+var _cmCb = null;
+function showConfirmModal(msg, onConfirm, opts) {
+  opts = opts || {};
+  var m = document.getElementById('confirm-modal');
+  if (!m) { if (onConfirm && window.confirm(msg)) onConfirm(); return; }
+  document.getElementById('confirm-modal-msg').innerHTML = msg;
+  var ok = document.getElementById('confirm-modal-ok');
+  var icon = document.getElementById('confirm-modal-icon');
+  ok.textContent = opts.okLabel || 'Evet, Sil';
+  ok.style.background = opts.okBg || 'rgba(192,83,58,0.85)';
+  ok.style.borderColor = opts.okBorder || 'rgba(192,83,58,0.4)';
+  if (icon) {
+    icon.textContent = opts.icon || '🗑';
+    icon.style.background = opts.iconBg || 'rgba(192,83,58,0.15)';
+    icon.style.borderColor = opts.iconBorder || 'rgba(192,83,58,0.3)';
+  }
+  _cmCb = onConfirm;
+  m.classList.add('cm-open');
+  setTimeout(function() { ok.focus(); }, 40);
+  function outside(e) { if (e.target === m) _cmClose(); }
+  m._outside = outside;
+  m.addEventListener('click', outside);
+}
+function _cmClose() {
+  var m = document.getElementById('confirm-modal');
+  if (!m) return;
+  m.classList.remove('cm-open');
+  if (m._outside) { m.removeEventListener('click', m._outside); m._outside = null; }
+  _cmCb = null;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  var ok = document.getElementById('confirm-modal-ok');
+  var cancel = document.getElementById('confirm-modal-cancel');
+  if (ok) ok.addEventListener('click', function() { var cb = _cmCb; _cmClose(); if (cb) cb(); });
+  if (cancel) cancel.addEventListener('click', _cmClose);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var m = document.getElementById('confirm-modal');
+      if (m && m.classList.contains('cm-open')) _cmClose();
+    }
+  });
+});
+// ============================================================
+
 // Tarih elle giriş yardımcıları
 function parseDateInput(val) {
   // GG.AA.YYYY veya GG/AA/YYYY → YYYY-MM-DD
@@ -5086,7 +5135,7 @@ async function doLogin() {
   if (!emailOrUser || !pw) { errEl.textContent = 'E-posta ve şifre gereklidir.'; return; }
   try {
     const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
-    const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
+        const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
     if (error) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
     _loginResetAttempts();
     window._supabaseToken = data.session.access_token;
@@ -6187,8 +6236,9 @@ function _saveKullaniciInner() {
 function deleteKullanici(id) {
   showConfirmModal('Bu kullanıcıyı silmek istediğinizden emin misiniz?', function() {
     DB.set('kullanicilar', DB.get('kullanicilar').filter(u => u.id !== id));
-  renderKullanicilar();
-  notify('Kullanıcı silindi');
+    renderKullanicilar();
+    notify('Kullanıcı silindi');
+  });
 }
 
 function doLogout() {
@@ -6368,15 +6418,16 @@ function importData(input) {
 }
 
 function resetAllData() {
-  showConfirmModal('⚠️ Tüm veriler kalıcı olarak silinecek! Bu işlem geri alınamaz.', function() {
-  const pw = prompt('Onaylamak için şifrenizi girin:');
-  if (pw === null) return;
-  if (!AUTH.check(pw)) { alert('Hatalı şifre. İşlem iptal edildi.'); return; }
-  const keys = ['muvekkiller','davalar','icralar','finans','tasks','notlar','bootstrapped'];
-  keys.forEach(k => localStorage.removeItem('hukuk_' + k));
-  closeModal('modal-backup');
-  notify('🗑 Tüm veriler silindi. Sayfa yenileniyor...');
-  setTimeout(() => location.reload(), 1200);
+    showConfirmModal('⚠️ Tüm veriler kalıcı olarak silinecek! Bu işlem geri alınamaz.', function() {
+    const pw = prompt('Onaylamak iüin şifrenizi girin:');
+    if (pw === null) return;
+    if (!AUTH.check(pw)) { alert('Hatalı şifre. İşlem iptal edildi.'); return; }
+    const keys = ['muvekkiller','davalar','icralar','finans','tasks','notlar','bootstrapped'];
+    keys.forEach(k => localStorage.removeItem('hukuk_' + k));
+    closeModal('modal-backup');
+    notify('🗑 Tüm veriler silindi. Sayfa yenileniyor...');
+    setTimeout(() => location.reload(), 1200);
+  });
 }
 
 // ========== DAVA ÇEŞİTLERİ VERİSİ ==========
@@ -7415,17 +7466,11 @@ function editKisi(id) {
 
 function deleteKisi(id) {
   showConfirmModal('Bu kişiyi silmek istediğinizden emin misiniz?', function() {
-  DB.set('kisiler', DB.get('kisiler').filter(x => x.id !== id));
-  DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.accountId !== id; }));
-  // Detay görünümü açıksa listeye dön
-  var kd = document.getElementById('kisi-detail-view');
-  var kl = document.getElementById('kisi-list-view');
-  if (kd && kd.style.display !== 'none') {
-    kd.style.display = 'none';
-    if (kl) kl.style.display = '';
-  }
-  renderKisiler();
-  notify('Kişi silindi');
+    DB.set('kisiler', DB.get('kisiler').filter(x => x.id !== id));
+    DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.accountId !== id; }));
+    renderKisiler();
+    notify('Kişi silindi');
+  });
 }
 
 // ========== DAVA DASHBOARDU ==========
@@ -8705,10 +8750,11 @@ function saveContact() {
 
 function deleteContactItem(contactId, accountId, accountType) {
   showConfirmModal('Bu contact kaydını silmek istediğinizden emin misiniz?', function() {
-  DB.set('contacts', DB.get('contacts').filter(x => x.id !== contactId));
-  notify('Contact silindi');
-  if (accountType === 'muvekkil') showMuvekkilDetail(accountId);
-  else showKisiDetail(accountId);
+    DB.set('contacts', DB.get('contacts').filter(x => x.id !== contactId));
+    notify('Contact silindi');
+    if (accountType === 'muvekkil') showMuvekkilDetail(accountId);
+    else showKisiDetail(accountId);
+  });
 }
 
 // ========== DATA STORE ==========
@@ -8761,43 +8807,6 @@ window.refreshCurrentPage = function(changedKey) {
   tabEkle("Gösterge Paneli","📊","dashboard");
 
 };
-
-
-// == CONFIRM MODAL ==
-var _cmCb=null;
-function showConfirmModal(msg,onConfirm,opts){
-  opts=opts||{};
-  var m=document.getElementById('confirm-modal');
-  if(!m){if(onConfirm&&window.confirm(msg))onConfirm();return;}
-  document.getElementById('confirm-modal-msg').innerHTML=msg;
-  var ok=document.getElementById('confirm-modal-ok');
-  var icon=document.getElementById('confirm-modal-icon');
-  ok.textContent=opts.okLabel||'Evet, Sil';
-  ok.style.background=opts.okBg||'rgba(192,83,58,0.85)';
-  ok.style.borderColor=opts.okBorder||'rgba(192,83,58,0.4)';
-  if(icon){icon.textContent=opts.icon||'\U0001f5d1';icon.style.background=opts.iconBg||'rgba(192,83,58,0.15)';icon.style.borderColor=opts.iconBorder||'rgba(192,83,58,0.3)';}
-  _cmCb=onConfirm;
-  m.classList.add('cm-open');
-  setTimeout(function(){ok.focus();},40);
-  function outside(e){if(e.target===m)_cmClose();}
-  m._outside=outside;
-  m.addEventListener('click',outside);
-}
-function _cmClose(){
-  var m=document.getElementById('confirm-modal');
-  if(!m)return;
-  m.classList.remove('cm-open');
-  if(m._outside){m.removeEventListener('click',m._outside);m._outside=null;}
-  _cmCb=null;
-}
-document.addEventListener('DOMContentLoaded',function(){
-  var ok=document.getElementById('confirm-modal-ok');
-  var cancel=document.getElementById('confirm-modal-cancel');
-  if(ok)ok.addEventListener('click',function(){var cb=_cmCb;_cmClose();if(cb)cb();});
-  if(cancel)cancel.addEventListener('click',_cmClose);
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('confirm-modal');if(m&&m.classList.contains('cm-open'))_cmClose();}});
-});
-// == END CONFIRM MODAL ==
 
 // Sample data bootstrap
 function initSampleData() {
@@ -9856,44 +9865,45 @@ function _ddpOpenFinansModal(davaId, davaNo, muvekkil) {
 
 function _ddpDeleteFinans(fId) {
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
-  DB.set('finans', DB.get('finans').filter(function(f){return f.id!==fId;}));
-  renderDavaTab(currentDavaId, 'finans');
+    DB.set('finans', DB.get('finans').filter(function(f){return f.id!==fId;}));
+    renderDavaTab(currentDavaId, 'finans');
+    notify('İşlem silindi');
+  });
   notify('İşlem silindi');
 }
 
 // Belge silme — dava detay sayfasından
 function deleteBelge(belgeId, davaId) {
   showConfirmModal('Bu belgeyi silmek istediğinizden emin misiniz?', function() {
-  var belgeler = DB.get('belgeler') || [];
-  var belge = belgeler.find(function(b){ return b.id === belgeId; });
-  // Supabase Storage'dan dosyayı da sil (varsa)
-  if (belge && belge.yol && window._supabaseToken) {
-    fetch(SUPABASE_URL + '/storage/v1/object/chatter-files/' + belge.yol, {
-      method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + window._supabaseToken, 'apikey': SUPABASE_ANON_KEY }
-    }).catch(function(e){ console.warn('Dosya silinemedi:', e); });
-  }
-  DB.set('belgeler', belgeler.filter(function(b){ return b.id !== belgeId; }));
-  // UI güncelle
-  if (currentDavaId) {
-    renderDavaTab(currentDavaId, 'belge');
-    _ddpUpdateBadges(DB.get('davalar').find(function(x){return x.id===currentDavaId;}), currentDavaId);
-  }
-  notify('Belge silindi');
+    var belgeler = DB.get('belgeler') || [];
+    var belge = belgeler.find(function(b){ return b.id === belgeId; });
+    if (belge && belge.yol && window._supabaseToken) {
+      fetch(SUPABASE_URL + '/storage/v1/object/chatter-files/' + belge.yol, {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + window._supabaseToken, 'apikey': SUPABASE_ANON_KEY }
+      }).catch(function(e){ console.warn('Dosya silinemedi:', e); });
+    }
+    DB.set('belgeler', belgeler.filter(function(b){ return b.id !== belgeId; }));
+    if (currentDavaId) {
+      renderDavaTab(currentDavaId, 'belge');
+      _ddpUpdateBadges(DB.get('davalar').find(function(x){return x.id===currentDavaId;}), currentDavaId);
+    }
+    notify('Belge silindi');
+  });
 }
 
 // Görev silme — dava detay sayfasından
 function _ddpDeleteTask(taskId, davaId) {
   showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
-  DB.set('tasks', DB.get('tasks').filter(function(t){ return t.id !== taskId; }));
-  // Hem ana görev listesini hem dava detay sayfasını güncelle
-  if (currentDavaId) {
-    renderDavaTab(currentDavaId, 'gorev');
-    _ddpUpdateBadges(DB.get('davalar').find(function(x){return x.id===currentDavaId;}), currentDavaId);
-  }
-  if (typeof renderTasks === 'function') renderTasks();
-  if (typeof isCalendarVisible === 'function' && isCalendarVisible()) renderCalendar();
-  notify('Görev silindi');
+    DB.set('tasks', DB.get('tasks').filter(function(t){ return t.id !== taskId; }));
+    if (currentDavaId) {
+      renderDavaTab(currentDavaId, 'gorev');
+      _ddpUpdateBadges(DB.get('davalar').find(function(x){return x.id===currentDavaId;}), currentDavaId);
+    }
+    if (typeof renderTasks === 'function') renderTasks();
+    if (typeof isCalendarVisible === 'function' && isCalendarVisible()) renderCalendar();
+    notify('Görev silindi');
+  });
 }
 
 // F5: Export finans to CSV
@@ -10400,11 +10410,12 @@ function dnkKaydetInline(davaId, key) {
 
 function dnkSilInline(davaId, key) {
   showConfirmModal('Bu notu silmek istediğinizden emin misiniz?', function() {
-  let arr = DB.get('davalar');
-  arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
-  DB.set('davalar', arr);
-  document.getElementById('dnk-quick-modal')?.remove();
-  renderDavaDetailPage(davaId);
+    let arr = DB.get('davalar');
+    arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
+    DB.set('davalar', arr);
+    document.getElementById('dnk-quick-modal')?.remove();
+    renderDavaDetailPage(davaId);
+  });
 }
 
 const DAVA_NOT_LABELS = {
@@ -10479,12 +10490,13 @@ function clearDavaNotKart(davaId) {
   const key = panel?.dataset?.activeKey;
   if (!key) return;
   showConfirmModal('Bu notu silmek istediğinizden emin misiniz?', function() {
-  let arr = DB.get('davalar');
-  arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
-  DB.set('davalar', arr);
-  panel.style.display = 'none';
-  _activeNotKart[davaId] = null;
-  renderDavaDetailPage(davaId);
+    let arr = DB.get('davalar');
+    arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
+    DB.set('davalar', arr);
+    panel.style.display = 'none';
+    _activeNotKart[davaId] = null;
+    renderDavaDetailPage(davaId);
+  });
 }
 
 // ========== INLINE EDIT (sol panel) ==========
@@ -10956,6 +10968,7 @@ async function deletePost(postId, davaId) {
   arr = arr.filter(p => p.id !== postId && p.parentId !== postId);
   DB.set(key, arr);
   renderChatter(davaId);
+  });
 }
 
 function escHtml(str) {
@@ -11226,21 +11239,13 @@ function davaOdemePlaniOlustur(dava) {
 
 function deleteDava(id) {
   showConfirmModal('Bu dava dosyasını silmek istediğinizden emin misiniz?', function() {
-  DB.set('davalar', DB.get('davalar').filter(x=>x.id!==id));
-  var ddp = document.getElementById('dava-detail-page');
-  if (ddp && ddp.classList.contains('open')) {
-    ddp.classList.remove('open');
-    var ctx = document.getElementById('ddp-topbar-context');
-    if (ctx) ctx.style.display = 'none';
-    var addBtn = document.getElementById('topbar-add-btn');
-    if (addBtn) addBtn.textContent = '+ Yeni Ekle';
-    var ptEl = document.getElementById('page-title');
-    if (ptEl) ptEl.style.display = '';
-    currentDavaId = null;
-  }
-  showPage('davalar');
-  renderDavalar();
-  notify('Dava silindi');
+    DB.set('davalar', DB.get('davalar').filter(x=>x.id!==id));
+    var ddp = document.getElementById('dava-detail-page');
+    if (ddp && ddp.classList.contains('open')) { ddp.classList.remove('open'); currentDavaId = null; }
+    showPage('davalar');
+    renderDavalar();
+    notify('Dava silindi');
+  });
 }
 
 // ========== İCRALAR ==========
@@ -11362,10 +11367,10 @@ function _idpHesaplaFaiz(alacak, faizOrani, baslangicTarihi) {
 // İcra belge silme
 function deleteIcraBelge(belgeId, icraId) {
   showConfirmModal('Bu belgeyi silmek istediğinizden emin misiniz?', function() {
-  var belgeler = DB.get('icra_belgeler') || [];
-  DB.set('icra_belgeler', belgeler.filter(function(b){return b.id!==belgeId;}));
-  renderIcraTab(icraId, 'belge');
-  notify('Belge silindi');
+    var belgeler = DB.get('icra_belgeler') || [];
+    DB.set('icra_belgeler', belgeler.filter(function(b){return b.id!==belgeId;}));
+    renderIcraTab(icraId, 'belge');
+    notify('Belge silindi');
   });
 }
 
@@ -11394,9 +11399,10 @@ function saveIcraBelge(icraId) {
 // İcra görev silme
 function _idpDeleteTask(taskId, icraId) {
   showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
-  DB.set('tasks', DB.get('tasks').filter(function(t){return t.id!==taskId;}));
-  renderIcraTab(icraId, 'gorev');
-  notify('Görev silindi');
+    DB.set('tasks', DB.get('tasks').filter(function(t){return t.id!==taskId;}));
+    renderIcraTab(icraId, 'gorev');
+    notify('Görev silindi');
+  });
 }
 
 // İcra hızlı görev ekleme
@@ -11442,9 +11448,10 @@ function _idpAddMasraf(icraId) {
 
 function _idpDeleteMasraf(masrafId, icraId) {
   showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
-  DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
-  renderIcraTab(icraId, 'finans');
-  notify('Masraf silindi');
+    DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
+    renderIcraTab(icraId, 'finans');
+    notify('Masraf silindi');
+  });
 }
 
 function showIcraDetail(id) {
@@ -12119,8 +12126,8 @@ function sendIcraPost(icraId) {
 
 function deleteIcraPost(postId, icraId) {
   showConfirmModal('Bu mesajı silmek istediğinizden emin misiniz?', function() {
-  DB.set('icra_chatter_' + icraId, (DB.get('icra_chatter_' + icraId)||[]).filter(p=>p.id!==postId&&p.parentId!==postId));
-  renderIcraChatter(icraId);
+    DB.set('icra_chatter_' + icraId, (DB.get('icra_chatter_' + icraId)||[]).filter(p=>p.id!==postId&&p.parentId!==postId));
+    renderIcraChatter(icraId);
   });
 }
 
@@ -12219,16 +12226,13 @@ function _saveIcraInner() {
 
 function deleteIcra(id) {
   showConfirmModal('Bu icra dosyasını silmek istediğinizden emin misiniz?', function() {
-  DB.set('icralar', DB.get('icralar').filter(x=>x.id!==id));
-  var idp = document.getElementById('icra-detail-page');
-  if (idp && idp.classList.contains('open')) {
-    idp.classList.remove('open');
-    currentIcraId = null;
-    idpReplyToId = null;
-  }
-  showPage('icralar');
-  renderIcralar();
-  notify('İcra silindi');
+    DB.set('icralar', DB.get('icralar').filter(x=>x.id!==id));
+    var idp = document.getElementById('icra-detail-page');
+    if (idp && idp.classList.contains('open')) { idp.classList.remove('open'); currentIcraId = null; }
+    showPage('icralar');
+    renderIcralar();
+    notify('İcra silindi');
+  });
 }
 
 // ========== MÜVEKKİLLER ==========
@@ -12354,7 +12358,7 @@ function showMuvekkilDetail(id) {
     <button class="btn btn-outline" style="padding:6px 14px;font-size:13px" onclick="showSubpage('muvekkil-list');renderMuvekkiller()">← Geri</button>
     <div style="flex:1;font-family:'Playfair Display',serif;font-size:16px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(mv.ad)}</div>
     <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="editMuvekkil('${id}')">✏ Düzenle</button>
-    <button class="btn btn-danger" style="font-size:12px;padding:5px 10px" onclick="showConfirmModal('Bu m\u00fcvekkili silmek istedi\u011finizden emin misiniz?', function(){ deleteMuvekkil('${id}'); })">🗑 Sil</button>
+    <button class="btn btn-danger" style="font-size:12px;padding:5px 10px" onclick="showConfirmModal('Bu müvekkili silmek istediğinizden emin misiniz?', function(){ deleteMuvekkil('${id}'); })">🗑 Sil</button>
   </div>
 
   <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start">
@@ -12760,13 +12764,13 @@ function _saveMuvekkilInner() {
 
 function deleteMuvekkil(id) {
   showConfirmModal('Bu müvekkili silmek istediğinizden emin misiniz?', function() {
-  DB.set('muvekkiller', DB.get('muvekkiller').filter(x=>x.id!==id));
-  // Contact'ları da temizle
-  DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.muvekkilId !== id && c.accountId !== id; }));
-  showPage('kisiler');
-  switchKisilerTab('muvekkiller');
-  renderMuvekkiller();
-  notify('Müvekkil silindi');
+    DB.set('muvekkiller', DB.get('muvekkiller').filter(x=>x.id!==id));
+    DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.muvekkilId !== id && c.accountId !== id; }));
+    showPage('kisiler');
+    switchKisilerTab('muvekkiller');
+    renderMuvekkiller();
+    notify('Müvekkil silindi');
+  });
 }
 
 // ========== FİNANS ==========
@@ -13077,8 +13081,9 @@ function taksitiOde(planId, taksitIdx) {
 
 function deletePlan(id) {
   showConfirmModal('Bu ödeme planını silmek istediğinizden emin misiniz?', function() {
-  DB.set('odeme_planlari', (DB.get('odeme_planlari')||[]).filter(function(p){return p.id!==id;}));
-  renderOdemePlanlari();
+    DB.set('odeme_planlari', (DB.get('odeme_planlari')||[]).filter(function(p){return p.id!==id;}));
+    renderOdemePlanlari();
+  });
 }
 
 
@@ -13532,14 +13537,15 @@ function editFinans(id) {
 
 function deleteFinans(id) {
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
-  var arr = DB.get('finans').filter(function(x){ return x.id !== id; });
-  DB.set('finans', arr);
-  renderFinans();
-  renderKarsiVekalet();
-  renderOdemePlanlari();
-  renderAvansKasa();
-  renderOfisGider();
-  notify('İşlem silindi');
+    var arr = DB.get('finans').filter(function(x){ return x.id !== id; });
+    DB.set('finans', arr);
+    renderFinans();
+    renderKarsiVekalet();
+    renderOdemePlanlari();
+    renderAvansKasa();
+    renderOfisGider();
+    notify('İşlem silindi');
+  });
   // Müvekkil detay sayfası açıksa yenile
   const mvD = document.getElementById('muvekkil-detail');
   if (mvD && mvD.classList.contains('active') && delMv) {
@@ -13997,10 +14003,11 @@ function showGcalPrompt(task) {
 
 function deleteTask(id) {
   showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
-  DB.set('tasks', DB.get('tasks').filter(x=>x.id!==id));
-  renderTasks();
-  if (isCalendarVisible()) renderCalendar();
-  notify('Görev silindi');
+    DB.set('tasks', DB.get('tasks').filter(x=>x.id!==id));
+    renderTasks();
+    if (isCalendarVisible()) renderCalendar();
+    notify('Görev silindi');
+  });
 }
 
 function scheduleReminder(task) {
@@ -14092,10 +14099,11 @@ function _saveNoteInner() {
 
 function deleteNote(id) {
   showConfirmModal('Bu notu silmek istediğinizden emin misiniz?', function() {
-  DB.set('notlar', DB.get('notlar').filter(x=>x.id!==id));
-  showSubpage('note-list');
-  renderNotes();
-  notify('Not silindi');
+    DB.set('notlar', DB.get('notlar').filter(x=>x.id!==id));
+    showSubpage('note-list');
+    renderNotes();
+    notify('Not silindi');
+  });
 }
 
 // ========== CARİ HESAP ==========
@@ -14226,9 +14234,10 @@ function saveCari() {
 
 function deleteCari(id) {
   showConfirmModal('Bu cari kaydını silmek istediğinizden emin misiniz?', function() {
-  DB.set('cari', (DB.get('cari') || []).filter(x => x.id !== id));
-  renderCari();
-  notify('Cari kayıt silindi');
+    DB.set('cari', (DB.get('cari') || []).filter(x => x.id !== id));
+    renderCari();
+    notify('Cari kayıt silindi');
+  });
 }
 
 function cariAra(q) {
@@ -16261,6 +16270,7 @@ async function deleteIdpPost(postId) {
   posts = posts.filter(function(p){ return p.id !== postId && p.parentId !== postId; });
   DB.set(key, posts);
   renderIdpChatter(currentIcraId);
+  });
 }
 
 // ── SIDEBAR COLLAPSE ────────────────────────────────────
@@ -16888,7 +16898,7 @@ setInterval(_loginQuoteRotate, 6000);
       </div>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end">
-      <button id="confirm-modal-cancel" style="background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--text2);font-size:13px;font-weight:500;padding:10px 22px;cursor:pointer;font-family:inherit">Iptal</button>
+      <button id="confirm-modal-cancel" style="background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--text2);font-size:13px;font-weight:500;padding:10px 22px;cursor:pointer;font-family:inherit">İptal</button>
       <button id="confirm-modal-ok" style="background:rgba(192,83,58,0.85);border:1px solid rgba(192,83,58,0.4);border-radius:9px;color:#fff;font-size:13px;font-weight:700;padding:10px 24px;cursor:pointer;font-family:inherit">Evet, Sil</button>
     </div>
   </div>
@@ -16897,7 +16907,7 @@ setInterval(_loginQuoteRotate, 6000);
 @keyframes confirmPop{from{opacity:0;transform:scale(.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 #confirm-modal.cm-open{display:flex!important}
 #confirm-modal-cancel:hover{background:rgba(255,255,255,.06)!important}
-#confirm-modal-ok:hover{opacity:1;background:rgba(192,83,58,1)!important}
+#confirm-modal-ok:hover{background:rgba(192,83,58,1)!important}
 </style>
 </body>
 </html>
