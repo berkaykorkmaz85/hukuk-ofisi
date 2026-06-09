@@ -9864,12 +9864,33 @@ function _ddpOpenFinansModal(davaId, davaNo, muvekkil) {
 }
 
 function _ddpDeleteFinans(fId) {
+  // Silinecek kaydı önceden sakla (müvekkil/icra yenilemesi için)
+  var silinenF = (DB.get('finans')||[]).find(function(f){ return f.id === fId; });
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
-    DB.set('finans', DB.get('finans').filter(function(f){return f.id!==fId;}));
-    renderDavaTab(currentDavaId, 'finans');
+    DB.set('finans', DB.get('finans').filter(function(f){ return f.id !== fId; }));
+    // Dava detay sayfasını yenile
+    if (currentDavaId) renderDavaTab(currentDavaId, 'finans');
+    // Finans ana listesi açıksa yenile
+    if (typeof renderFinans === 'function') renderFinans();
+    if (typeof renderKarsiVekalet === 'function') renderKarsiVekalet();
+    if (typeof renderOdemePlanlari === 'function') renderOdemePlanlari();
+    if (typeof renderAvansKasa === 'function') renderAvansKasa();
+    if (typeof renderOfisGider === 'function') renderOfisGider();
+    // Dashboard yenile
+    if (typeof renderDashboard === 'function' && document.getElementById('page-dashboard') &&
+        document.getElementById('page-dashboard').style.display !== 'none') {
+      renderDashboard();
+    }
+    // Müvekkil detay açıksa yenile
+    if (silinenF && silinenF.muvekkil) {
+      var mvDetail = document.getElementById('muvekkil-detail');
+      if (mvDetail && mvDetail.classList.contains('active')) {
+        var mv = (DB.get('muvekkiller')||[]).find(function(m){ return m.ad === silinenF.muvekkil; });
+        if (mv) showMuvekkilDetail(mv.id);
+      }
+    }
     notify('İşlem silindi');
   });
-  notify('İşlem silindi');
 }
 
 // Belge silme — dava detay sayfasından
@@ -13536,22 +13557,48 @@ function editFinans(id) {
 }
 
 function deleteFinans(id) {
+  // Silinecek kaydı önceden sakla
+  var silinenF = (DB.get('finans')||[]).find(function(x){ return x.id === id; });
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
-    var arr = DB.get('finans').filter(function(x){ return x.id !== id; });
-    DB.set('finans', arr);
+    DB.set('finans', DB.get('finans').filter(function(x){ return x.id !== id; }));
+    // Ana finans listesini yenile
     renderFinans();
     renderKarsiVekalet();
     renderOdemePlanlari();
     renderAvansKasa();
     renderOfisGider();
+    // Dava detay sayfası açıksa finans sekmesini yenile
+    var ddp = document.getElementById('dava-detail-page');
+    if (currentDavaId && ddp && ddp.classList.contains('open')) {
+      renderDavaTab(currentDavaId, 'finans');
+    } else if (silinenF && silinenF.davaId) {
+      // Dava detay açık değil ama kayda bağlı dava varsa dava listesini yenile
+      if (typeof renderDavalar === 'function') renderDavalar();
+    }
+    // İcra detay sayfası açıksa yenile
+    var idp = document.getElementById('icra-detail-page');
+    if (currentIcraId && idp && idp.classList.contains('open')) {
+      if (silinenF && silinenF.icraId === currentIcraId) {
+        renderIcraTab(currentIcraId, 'finans');
+      }
+    } else if (silinenF && silinenF.icraId) {
+      if (typeof renderIcralar === 'function') renderIcralar();
+    }
+    // Müvekkil detay sayfası açıksa yenile
+    if (silinenF && silinenF.muvekkil) {
+      var mvDetail = document.getElementById('muvekkil-detail');
+      if (mvDetail && mvDetail.classList.contains('active')) {
+        var mv = (DB.get('muvekkiller')||[]).find(function(m){ return m.ad === silinenF.muvekkil; });
+        if (mv) showMuvekkilDetail(mv.id);
+      }
+    }
+    // Dashboard açıksa yenile
+    var dashPage = document.getElementById('page-dashboard');
+    if (dashPage && getComputedStyle(dashPage).display !== 'none') {
+      renderDashboard();
+    }
     notify('İşlem silindi');
   });
-  // Müvekkil detay sayfası açıksa yenile
-  const mvD = document.getElementById('muvekkil-detail');
-  if (mvD && mvD.classList.contains('active') && delMv) {
-    const mv = DB.get('muvekkiller').find(m => m.ad === delMv);
-    if (mv) showMuvekkilDetail(mv.id);
-  }
 }
 
 // ========== GÖREVLER ==========
