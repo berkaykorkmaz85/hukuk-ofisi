@@ -4927,6 +4927,7 @@ function showConfirmModal(msg, onConfirm, opts) {
   if (!m) { if (onConfirm && window.confirm(msg)) onConfirm(); return; }
   document.getElementById('confirm-modal-msg').innerHTML = msg;
   var ok = document.getElementById('confirm-modal-ok');
+  var cancel = document.getElementById('confirm-modal-cancel');
   var icon = document.getElementById('confirm-modal-icon');
   ok.textContent = opts.okLabel || 'Evet, Sil';
   ok.style.background = opts.okBg || 'rgba(192,83,58,0.85)';
@@ -4936,10 +4937,14 @@ function showConfirmModal(msg, onConfirm, opts) {
     icon.style.background = opts.iconBg || 'rgba(192,83,58,0.15)';
     icon.style.borderColor = opts.iconBorder || 'rgba(192,83,58,0.3)';
   }
+  // Her açılışta onclick doğrudan ata (addEventListener birikimini önler)
+  ok.onclick = function() { var cb = _cmCb; _cmClose(); if (cb) cb(); };
+  cancel.onclick = _cmClose;
   _cmCb = onConfirm;
   m.classList.add('cm-open');
   setTimeout(function() { ok.focus(); }, 40);
   function outside(e) { if (e.target === m) _cmClose(); }
+  if (m._outside) m.removeEventListener('click', m._outside);
   m._outside = outside;
   m.addEventListener('click', outside);
 }
@@ -4950,18 +4955,28 @@ function _cmClose() {
   if (m._outside) { m.removeEventListener('click', m._outside); m._outside = null; }
   _cmCb = null;
 }
-document.addEventListener('DOMContentLoaded', function() {
-  var ok = document.getElementById('confirm-modal-ok');
-  var cancel = document.getElementById('confirm-modal-cancel');
-  if (ok) ok.addEventListener('click', function() { var cb = _cmCb; _cmClose(); if (cb) cb(); });
-  if (cancel) cancel.addEventListener('click', _cmClose);
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      var m = document.getElementById('confirm-modal');
-      if (m && m.classList.contains('cm-open')) _cmClose();
-    }
-  });
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var m = document.getElementById('confirm-modal');
+    if (m && m.classList.contains('cm-open')) _cmClose();
+  }
 });
+// DOMContentLoaded fallback — script body sonunda çalışırsa butonları bağla
+(function() {
+  function _bindCmBtns() {
+    var ok = document.getElementById('confirm-modal-ok');
+    var cancel = document.getElementById('confirm-modal-cancel');
+    if (ok && !ok._cmBound) {
+      ok._cmBound = true;
+      // onclick showConfirmModal'de her seferinde set edildiği için burada sadece fallback
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _bindCmBtns);
+  } else {
+    _bindCmBtns();
+  }
+})();
 // ============================================================
 
 // Tarih elle giriş yardımcıları
