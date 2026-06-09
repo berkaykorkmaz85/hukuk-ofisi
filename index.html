@@ -6185,14 +6185,14 @@ function _saveKullaniciInner() {
 }
 
 function deleteKullanici(id) {
-  if (!confirm('Bu kullanıcıyı silmek istiyor musunuz?')) return;
-  DB.set('kullanicilar', DB.get('kullanicilar').filter(u => u.id !== id));
+  showConfirmModal('Bu kullanıcıyı silmek istediğinizden emin misiniz?', function() {
+    DB.set('kullanicilar', DB.get('kullanicilar').filter(u => u.id !== id));
   renderKullanicilar();
   notify('Kullanıcı silindi');
 }
 
 function doLogout() {
-  if (confirm('Çıkış yapmak istediğinize emin misiniz?')) AUTH.logout();
+  showConfirmModal('Çıkış yapmak istediğinizden emin misiniz?', function(){ AUTH.logout(); }, {okLabel:'Evet, Çık', okBg:'rgba(58,107,140,0.85)', okBorder:'rgba(58,107,140,0.4)', icon:'🚪', iconBg:'rgba(58,107,140,0.15)', iconBorder:'rgba(58,107,140,0.3)'});
 }
 
 
@@ -6368,7 +6368,7 @@ function importData(input) {
 }
 
 function resetAllData() {
-  if (!confirm('DİKKAT: Tüm veriler silinecek. Bu işlem geri alınamaz!\n\nDevam etmek istiyor musunuz?')) return;
+  showConfirmModal('⚠️ Tüm veriler kalıcı olarak silinecek! Bu işlem geri alınamaz.', function() {
   const pw = prompt('Onaylamak için şifrenizi girin:');
   if (pw === null) return;
   if (!AUTH.check(pw)) { alert('Hatalı şifre. İşlem iptal edildi.'); return; }
@@ -7414,7 +7414,7 @@ function editKisi(id) {
 }
 
 function deleteKisi(id) {
-  if (!confirm('Bu kişiyi silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu kişiyi silmek istediğinizden emin misiniz?', function() {
   DB.set('kisiler', DB.get('kisiler').filter(x => x.id !== id));
   DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.accountId !== id; }));
   // Detay görünümü açıksa listeye dön
@@ -8704,7 +8704,7 @@ function saveContact() {
 }
 
 function deleteContactItem(contactId, accountId, accountType) {
-  if (!confirm('Bu contact\'ı silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu contact kaydını silmek istediğinizden emin misiniz?', function() {
   DB.set('contacts', DB.get('contacts').filter(x => x.id !== contactId));
   notify('Contact silindi');
   if (accountType === 'muvekkil') showMuvekkilDetail(accountId);
@@ -8761,6 +8761,43 @@ window.refreshCurrentPage = function(changedKey) {
   tabEkle("Gösterge Paneli","📊","dashboard");
 
 };
+
+
+// == CONFIRM MODAL ==
+var _cmCb=null;
+function showConfirmModal(msg,onConfirm,opts){
+  opts=opts||{};
+  var m=document.getElementById('confirm-modal');
+  if(!m){if(onConfirm&&window.confirm(msg))onConfirm();return;}
+  document.getElementById('confirm-modal-msg').innerHTML=msg;
+  var ok=document.getElementById('confirm-modal-ok');
+  var icon=document.getElementById('confirm-modal-icon');
+  ok.textContent=opts.okLabel||'Evet, Sil';
+  ok.style.background=opts.okBg||'rgba(192,83,58,0.85)';
+  ok.style.borderColor=opts.okBorder||'rgba(192,83,58,0.4)';
+  if(icon){icon.textContent=opts.icon||'\U0001f5d1';icon.style.background=opts.iconBg||'rgba(192,83,58,0.15)';icon.style.borderColor=opts.iconBorder||'rgba(192,83,58,0.3)';}
+  _cmCb=onConfirm;
+  m.classList.add('cm-open');
+  setTimeout(function(){ok.focus();},40);
+  function outside(e){if(e.target===m)_cmClose();}
+  m._outside=outside;
+  m.addEventListener('click',outside);
+}
+function _cmClose(){
+  var m=document.getElementById('confirm-modal');
+  if(!m)return;
+  m.classList.remove('cm-open');
+  if(m._outside){m.removeEventListener('click',m._outside);m._outside=null;}
+  _cmCb=null;
+}
+document.addEventListener('DOMContentLoaded',function(){
+  var ok=document.getElementById('confirm-modal-ok');
+  var cancel=document.getElementById('confirm-modal-cancel');
+  if(ok)ok.addEventListener('click',function(){var cb=_cmCb;_cmClose();if(cb)cb();});
+  if(cancel)cancel.addEventListener('click',_cmClose);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('confirm-modal');if(m&&m.classList.contains('cm-open'))_cmClose();}});
+});
+// == END CONFIRM MODAL ==
 
 // Sample data bootstrap
 function initSampleData() {
@@ -9644,7 +9681,7 @@ function renderDavaDetailPage(id) {
 
   document.getElementById('ddp-edit-btn').onclick = () => { closeDavaDetailPage(); editDava(id); };
   document.getElementById('ddp-delete-btn').onclick = () => {
-    if (confirm('Bu dosyayı silmek istiyor musunuz?')) { closeDavaDetailPage(); deleteDava(id); }
+    showConfirmModal('Bu dava dosyasını silmek istediğinizden emin misiniz?', function(){ closeDavaDetailPage(); deleteDava(id); });
   };
 
   // T2: Badges
@@ -9818,7 +9855,7 @@ function _ddpOpenFinansModal(davaId, davaNo, muvekkil) {
 }
 
 function _ddpDeleteFinans(fId) {
-  if(!confirm('Bu işlemi silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
   DB.set('finans', DB.get('finans').filter(function(f){return f.id!==fId;}));
   renderDavaTab(currentDavaId, 'finans');
   notify('İşlem silindi');
@@ -9826,7 +9863,7 @@ function _ddpDeleteFinans(fId) {
 
 // Belge silme — dava detay sayfasından
 function deleteBelge(belgeId, davaId) {
-  if (!confirm('Bu belgeyi silmek istediğinizden emin misiniz?')) return;
+  showConfirmModal('Bu belgeyi silmek istediğinizden emin misiniz?', function() {
   var belgeler = DB.get('belgeler') || [];
   var belge = belgeler.find(function(b){ return b.id === belgeId; });
   // Supabase Storage'dan dosyayı da sil (varsa)
@@ -9847,7 +9884,7 @@ function deleteBelge(belgeId, davaId) {
 
 // Görev silme — dava detay sayfasından
 function _ddpDeleteTask(taskId, davaId) {
-  if (!confirm('Bu görevi silmek istediğinizden emin misiniz?')) return;
+  showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
   DB.set('tasks', DB.get('tasks').filter(function(t){ return t.id !== taskId; }));
   // Hem ana görev listesini hem dava detay sayfasını güncelle
   if (currentDavaId) {
@@ -10362,7 +10399,7 @@ function dnkKaydetInline(davaId, key) {
 }
 
 function dnkSilInline(davaId, key) {
-  if (!confirm('Bu notu silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu notu silmek istediğinizden emin misiniz?', function() {
   let arr = DB.get('davalar');
   arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
   DB.set('davalar', arr);
@@ -10440,7 +10477,8 @@ function saveDavaNotKart(davaId, key) {
 function clearDavaNotKart(davaId) {
   const panel = document.getElementById('dava-not-panel-' + davaId);
   const key = panel?.dataset?.activeKey;
-  if (!key || !confirm('Bu notu silmek istiyor musunuz?')) return;
+  if (!key) return;
+  showConfirmModal('Bu notu silmek istediğinizden emin misiniz?', function() {
   let arr = DB.get('davalar');
   arr = arr.map(d => d.id === davaId ? {...d, [key]: ''} : d);
   DB.set('davalar', arr);
@@ -10903,7 +10941,7 @@ async function chatterSupabaseSil(yol) {
 }
 
 async function deletePost(postId, davaId) {
-  if (!confirm('Bu notu silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu mesajı silmek istediğinizden emin misiniz?', async function() {
   const key = 'chatter_' + davaId;
   let arr = DB.get(key) || [];
   // Silinecek postların eklerini Supabase'den de sil
@@ -11187,7 +11225,7 @@ function davaOdemePlaniOlustur(dava) {
 }
 
 function deleteDava(id) {
-  if (!confirm('Bu dava dosyasını silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu dava dosyasını silmek istediğinizden emin misiniz?', function() {
   DB.set('davalar', DB.get('davalar').filter(x=>x.id!==id));
   var ddp = document.getElementById('dava-detail-page');
   if (ddp && ddp.classList.contains('open')) {
@@ -11323,11 +11361,12 @@ function _idpHesaplaFaiz(alacak, faizOrani, baslangicTarihi) {
 
 // İcra belge silme
 function deleteIcraBelge(belgeId, icraId) {
-  if(!confirm('Bu belgeyi silmek istediğinizden emin misiniz?')) return;
+  showConfirmModal('Bu belgeyi silmek istediğinizden emin misiniz?', function() {
   var belgeler = DB.get('icra_belgeler') || [];
   DB.set('icra_belgeler', belgeler.filter(function(b){return b.id!==belgeId;}));
   renderIcraTab(icraId, 'belge');
   notify('Belge silindi');
+  });
 }
 
 // İcra belge kaydetme
@@ -11354,7 +11393,7 @@ function saveIcraBelge(icraId) {
 
 // İcra görev silme
 function _idpDeleteTask(taskId, icraId) {
-  if(!confirm('Bu görevi silmek istediğinizden emin misiniz?')) return;
+  showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
   DB.set('tasks', DB.get('tasks').filter(function(t){return t.id!==taskId;}));
   renderIcraTab(icraId, 'gorev');
   notify('Görev silindi');
@@ -11402,7 +11441,7 @@ function _idpAddMasraf(icraId) {
 }
 
 function _idpDeleteMasraf(masrafId, icraId) {
-  if(!confirm('Bu masrafı silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
   DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
   renderIcraTab(icraId, 'finans');
   notify('Masraf silindi');
@@ -11417,7 +11456,7 @@ function showIcraDetail(id) {
   document.getElementById('topbar-add-btn').textContent = '+ Görev Ekle';
   document.getElementById('idp-title').textContent = i.no + (i.borclu ? ' — ' + i.borclu : '');
   document.getElementById('idp-edit-btn').onclick = function(){ editIcra(id); };
-  document.getElementById('idp-delete-btn').onclick = function(){ if(confirm('Silmek istediğinize emin misiniz?')) deleteIcra(id); };
+  document.getElementById('idp-delete-btn').onclick = function(){ showConfirmModal('Bu icra dosyasını silmek istediğinizden emin misiniz?', function(){ deleteIcra(id); }); };
 
   // Reset tabs to active
   var aktifSekme = document.querySelector('#idp-sekme-bar .ddp-sekme.aktif');
@@ -12079,9 +12118,10 @@ function sendIcraPost(icraId) {
 }
 
 function deleteIcraPost(postId, icraId) {
-  if (!confirm('Bu notu silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu mesajı silmek istediğinizden emin misiniz?', function() {
   DB.set('icra_chatter_' + icraId, (DB.get('icra_chatter_' + icraId)||[]).filter(p=>p.id!==postId&&p.parentId!==postId));
   renderIcraChatter(icraId);
+  });
 }
 
 
@@ -12178,7 +12218,7 @@ function _saveIcraInner() {
 }
 
 function deleteIcra(id) {
-  if (!confirm('Bu icra dosyasını silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu icra dosyasını silmek istediğinizden emin misiniz?', function() {
   DB.set('icralar', DB.get('icralar').filter(x=>x.id!==id));
   var idp = document.getElementById('icra-detail-page');
   if (idp && idp.classList.contains('open')) {
@@ -12314,7 +12354,7 @@ function showMuvekkilDetail(id) {
     <button class="btn btn-outline" style="padding:6px 14px;font-size:13px" onclick="showSubpage('muvekkil-list');renderMuvekkiller()">← Geri</button>
     <div style="flex:1;font-family:'Playfair Display',serif;font-size:16px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(mv.ad)}</div>
     <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="editMuvekkil('${id}')">✏ Düzenle</button>
-    <button class="btn btn-danger" style="font-size:12px;padding:5px 10px" onclick="if(confirm('Silmek istiyor musunuz?')){deleteMuvekkil('${id}')}">🗑 Sil</button>
+    <button class="btn btn-danger" style="font-size:12px;padding:5px 10px" onclick="showConfirmModal('Bu m\u00fcvekkili silmek istedi\u011finizden emin misiniz?', function(){ deleteMuvekkil('${id}'); })">🗑 Sil</button>
   </div>
 
   <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start">
@@ -12719,7 +12759,7 @@ function _saveMuvekkilInner() {
 }
 
 function deleteMuvekkil(id) {
-  if (!confirm('Bu müvekkili silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu müvekkili silmek istediğinizden emin misiniz?', function() {
   DB.set('muvekkiller', DB.get('muvekkiller').filter(x=>x.id!==id));
   // Contact'ları da temizle
   DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.muvekkilId !== id && c.accountId !== id; }));
@@ -13036,7 +13076,7 @@ function taksitiOde(planId, taksitIdx) {
 }
 
 function deletePlan(id) {
-  if(!confirm('Bu ödeme planını silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu ödeme planını silmek istediğinizden emin misiniz?', function() {
   DB.set('odeme_planlari', (DB.get('odeme_planlari')||[]).filter(function(p){return p.id!==id;}));
   renderOdemePlanlari();
 }
@@ -13491,7 +13531,7 @@ function editFinans(id) {
 }
 
 function deleteFinans(id) {
-  if (!confirm('Bu finansal işlemi silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
   var arr = DB.get('finans').filter(function(x){ return x.id !== id; });
   DB.set('finans', arr);
   renderFinans();
@@ -13956,7 +13996,7 @@ function showGcalPrompt(task) {
 }
 
 function deleteTask(id) {
-  if (!confirm('Bu görevi silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
   DB.set('tasks', DB.get('tasks').filter(x=>x.id!==id));
   renderTasks();
   if (isCalendarVisible()) renderCalendar();
@@ -14051,7 +14091,7 @@ function _saveNoteInner() {
 }
 
 function deleteNote(id) {
-  if (!confirm('Bu notu silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu notu silmek istediğinizden emin misiniz?', function() {
   DB.set('notlar', DB.get('notlar').filter(x=>x.id!==id));
   showSubpage('note-list');
   renderNotes();
@@ -14185,7 +14225,7 @@ function saveCari() {
 }
 
 function deleteCari(id) {
-  if (!confirm('Bu cari kaydı silmek istiyor musunuz?')) return;
+  showConfirmModal('Bu cari kaydını silmek istediğinizden emin misiniz?', function() {
   DB.set('cari', (DB.get('cari') || []).filter(x => x.id !== id));
   renderCari();
   notify('Cari kayıt silindi');
@@ -16204,7 +16244,8 @@ function cancelIdpReply() {
 }
 
 async function deleteIdpPost(postId) {
-  if (!currentIcraId || !confirm('Bu notu silmek istiyor musunuz?')) return;
+  if (!currentIcraId) return;
+  showConfirmModal('Bu mesajı silmek istediğinizden emin misiniz?', async function() {
   var key = 'icra_chatter_' + currentIcraId;
   var posts = DB.get(key) || [];
   // Supabase'den dosyaları sil
@@ -16835,5 +16876,28 @@ setInterval(_loginQuoteRotate, 6000);
 
 
 <!-- SIDEBAR -->
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div id="confirm-modal-box" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 28px 22px;width:420px;max-width:92vw;box-shadow:0 24px 64px rgba(0,0,0,0.6);animation:confirmPop .18s ease">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:20px">
+      <div id="confirm-modal-icon" style="width:44px;height:44px;border-radius:12px;background:rgba(192,83,58,0.15);border:1px solid rgba(192,83,58,0.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🗑</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:7px">Emin misiniz?</div>
+        <div id="confirm-modal-msg" style="font-size:13px;color:var(--text2);line-height:1.6"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button id="confirm-modal-cancel" style="background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--text2);font-size:13px;font-weight:500;padding:10px 22px;cursor:pointer;font-family:inherit">Iptal</button>
+      <button id="confirm-modal-ok" style="background:rgba(192,83,58,0.85);border:1px solid rgba(192,83,58,0.4);border-radius:9px;color:#fff;font-size:13px;font-weight:700;padding:10px 24px;cursor:pointer;font-family:inherit">Evet, Sil</button>
+    </div>
+  </div>
+</div>
+<style>
+@keyframes confirmPop{from{opacity:0;transform:scale(.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+#confirm-modal.cm-open{display:flex!important}
+#confirm-modal-cancel:hover{background:rgba(255,255,255,.06)!important}
+#confirm-modal-ok:hover{opacity:1;background:rgba(192,83,58,1)!important}
+</style>
 </body>
 </html>
