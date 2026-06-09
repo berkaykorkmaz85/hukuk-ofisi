@@ -9640,6 +9640,10 @@ function openDavaDetailPage(id) {
   document.getElementById('ddp-topbar-file').textContent = d ? (d.ad || d.no) : '';
   document.getElementById('topbar-add-btn').textContent = '+ Görev Ekle';
   document.getElementById('page-title').style.display = 'none';
+  // Sekmeyi her zaman genel'e sıfırla
+  document.querySelectorAll('.ddp-sekme').forEach(function(b){ b.classList.remove('aktif'); });
+  var genelBtn = document.querySelector('.ddp-sekme[data-sekme="genel"]');
+  if (genelBtn) genelBtn.classList.add('aktif');
   renderDavaDetailPage(id);
 }
 
