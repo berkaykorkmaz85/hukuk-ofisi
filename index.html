@@ -16481,6 +16481,10 @@ function gorevDetayAc(id) {
 // GLOBAL CLICK DELEGATION — data-attribute butonlar
 // ═══════════════════════════════════════════════════════════
 document.body.addEventListener('click', function(e) {
+  // ── Confirm modal butonları — global delegation'dan muaf tut ──
+  if (e.target.id === 'confirm-modal-ok' || e.target.id === 'confirm-modal-cancel') return;
+  if (e.target.closest('#confirm-modal-box')) return;
+
   // ── Takvim modal kapat ──────────────────────────────────
   var closeEl = e.target.closest('[data-close-modal]');
   if (closeEl) {
