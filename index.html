@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co blob:; img-src 'self' data: blob: https://*.supabase.co; worker-src blob:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co blob:; img-src 'self' data: blob: https://*.supabase.co; worker-src blob:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hukuk Asistanı — Yönetim Paneli</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2494,6 +2494,7 @@
 </style>
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -4975,6 +4976,7 @@ const _HUKUK_CONFIG = Object.freeze({
 });
 const SUPABASE_URL = _HUKUK_CONFIG.supabaseUrl;
 const SUPABASE_ANON_KEY = _HUKUK_CONFIG.supabaseAnonKey;
+const _supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window._supabaseToken = null;
 window._currentUserId = null;
 
@@ -5085,17 +5087,12 @@ async function doLogin() {
   if (!emailOrUser || !pw) { errEl.textContent = 'E-posta ve şifre gereklidir.'; return; }
   try {
     const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: pw })
-    });
-    const data = await res.json();
-    if (!res.ok) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
+    const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
+    if (error) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
     _loginResetAttempts();
-    window._supabaseToken = data.access_token;
+    window._supabaseToken = data.session.access_token;
     window._currentUserId = data.user.id;
-    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.expires_at }));
+    sessionStorage.setItem('sb_session', JSON.stringify({ access_token: data.session.access_token, user_id: data.user.id, email: data.user.email, expires_at: data.session.expires_at }));
     // Beni hatırla
     if (document.getElementById('remember-me')?.checked) {
       localStorage.setItem('hukuk_remember_user', emailOrUser);
