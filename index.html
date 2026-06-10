@@ -384,7 +384,12 @@
     gap: 14px;
     margin-bottom: 24px;
   }
-  .stat-card {
+  
+/* Dashboard widget hover */
+.db-nav-card { transition: border-color .15s, opacity .15s; }
+.db-nav-card:hover { border-color: var(--gold) !important; opacity: .9; }
+
+.stat-card {
     background: var(--bg3);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -2765,29 +2770,29 @@
 
       <!-- CHARTS ROW 1 -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px" class="chart-row-1">
-        <div class="card">
+        <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('davalar')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">📁 Dava Durumları</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
             <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-dava-durum"></canvas>
+              <canvas id="chart-dava-durum" style="pointer-events:none"></canvas>
             </div>
             <div id="chart-dava-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('icralar')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">⚡ İcra Durumları</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
             <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-icra-durum"></canvas>
+              <canvas id="chart-icra-durum" style="pointer-events:none"></canvas>
             </div>
             <div id="chart-icra-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
         </div>
-        <div class="card">
+        <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('tasks')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">📋 Görev Öncelikleri</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
             <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-task-oncelik"></canvas>
+              <canvas id="chart-task-oncelik" style="pointer-events:none"></canvas>
             </div>
             <div id="chart-task-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
@@ -2796,16 +2801,16 @@
 
       <!-- CHARTS ROW 2 -->
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px" class="chart-row-2">
-        <div class="card">
+        <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('finans')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">💰 Aylık Finansal Özet</div>
           <div style="height:200px;position:relative">
-            <canvas id="chart-finans-aylik" style="min-height:180px"></canvas>
+            <canvas id="chart-finans-aylik" style="min-height:180px;pointer-events:none"></canvas>
           </div>
         </div>
-        <div class="card">
+        <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('kisiler')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">👤 Müvekkil Başına Dava</div>
           <div style="height:200px;position:relative">
-            <canvas id="chart-muvekkil-dava"></canvas>
+            <canvas id="chart-muvekkil-dava" style="pointer-events:none"></canvas>
           </div>
         </div>
       </div>
@@ -2813,21 +2818,21 @@
       <!-- BOTTOM ROW: URGENT TABLE + TIMELINE -->
       <div class="dashboard-grid">
         <div class="card">
-          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
-            <span>📅 Yaklaşan Görevler</span>
+          <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="showPage('tasks')">
+            <span style="cursor:pointer">📅 Yaklaşan Görevler</span>
             <span id="urgent-count" style="font-size:11px;color:var(--text3)"></span>
           </div>
           <div id="upcoming-tasks"></div>
         </div>
         <div class="card">
-          <div class="card-title">⏰ Son Aktiviteler</div>
+          <div class="card-title" style="cursor:default">⏰ Son Aktiviteler</div>
           <div id="recent-activity" class="timeline"></div>
         </div>
       </div>
 
       <!-- DURUŞMA TAKVİMİ -->
       <div class="card" style="margin-top:16px">
-        <div class="card-title">⚖ Bu Hafta Duruşmalar</div>
+        <div class="card-title" style="cursor:pointer" onclick="showPage('durusmatakvim')">⚖ Bu Hafta Duruşmalar</div>
         <div id="upcoming-durusmalar"></div>
       </div>
 
@@ -9530,8 +9535,8 @@ function renderDashboard() {
   const urgentTasks = tasks.filter(t=>!t.done).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih)).slice(0,5);
   document.getElementById('urgent-count').textContent = `${urgentTasks.length} görev bekliyor`;
   document.getElementById('upcoming-tasks').innerHTML = urgentTasks.length ? urgentTasks.map(t=>`
-    <div class="task-item">
-      <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${t.id}', renderDashboard)"></div>
+    <div class="task-item" style="cursor:pointer" onclick="showPage('tasks')" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+      <div class="task-check ${t.done?'done':''}" onclick="event.stopPropagation();toggleTask('${t.id}', renderDashboard)"></div>
       <div class="task-content">
         <div class="task-title">${t.baslik}</div>
         <div class="task-meta">
@@ -9545,13 +9550,13 @@ function renderDashboard() {
 
   // SON AKTİVİTELER
   const all = [
-    ...davalar.slice(-3).map(d=>({text:`📁 Dava: ${d.konu} (${d.no})`, tarih:d.tarih})),
-    ...icralar.slice(-2).map(i=>({text:`⚡ İcra: ${i.borclu} — ₺${fmt(i.alacak)}`, tarih:i.tarih})),
-    ...finans.slice(-2).map(f=>({text:`💰 ${f.tur}: ₺${fmt(f.tutar)} — ${f.aciklama}`, tarih:f.created})),
+    ...davalar.slice(-3).map(d=>({text:`📁 Dava: ${d.konu} (${d.no})`, tarih:d.tarih, page:'davalar'})),
+    ...icralar.slice(-2).map(i=>({text:`⚡ İcra: ${i.borclu} — ₺${fmt(i.alacak)}`, tarih:i.tarih, page:'icralar'})),
+    ...finans.slice(-2).map(f=>({text:`💰 ${f.tur}: ₺${fmt(f.tutar)} — ${f.aciklama}`, tarih:f.created, page:'finans'})),
   ].sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,6);
 
   document.getElementById('recent-activity').innerHTML = all.length ? all.map(a=>`
-    <div class="timeline-item">
+    <div class="timeline-item" style="cursor:pointer" onclick="showPage('${a.page||'dashboard'}')" onmouseover="this.style.opacity='.75'" onmouseout="this.style.opacity='1'">
       <div class="timeline-date">${fmtDate(a.tarih)}</div>
       <div class="timeline-text">${a.text}</div>
     </div>
