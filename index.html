@@ -15332,10 +15332,37 @@ function tabAktiflestir(tabId) {
 
 function tabKapat(tabId, e) {
   if (e) { e.stopPropagation(); e.preventDefault(); }
+  var wasActive = (_activeTabId === tabId);
   _tabs = _tabs.filter(t => t.id !== tabId);
-  if (_activeTabId === tabId) {
-    _activeTabId = _tabs.length ? _tabs[_tabs.length-1].id : null;
-    if (_activeTabId) tabAktiflestir(_activeTabId);
+  if (wasActive) {
+    if (_tabs.length) {
+      // En sondaki sekmeye geç
+      _activeTabId = _tabs[_tabs.length - 1].id;
+      tabAktiflestir(_activeTabId);
+    } else {
+      // Hiç sekme kalmadı → Gösterge Paneli'ne yönlendir
+      _activeTabId = null;
+      // Açık dava/icra detay sayfalarını kapat
+      var ddp = document.getElementById('dava-detail-page');
+      if (ddp && ddp.classList.contains('open')) {
+        ddp.classList.remove('open');
+        var ddpCtx = document.getElementById('ddp-topbar-context');
+        if (ddpCtx) ddpCtx.style.display = 'none';
+        currentDavaId = null;
+      }
+      var idp = document.getElementById('icra-detail-page');
+      if (idp && idp.classList.contains('open')) {
+        idp.classList.remove('open');
+        currentIcraId = null;
+      }
+      showPage('dashboard');
+      // Sidebar'da Gösterge Paneli nav öğesini aktif işaretle
+      document.querySelectorAll('.nav-item').forEach(function(el) {
+        el.classList.remove('active');
+      });
+      var dashNav = document.querySelector('.nav-item[onclick*="dashboard"]');
+      if (dashNav) dashNav.classList.add('active');
+    }
   }
   tabRender();
   _tabSaveSession();
