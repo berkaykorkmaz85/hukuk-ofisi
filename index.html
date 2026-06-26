@@ -5205,8 +5205,8 @@ function checkSession() {
 // "davalar" ve "icralar" artık localStorage'da değil, Supabase'de tutuluyor.
 // DB.get/DB.set bu key'ler için cache'i okur/günceller; gerçek senkronizasyon
 // (Supabase'e yazma) ilgili kaydet/sil fonksiyonlarında ayrıca yapılır.
-window._sbCache = { davalar: [], icralar: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
-const _SB_TABLES = { davalar: 'davalar', icralar: 'icralar' };
+window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
+const _SB_TABLES = { davalar: 'davalar', icralar: 'icralar', muvekkiller: 'muvekkiller', kisiler: 'kisiler', contacts: 'contacts' };
 
 // Bir chatter key'inin ('chatter_xxx' veya 'icra_chatter_xxx') dosya tipini ve id'sini çöz
 function _sbChatterKeyParse(key) {
@@ -5238,6 +5238,37 @@ function _sbIcraToRow(obj) {
     detaylar: rest, user_id: window._currentUserId
   };
 }
+function _sbMuvekkilToRow(obj) {
+  const { id, ad, tur, tc, vergi, tel, email, ...rest } = obj;
+  return {
+    id, ad, tur: tur || 'bireysel', tc, vergi, tel, email,
+    detaylar: rest, user_id: window._currentUserId
+  };
+}
+function _sbKisiToRow(obj) {
+  const { id, ad, rol, dosya, tel, email, ...rest } = obj;
+  return {
+    id, ad, rol, dosya, tel, email,
+    detaylar: rest, user_id: window._currentUserId
+  };
+}
+function _sbContactToRow(obj) {
+  return {
+    id: obj.id, account_id: obj.accountId, account_type: obj.accountType,
+    ad: obj.ad, unvan: obj.unvan, departman: obj.departman,
+    tel: obj.tel, email: obj.email, notlar: obj.notlar,
+    user_id: window._currentUserId
+  };
+}
+function _sbContactRowToObj(row) {
+  return {
+    id: row.id, accountId: row.account_id, accountType: row.account_type,
+    muvekkilId: row.account_type === 'muvekkil' ? row.account_id : null,
+    ad: row.ad, unvan: row.unvan, departman: row.departman,
+    tel: row.tel, email: row.email, notlar: row.notlar,
+    tarih: row.created_at
+  };
+}
 // dosya_chatter satırı ⇄ eski chatter post objesi dönüşümleri
 function _sbChatterRowToPost(row) {
   return {
@@ -5267,17 +5298,32 @@ function _sbPostToChatterRow(post, dosyaTipi, dosyaId) {
 async function _sbYukleDavalarIcralar() {
   if (!window._currentUserId) return;
   try {
-    const [{ data: dData, error: dErr }, { data: iData, error: iErr }] = await Promise.all([
+    const [
+      { data: dData, error: dErr },
+      { data: iData, error: iErr },
+      { data: mvData, error: mvErr },
+      { data: kData, error: kErr },
+      { data: ctData, error: ctErr }
+    ] = await Promise.all([
       _supabaseClient.from('davalar').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('icralar').select('*').order('created_at', { ascending: false })
+      _supabaseClient.from('icralar').select('*').order('created_at', { ascending: false }),
+      _supabaseClient.from('muvekkiller').select('*').order('created_at', { ascending: false }),
+      _supabaseClient.from('kisiler').select('*').order('created_at', { ascending: false }),
+      _supabaseClient.from('contacts').select('*').order('created_at', { ascending: false })
     ]);
     if (dErr) console.error('Davalar yüklenemedi:', dErr);
     if (iErr) console.error('İcralar yüklenemedi:', iErr);
+    if (mvErr) console.error('Müvekkiller yüklenemedi:', mvErr);
+    if (kErr) console.error('Kişiler yüklenemedi:', kErr);
+    if (ctErr) console.error('Contacts yüklenemedi:', ctErr);
     window._sbCache.davalar = (dData || []).map(_sbRowToObj);
     window._sbCache.icralar = (iData || []).map(_sbRowToObj);
+    window._sbCache.muvekkiller = (mvData || []).map(_sbRowToObj);
+    window._sbCache.kisiler = (kData || []).map(_sbRowToObj);
+    window._sbCache.contacts = (ctData || []).map(_sbContactRowToObj);
   } catch (e) {
     console.error('Supabase veri yükleme hatası:', e);
-    try { notify('⚠️ Davalar/İcralar yüklenirken bir hata oluştu. İnternet bağlantınızı kontrol edin.'); } catch(e2) {}
+    try { notify('⚠️ Veriler yüklenirken bir hata oluştu. İnternet bağlantınızı kontrol edin.'); } catch(e2) {}
   }
 }
 
@@ -7703,7 +7749,7 @@ function updateKisilerDatalist() {
   dl.innerHTML = kisiler.map(k => `<option value="${escHtml(k.ad)}">${escHtml(k.ad)} (${escHtml(k.rol)})</option>`).join('');
 }
 
-function saveKisi() {
+async function saveKisi() {
   const ad = document.getElementById('k-ad').value.trim();
   if (!ad) return notify('Ad Soyad zorunludur!');
   const obj = {
@@ -7717,9 +7763,11 @@ function saveKisi() {
     notlar: document.getElementById('k-notlar').value,
     tarih: new Date().toISOString()
   };
+  const { error } = await _supabaseClient.from('kisiler').upsert(_sbKisiToRow(obj));
+  if (error) { console.error('Kişi kaydedilemedi:', error); return notify('❌ Kişi kaydedilemedi: ' + (error.message||'bilinmeyen hata')); }
   let arr = DB.get('kisiler');
   if (editingId) arr = arr.map(x => x.id === editingId ? obj : x);
-  else arr.push(obj);
+  else arr = [obj, ...arr];
   DB.set('kisiler', arr);
   closeModal('modal-kisi');
   renderKisiler();
@@ -7743,7 +7791,9 @@ function editKisi(id) {
 }
 
 function deleteKisi(id) {
-  showConfirmModal('Bu kişiyi silmek istediğinizden emin misiniz?', function() {
+  showConfirmModal('Bu kişiyi silmek istediğinizden emin misiniz?', async function() {
+    const { error } = await _supabaseClient.from('kisiler').delete().eq('id', id);
+    if (error) { console.error('Kişi silinemedi:', error); return notify('❌ Kişi silinemedi: ' + (error.message||'bilinmeyen hata')); }
     DB.set('kisiler', DB.get('kisiler').filter(x => x.id !== id));
     DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.accountId !== id; }));
     renderKisiler();
@@ -8997,7 +9047,7 @@ function editContactItem(contactId, accountId, accountType) {
   openModal('modal-contact');
 }
 
-function saveContact() {
+async function saveContact() {
   const ad = document.getElementById('ct-ad').value.trim();
   if (!ad) return notify('Ad Soyad zorunludur!');
   const obj = {
@@ -9014,9 +9064,11 @@ function saveContact() {
     notlar: document.getElementById('ct-notlar').value,
     tarih: new Date().toISOString()
   };
+  const { error } = await _supabaseClient.from('contacts').upsert(_sbContactToRow(obj));
+  if (error) { console.error('Contact kaydedilemedi:', error); return notify('❌ Contact kaydedilemedi: ' + (error.message||'bilinmeyen hata')); }
   let arr = DB.get('contacts');
   if (editingContactId) arr = arr.map(x => x.id === editingContactId ? obj : x);
-  else arr.push(obj);
+  else arr = [obj, ...arr];
   DB.set('contacts', arr);
   closeModal('modal-contact');
   notify(editingContactId ? 'Contact güncellendi' : 'Contact eklendi ✓');
@@ -9027,7 +9079,9 @@ function saveContact() {
 }
 
 function deleteContactItem(contactId, accountId, accountType) {
-  showConfirmModal('Bu contact kaydını silmek istediğinizden emin misiniz?', function() {
+  showConfirmModal('Bu contact kaydını silmek istediğinizden emin misiniz?', async function() {
+    const { error } = await _supabaseClient.from('contacts').delete().eq('id', contactId);
+    if (error) { console.error('Contact silinemedi:', error); return notify('❌ Contact silinemedi: ' + (error.message||'bilinmeyen hata')); }
     DB.set('contacts', DB.get('contacts').filter(x => x.id !== contactId));
     notify('Contact silindi');
     if (accountType === 'muvekkil') showMuvekkilDetail(accountId);
@@ -13044,7 +13098,7 @@ function editMuvekkil(id) {
 }
 
 function saveMuvekkil() { withSaveLock('saveMuvekkil', _saveMuvekkilInner); }
-function _saveMuvekkilInner() {
+async function _saveMuvekkilInner() {
   const ad = document.getElementById('m-ad').value.trim();
   if (!ad) return notify('Ad/Unvan zorunludur!');
   const tur = document.getElementById('m-tur-kurumsal').checked ? 'kurumsal' : 'bireysel';
@@ -13101,9 +13155,11 @@ function _saveMuvekkilInner() {
     ucretKdv: 'dahil',
     tarih: new Date().toISOString()
   };
+  const { error } = await _supabaseClient.from('muvekkiller').upsert(_sbMuvekkilToRow(obj));
+  if (error) { console.error('Müvekkil kaydedilemedi:', error); return notify('❌ Müvekkil kaydedilemedi: ' + (error.message||'bilinmeyen hata')); }
   let arr = DB.get('muvekkiller');
   if (editingId) arr = arr.map(x=>x.id===editingId?obj:x);
-  else arr.push(obj);
+  else arr = [obj, ...arr];
   DB.set('muvekkiller', arr);
   closeModal('modal-muvekkil');
   renderMuvekkiller();
@@ -13112,7 +13168,9 @@ function _saveMuvekkilInner() {
 }
 
 function deleteMuvekkil(id) {
-  showConfirmModal('Bu müvekkili silmek istediğinizden emin misiniz?', function() {
+  showConfirmModal('Bu müvekkili silmek istediğinizden emin misiniz?', async function() {
+    const { error } = await _supabaseClient.from('muvekkiller').delete().eq('id', id);
+    if (error) { console.error('Müvekkil silinemedi:', error); return notify('❌ Müvekkil silinemedi: ' + (error.message||'bilinmeyen hata')); }
     DB.set('muvekkiller', DB.get('muvekkiller').filter(x=>x.id!==id));
     DB.set('contacts', (DB.get('contacts')||[]).filter(function(c){ return c.muvekkilId !== id && c.accountId !== id; }));
     showPage('kisiler');
