@@ -2704,7 +2704,7 @@
         <label>Şifre</label>
         <input type="password" id="login-pw" placeholder="Şifrenizi girin..." onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <button class="login-btn" onclick="doLogin()">Giriş Yap →</button>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Giriş Yap →</button>
 
       <div style="display:flex;align-items:center;gap:8px;margin-top:14px">
         <input type="checkbox" id="remember-me" style="accent-color:#c9a84c;width:14px;height:14px;cursor:pointer">
@@ -5398,6 +5398,11 @@ async function doLogin() {
   const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-error');
   if (!emailOrUser || !pw) { errEl.textContent = 'E-posta ve şifre gereklidir.'; return; }
+  // Giriş işlemi sürerken (Supabase auth + veri yükleme) butonu devre dışı bırak,
+  // kullanıcı uygulamanın donmadığını, işlemin sürdüğünü görsün.
+  const loginBtn = document.getElementById('login-btn');
+  const loginBtnOrijinalMetin = loginBtn ? loginBtn.textContent : '';
+  if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'Giriş yapılıyor...'; }
   try {
     const email = emailOrUser.includes('@') ? emailOrUser : 'berkaykorkmaz853@gmail.com';
         const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
@@ -5436,10 +5441,16 @@ async function doLogin() {
       const dash = document.getElementById('page-dashboard');
       if (dash) dash.classList.add('active');
       // Davalar + İcralar Supabase'den yüklenmeden dashboard render edilmesin
+      if (loginBtn) loginBtn.textContent = 'Veriler yükleniyor...';
       await _sbYukleDavalarIcralar();
       try { renderDashboard(); } catch(e4) { console.warn('renderDashboard:', e4.message); }
     } catch(e2) { console.warn('dashboard açma hatası:', e2.message); }
   } catch(e) { errEl.textContent = '❌ Bağlantı hatası: ' + e.message; }
+  finally {
+    // Giriş ekranı kapanmış olsa da olmasa da butonu eski haline getir
+    // (sonraki bir giriş denemesinde buton kullanılabilir kalsın)
+    if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = loginBtnOrijinalMetin; }
+  }
 }
 
 // ========== TAKVİM GÜN POPUP ==========
