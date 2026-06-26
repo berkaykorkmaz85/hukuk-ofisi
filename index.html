@@ -5294,12 +5294,12 @@ function _sbFinansRowToObj(row) {
 // kaybolan kayıtlar delete edilir. Bu sayede tüm çağrı yerlerine tek tek
 // dokunmadan otomatik Supabase senkronu sağlanır.
 window._sbDiffSyncing = {};
-async function _sbDiffSync(key, yeniArr) {
+async function _sbDiffSync(key, yeniArr, eskiArrParam) {
   if (!window._currentUserId) return;
   if (window._sbDiffSyncing[key]) {
     // Aynı key için zaten bir senkron sürüyorsa, kısa bir bekleme sonrası tekrar dene
     // (çok hızlı ardışık DB.set çağrılarında senkronların birbirini ezmesini önler)
-    setTimeout(() => _sbDiffSync(key, yeniArr), 150);
+    setTimeout(() => _sbDiffSync(key, yeniArr, eskiArrParam), 150);
     return;
   }
   window._sbDiffSyncing[key] = true;
@@ -5307,7 +5307,10 @@ async function _sbDiffSync(key, yeniArr) {
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     // Eski demo veri veya bozuk kayıtlar (UUID olmayan id) Supabase'e hiç gönderilmez —
     // bunlar sessizce yerel cache'de kalır, hata üretmez.
-    const eskiArrTum = window._sbCache[key] || [];
+    // NOT: eskiArrParam DB.set tarafından, cache güncellenmeden ÖNCE alınıp gönderilir.
+    // window._sbCache[key]'i burada tekrar okumak YANLIŞ olur, çünkü DB.set onu
+    // _sbDiffSync çağrılmadan önce zaten yeni değerle değiştirmiş olur.
+    const eskiArrTum = eskiArrParam || [];
     const yeniArrTum = yeniArr || [];
     const eskiArr = eskiArrTum.filter(x => UUID_RE.test(x.id));
     const yeniArrGecerli = yeniArrTum.filter(x => UUID_RE.test(x.id));
@@ -5450,9 +5453,12 @@ window.DB = {
     if (_SB_DIFF_TABLES[key]) {
       // Cache'i hemen güncelle (senkron okuma davranışı korunur),
       // Supabase senkronunu arka planda (fire-and-forget) başlat.
+      // KRİTİK: eskiArr, cache güncellenmeden ÖNCE _sbDiffSync'e geçirilmeli —
+      // aksi halde "eski" diye okunan değer cache zaten değiştiği için "yeni" ile
+      // aynı olur ve diff hep boş çıkar (hiçbir kayıt senkronize edilmez).
       const eskiArr = window._sbCache[key] || [];
       window._sbCache[key] = val;
-      _sbDiffSync(key, val).catch(e => console.error('[' + key + '] arka plan senkron hatası:', e));
+      _sbDiffSync(key, val, eskiArr).catch(e => console.error('[' + key + '] arka plan senkron hatası:', e));
       return;
     }
     const chatterInfo = _sbChatterKeyParse(key);
