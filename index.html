@@ -6968,7 +6968,7 @@ function renderSbSessionInfo() {
 // bellek içi cache'ten (DB.get) toplanır. Cihaz-yerel icra haciz verileri
 // (localStorage 'icra_haciz_*') de yedeğe dahil edilir.
 // NOT: Dosya günlüğü (chatter) mesajları tembel yüklendiği için yedeğe girmez.
-const _YEDEK_SB_KEYS = ['muvekkiller','davalar','icralar','kisiler','contacts','finans','odeme_planlari','tasks','belgeler','icra_belgeler','icra_masraflar','notlar','cari'];
+const _YEDEK_SB_KEYS = ['muvekkiller','davalar','icralar','kisiler','contacts','finans','odeme_planlari','tasks','belgeler','icra_belgeler','icra_masraflar','notlar','cari','uets_kayitlar'];
 
 function _yedekVerisiTopla() {
   const backup = { version: 2, tarih: new Date().toISOString(), data: {} };
@@ -6990,7 +6990,7 @@ const _YEDEK_TO_ROW = {
   kisiler: _sbKisiToRow, contacts: _sbContactToRow,
   finans: _sbFinansToRow, odeme_planlari: _sbOdemePlaniToRow, tasks: _sbTaskToRow,
   belgeler: _sbBelgeToRow, icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow,
-  notlar: _sbNotToRow, cari: _sbCariToRow
+  notlar: _sbNotToRow, cari: _sbCariToRow, uets_kayitlar: _sbUetsToRow
 };
 async function _yedekGeriYukle(backup) {
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -7130,7 +7130,7 @@ function resetAllData() {
     // Önce bağlı kayıtlar, sonra ana kayıtlar (olası FK kısıtları için sıra önemli).
     // RLS sayesinde yalnız bu kullanıcının satırları silinir.
     // NOT: Storage'daki (chatter-files) dosyalar burada silinmez.
-    const tablolar = ['dosya_chatter','cari','notlar','icra_masraflar','icra_belgeler','belgeler','tasks','odeme_planlari','finans','contacts','kisiler','icralar','davalar','muvekkiller'];
+    const tablolar = ['dosya_chatter','uets_kayitlar','cari','notlar','icra_masraflar','icra_belgeler','belgeler','tasks','odeme_planlari','finans','contacts','kisiler','icralar','davalar','muvekkiller'];
     const hatali = [];
     for (const t of tablolar) {
       const { error } = await _supabaseClient.from(t).delete().neq('id', '00000000-0000-0000-0000-000000000000');
@@ -9597,6 +9597,12 @@ function showPage(page) {
   else if (page === 'tebligat') { renderTebligatGecmis(); }
   else if (page === 'raporlar') { renderRaporlarPage(); }
   else if (page === 'durusmatakvim') { renderDurusmaTakvim(); }
+  else if (page === 'faizHesap') {
+    // initFaizPage hiçbir yerden çağrılmıyordu — kayıtlı özel oranlar geri
+    // yüklenmiyor, geçmiş oran tablosu boş kalıyor, varsayılan bitiş tarihi
+    // hiç dolmuyordu. Sayfa her açılışta kurulum yapsın.
+    initFaizPage();
+  }
   else if (page === 'ptt-takip') {
     setTimeout(function() {
       if (typeof window.pttGecmisRender === 'function') window.pttGecmisRender();
@@ -10361,7 +10367,7 @@ function _adliTatilMi(tarih) {
 
 // Takvim günü ekle (resmi/dini tatiller ve pazar günlerini atlar)
 // type: 'takvim' = ham takvim, 'is' = iş günü (cumartesi dahil, pazar/tatil hariç)
-function _suреEkle(baslangic, gunSayisi, tip, diniTatiller) {
+function _sureEkle(baslangic, gunSayisi, tip, diniTatiller) {
   let tarih = new Date(baslangic);
   tarih.setHours(0, 0, 0, 0);
   if (tip === 'takvim') {
@@ -10392,7 +10398,7 @@ function _adliTatilUzat(tarih, diniTatiller) {
   // 1 Eylül'den 1 hafta sonrası
   const yil = tarih.getFullYear();
   let yeniTarih = new Date(yil, 8, 1); // 1 Eylül
-  yeniTarih = _suреEkle(yeniTarih, 7, 'takvim', diniTatiller);
+  yeniTarih = _sureEkle(yeniTarih, 7, 'takvim', diniTatiller);
   return { tarih: yeniTarih, uzadi: true };
 }
 
@@ -10417,7 +10423,12 @@ function _davaTuruneGoreSureler(davaObj) {
   }
 
   // ── İcra ──
-  if (tur === 'İcra Hukuk' || yargi.includes('Hukuk')) {
+  // DİKKAT: DAVA_TUR_MAP'te Asliye Hukuk, Aile, İş, Ticaret, Tüketici, Kira,
+  // Kadastro, Fikri Mülkiyet dahil TÜM hukuk davalarının yargi alanı aynı
+  // ('Adli Yargı – Hukuk') — "yargi.includes('Hukuk')" kontrolü bu yüzden
+  // her hukuk davasında (örn. bir boşanma davasında) yanlışlıkla icra takibine
+  // itiraz süresi gösteriyordu. Yalnız gerçekten İcra Hukuk türü davalar için.
+  if (tur === 'İcra Hukuk') {
     sureler.push({ id: 'itiraz_icra',  label: 'İcra Takibine İtiraz', gun: 7,  tip: 'takvim', kanun: 'İİK m.62',  adliTatilIstisna: true });
     sureler.push({ id: 'itiraz_odeme', label: 'Ödeme Emrine İtiraz',  gun: 7,  tip: 'takvim', kanun: 'İİK m.74',  adliTatilIstisna: true });
   }
@@ -10515,7 +10526,7 @@ async function _sureHesapla(davaId) {
   let html = '';
   for (const sure of sureler) {
     // Ham hesaplama
-    let bitisTarihi = _suреEkle(baslangic, sure.gun, sure.tip, diniTatiller);
+    let bitisTarihi = _sureEkle(baslangic, sure.gun, sure.tip, diniTatiller);
 
     // Adli tatil kontrolü (istisna değilse)
     let adliTatilUyari = false;
@@ -12349,7 +12360,12 @@ async function _dosyaIliskiliVerileriSil(tip, id, dosyaNo) {
     localStorage.removeItem('icra_haciz_' + id);
   }
   DB.set('tasks', (DB.get('tasks')||[]).filter(t => !(t.ilgili && (t.ilgili === id || (dosyaNo && t.ilgili === dosyaNo)))));
-  if (dosyaNo) DB.set('odeme_planlari', (DB.get('odeme_planlari')||[]).filter(p => p.dosya !== dosyaNo));
+  if (dosyaNo) {
+    DB.set('odeme_planlari', (DB.get('odeme_planlari')||[]).filter(p => p.dosya !== dosyaNo));
+    // UETS kayıtları dosyaNo string eşleşmesiyle bağlanır (davaId alanı hiç
+    // kullanılmıyor — bkz. _uetsKaydet)
+    DB.set('uets_kayitlar', (DB.get('uets_kayitlar')||[]).filter(k => k.dosyaNo !== dosyaNo));
+  }
 }
 
 function deleteDava(id) {
@@ -14985,6 +15001,9 @@ function _saveTaskInner() {
 }
 
 function _saveTaskFinalize(obj, tip) {
+  // closeModal() aşağıda global editingId'i null'lar; bildirim metni
+  // (düzenlendi/eklendi) için orijinal değeri şimdiden sakla
+  const duzenleniyorMuydu = !!editingId;
   let arr = DB.get('tasks');
   if (editingId) {
     const eskiTask = arr.find(x=>x.id===editingId);
@@ -15026,7 +15045,7 @@ function _saveTaskFinalize(obj, tip) {
   if (obj.tarih) {
     showGcalPrompt(obj);
   } else {
-    notify(editingId ? (tip==='durusma'?'Duruşma güncellendi':'Görev güncellendi') : (tip==='durusma'?'Duruşma eklendi ✓':'Görev eklendi ✓'));
+    notify(duzenleniyorMuydu ? (tip==='durusma'?'Duruşma güncellendi':'Görev güncellendi') : (tip==='durusma'?'Duruşma eklendi ✓':'Görev eklendi ✓'));
   }
   editingId = null;
   if (obj.hatirlatma) scheduleReminder(obj);
@@ -16324,13 +16343,15 @@ function mobilChatterKapat(tip) {
 
 
 let notifTimer;
-function notify(msg) {
+// kalici=true → süre 3 katına çıkar (bazı çağrılar — örn. UETS süre uyarısı —
+// bu ikinci parametreyi bekliyordu ama fonksiyon onu hiç okumuyordu)
+function notify(msg, kalici) {
   const el = document.getElementById('notification');
   el.textContent = msg;
   // Mesaj tipine göre renk: ❌/⚠️ → kırmızı/amber (daha uzun görünür), ✅/✓ → yeşil
   const m = String(msg);
   const hata = m.indexOf('❌') >= 0;
-  const uyari = !hata && m.indexOf('⚠') >= 0;
+  const uyari = kalici || (!hata && m.indexOf('⚠') >= 0);
   const basari = !hata && !uyari && (m.indexOf('✅') >= 0 || m.indexOf('✓') >= 0);
   el.style.borderColor = hata ? 'rgba(192,83,58,0.6)' : uyari ? 'rgba(201,168,76,0.6)' : basari ? 'rgba(74,140,92,0.6)' : '';
   el.style.boxShadow = hata ? '0 8px 28px rgba(192,83,58,0.25)' : uyari ? '0 8px 28px rgba(201,168,76,0.2)' : '';
