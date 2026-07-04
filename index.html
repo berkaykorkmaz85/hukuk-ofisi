@@ -15011,6 +15011,49 @@ function _uets5IsGunu(baslangicISO) {
   return tarih.toISOString().slice(0, 10);
 }
 
+// Son başvuru tarihi = okunmuş sayılma + hukuki süre (takvim günü)
+function _uetsSonBasvuruTarihi(okunmaSayilmaTarihi, hukukiSureGun) {
+  if (!okunmaSayilmaTarihi || !hukukiSureGun) return null;
+  const t = new Date(okunmaSayilmaTarihi);
+  t.setDate(t.getDate() + hukukiSureGun);
+  // Son gün pazar veya resmi tatilse ertesi iş gününe kaydır
+  while (t.getDay() === 0 || _RESMI_TATILLER_SABIT.some(r => r.ay === t.getMonth() && r.gun === t.getDate())) {
+    t.setDate(t.getDate() + 1);
+  }
+  return t.toISOString().slice(0, 10);
+}
+
+// Süre butonu seçilince
+function _uetsSureSec(gun) {
+  if (!gun || gun < 1) return;
+  document.getElementById('uets-sure-gun').value = gun;
+  // Buton görünümlerini güncelle
+  document.querySelectorAll('.uets-sure-btn').forEach(function(btn) {
+    const btnGun = parseInt(btn.textContent);
+    const secili = btnGun === gun;
+    btn.style.background = secili ? 'rgba(201,168,76,0.15)' : 'var(--bg3)';
+    btn.style.borderColor = secili ? 'var(--gold)' : 'var(--border)';
+    btn.style.color = secili ? 'var(--gold)' : 'var(--text2)';
+    btn.style.fontWeight = secili ? '600' : '400';
+  });
+  _uetsModalHesapla();
+}
+
+// Tarih veya süre değişince hesapla ve göster
+function _uetsModalHesapla() {
+  const tarih = document.getElementById('uets-tarih').value;
+  const sure = parseInt(document.getElementById('uets-sure-gun').value) || 14;
+  const hesapEl = document.getElementById('uets-modal-hesap');
+  if (!tarih) { if (hesapEl) hesapEl.style.display = 'none'; return; }
+  const okunma = _uets5IsGunu(tarih);
+  const sonBasv = _uetsSonBasvuruTarihi(okunma, sure);
+  const okunmaEl = document.getElementById('uets-modal-okunma');
+  const sonBasvEl = document.getElementById('uets-modal-sonbasv');
+  if (okunmaEl) okunmaEl.textContent = fmtDate(okunma);
+  if (sonBasvEl) sonBasvEl.textContent = sonBasv ? fmtDate(sonBasv) : '—';
+  if (hesapEl) hesapEl.style.display = '';
+}
+
 function _pttSekme(sekme) {
   document.getElementById('ptt-bolum-sorgu').style.display = sekme === 'sorgu' ? '' : 'none';
   document.getElementById('ptt-bolum-uets').style.display = sekme === 'uets' ? '' : 'none';
@@ -15079,7 +15122,8 @@ function _uetsRender() {
           (k.gonderen ? '<span>🏛 ' + escHtml(k.gonderen) + '</span>' : '') +
           (k.tebligatNo ? '<span>📋 ' + escHtml(k.tebligatNo) + '</span>' : '') +
           '<span>📅 Tebliğ: ' + fmtDate(k.tebligTarihi) + '</span>' +
-          (k.sonSureTarihi && k.durum !== 'okundu' ? '<span>⏰ Son Gün: ' + fmtDate(k.sonSureTarihi) + '</span>' : '') +
+          (k.sonSureTarihi && k.durum !== 'okundu' ? '<span>👁 Okunmuş sayılma: ' + fmtDate(k.sonSureTarihi) + '</span>' : '') +
+          (k.sonBasvuruTarihi ? '<span style="color:var(--gold);font-weight:600">⚖️ Son başvuru: ' + fmtDate(k.sonBasvuruTarihi) + (k.hukukiSureGun ? ' (' + k.hukukiSureGun + ' gün)' : '') + '</span>' : '') +
           (k.dosyaNo ? '<span>📁 ' + escHtml(k.dosyaNo) + '</span>' : '') +
         '</div>' +
         (k.notlar ? '<div style="font-size:11px;color:var(--text3);margin-top:4px">' + escHtml(k.notlar) + '</div>' : '') +
@@ -15101,7 +15145,10 @@ function _uetsYeniKayitAc() {
   document.getElementById('uets-gonderen').value = '';
   document.getElementById('uets-tarih').value = new Date().toISOString().slice(0, 10);
   document.getElementById('uets-notlar').value = '';
+  document.getElementById('uets-sure-gun').value = '14';
   document.getElementById('uets-error').textContent = '';
+  const ozelEl = document.getElementById('uets-sure-ozel');
+  if (ozelEl) ozelEl.value = '';
   // Dosya listesini doldur
   const sel = document.getElementById('uets-dosya');
   const davalar = DB.get('davalar') || [];
@@ -15109,6 +15156,8 @@ function _uetsYeniKayitAc() {
   sel.innerHTML = '<option value="">— Dosya seçin (opsiyonel) —</option>'
     + '<optgroup label="📁 Davalar">' + davalar.map(d => `<option value="${escHtml(d.no)}">${escHtml(d.no)} — ${escHtml(d.muvekkil||'')}</option>`).join('') + '</optgroup>'
     + '<optgroup label="⚡ İcralar">' + icralar.map(i => `<option value="${escHtml(i.no)}">${escHtml(i.no)} — ${escHtml(i.borclu||'')}</option>`).join('') + '</optgroup>';
+  // 14 gün default seçili göster
+  _uetsSureSec(14);
   openModal('modal-uets');
 }
 
@@ -15123,6 +15172,11 @@ function _uetsDuzenle(id) {
   document.getElementById('uets-tarih').value = k.tebligTarihi || '';
   document.getElementById('uets-notlar').value = k.notlar || '';
   document.getElementById('uets-error').textContent = '';
+  // Hukuki süreyi geri yükle
+  const sure = k.hukukiSureGun || 14;
+  document.getElementById('uets-sure-gun').value = sure;
+  const ozelEl = document.getElementById('uets-sure-ozel');
+  if (ozelEl) ozelEl.value = '';
   // Dosya listesi
   const sel = document.getElementById('uets-dosya');
   const davalar = DB.get('davalar') || [];
@@ -15130,15 +15184,24 @@ function _uetsDuzenle(id) {
   sel.innerHTML = '<option value="">— Dosya seçin (opsiyonel) —</option>'
     + '<optgroup label="📁 Davalar">' + davalar.map(d => `<option value="${escHtml(d.no)}"${d.no===k.dosyaNo?' selected':''}>${escHtml(d.no)} — ${escHtml(d.muvekkil||'')}</option>`).join('') + '</optgroup>'
     + '<optgroup label="⚡ İcralar">' + icralar.map(i => `<option value="${escHtml(i.no)}"${i.no===k.dosyaNo?' selected':''}>${escHtml(i.no)} — ${escHtml(i.borclu||'')}</option>`).join('') + '</optgroup>';
+  _uetsSureSec(sure);
   openModal('modal-uets');
 }
 
 function _uetsKaydet() {
   const konu = document.getElementById('uets-konu').value.trim();
   const tarih = document.getElementById('uets-tarih').value;
+  const hukukiSureGun = parseInt(document.getElementById('uets-sure-gun').value) || 14;
   const errEl = document.getElementById('uets-error');
   if (!konu) { errEl.textContent = 'Konu zorunludur!'; return; }
   if (!tarih) { errEl.textContent = 'Tebligat tarihi zorunludur!'; return; }
+
+  const okunmaSayilma = _uets5IsGunu(tarih);
+  const sonBasvuruTarihi = _uetsSonBasvuruTarihi(okunmaSayilma, hukukiSureGun);
+
+  const mevcutDurum = window._uetsEditingId
+    ? ((DB.get('uets_kayitlar') || []).find(function(x) { return x.id === window._uetsEditingId; }) || {}).durum || 'okunmadi'
+    : 'okunmadi';
 
   const obj = {
     id: window._uetsEditingId || DB.genId(),
@@ -15146,12 +15209,12 @@ function _uetsKaydet() {
     tebligatNo: document.getElementById('uets-no').value.trim(),
     gonderen: document.getElementById('uets-gonderen').value.trim(),
     tebligTarihi: tarih,
-    sonSureTarihi: _uets5IsGunu(tarih),
+    sonSureTarihi: okunmaSayilma,       // 5 iş günü = okunmuş sayılma tarihi
+    hukukiSureGun,                       // seçilen hukuki süre (gün)
+    sonBasvuruTarihi,                    // okunmuş sayılma + hukuki süre
     dosyaNo: document.getElementById('uets-dosya').value || '',
     notlar: document.getElementById('uets-notlar').value.trim(),
-    durum: window._uetsEditingId
-      ? ((DB.get('uets_kayitlar') || []).find(function(x) { return x.id === window._uetsEditingId; }) || {}).durum || 'okunmadi'
-      : 'okunmadi',
+    durum: mevcutDurum,
     created: new Date().toISOString()
   };
 
@@ -15161,8 +15224,35 @@ function _uetsKaydet() {
   DB.set('uets_kayitlar', arr);
   closeModal('modal-uets');
   _uetsRender();
+
+  // Son başvuru tarihine otomatik görev aç
+  if (sonBasvuruTarihi) {
+    _uetsGorevAc(obj);
+  }
+
   notify(window._uetsEditingId ? 'Tebligat güncellendi ✓' : 'Tebligat kaydedildi ✓');
   window._uetsEditingId = null;
+}
+
+// Son başvuru tarihi için görev modalını aç (kullanıcı onaylayacak)
+function _uetsGorevAc(k) {
+  const dosyaNo = k.dosyaNo || '';
+  document.getElementById('modal-task-title').textContent = 'Görev Ekle';
+  document.getElementById('t-baslik').value = '⚖️ Son başvuru: ' + k.konu + (dosyaNo ? ' (' + dosyaNo + ')' : '');
+  document.getElementById('t-tarih').value = k.sonBasvuruTarihi;
+  document.getElementById('t-tip').value = 'gorev';
+  setTaskTip('gorev');
+  document.getElementById('t-oncelik').value = 'Acil';
+  const sel = document.getElementById('t-ilgili');
+  if (sel && dosyaNo) {
+    const davalar2 = DB.get('davalar') || [];
+    const icralar2 = DB.get('icralar') || [];
+    sel.innerHTML = '<option value="">— Genel görev —</option>'
+      + '<optgroup label="📁 Davalar">' + davalar2.map(d => `<option value="${d.no}"${d.no===dosyaNo?' selected':''}>${d.no} — ${escHtml(d.muvekkil||'')}</option>`).join('') + '</optgroup>'
+      + '<optgroup label="⚡ İcralar">' + icralar2.map(i => `<option value="${i.no}"${i.no===dosyaNo?' selected':''}>${i.no} — ${escHtml(i.borclu||'')}</option>`).join('') + '</optgroup>';
+    if (dosyaNo) sel.value = dosyaNo;
+  }
+  openModal('modal-task');
 }
 
 function _uetsOkundu(id) {
@@ -18148,7 +18238,7 @@ window._lqInterval = setInterval(_loginQuoteRotate, 6000);
         </div>
         <div class="form-group">
           <label>Tebligat Tarihi <span style="color:var(--red)">*</span></label>
-          <input type="date" id="uets-tarih">
+          <input type="date" id="uets-tarih" onchange="_uetsModalHesapla()">
         </div>
         <div class="form-group">
           <label>İlgili Dosya No</label>
@@ -18156,6 +18246,31 @@ window._lqInterval = setInterval(_loginQuoteRotate, 6000);
             <option value="">— Dosya seçin (opsiyonel) —</option>
           </select>
         </div>
+
+        <!-- Hukuki süre seçimi -->
+        <div class="form-group full" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px 14px">
+          <label style="color:var(--gold);font-weight:700;margin-bottom:8px;display:block">⚖️ Hukuki Süre (Son Başvuru)</label>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+            <button type="button" class="uets-sure-btn" onclick="_uetsSureSec(7)"   style="padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">7 gün</button>
+            <button type="button" class="uets-sure-btn" onclick="_uetsSureSec(10)"  style="padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">10 gün</button>
+            <button type="button" class="uets-sure-btn" onclick="_uetsSureSec(14)"  style="padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--gold);border-color:var(--gold);font-weight:600;font-family:inherit">14 gün</button>
+            <button type="button" class="uets-sure-btn" onclick="_uetsSureSec(30)"  style="padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">30 gün</button>
+            <button type="button" class="uets-sure-btn" onclick="_uetsSureSec(60)"  style="padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">60 gün</button>
+            <button type="button" class="uets-sure-btn" onclick="_uetsSureSec(90)"  style="padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">90 gün</button>
+            <input type="number" id="uets-sure-ozel" min="1" max="365" placeholder="Özel"
+              style="width:70px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:12px;padding:5px 10px;outline:none;font-family:inherit;text-align:center"
+              oninput="_uetsSureSec(parseInt(this.value)||0)">
+          </div>
+          <input type="hidden" id="uets-sure-gun" value="14">
+          <!-- Hesaplanan tarihler -->
+          <div id="uets-modal-hesap" style="font-size:12px;color:var(--text3);display:none">
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <span>📅 Okunmuş sayılma: <strong id="uets-modal-okunma" style="color:var(--text2)">—</strong></span>
+              <span>⏰ Son başvuru: <strong id="uets-modal-sonbasv" style="color:var(--gold)">—</strong></span>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group full">
           <label>Notlar</label>
           <textarea id="uets-notlar" placeholder="Ek bilgiler..." style="min-height:60px;resize:vertical;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px;width:100%;outline:none;font-family:inherit"></textarea>
