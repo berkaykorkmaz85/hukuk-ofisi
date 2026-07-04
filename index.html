@@ -2773,6 +2773,9 @@
     <div class="nav-item nav-secondary" onclick="showPage('faizHesap')" oncontextmenu="navContextMenu(event,'faizHesap','Faiz Hesaplama','🧮')">
       <span class="nav-icon">🧮</span> Faiz Hesaplama
     </div>
+    <div class="nav-item nav-secondary" onclick="showPage('smmHesap')" oncontextmenu="navContextMenu(event,'smmHesap','SMM Hesaplama','🧾')">
+      <span class="nav-icon">🧾</span> SMM Hesaplama
+    </div>
     <div class="nav-item nav-primary" onclick="showPage('tasks')" oncontextmenu="navContextMenu(event,'tasks','Görevler','✅')">
       <span class="nav-icon">✅</span> Görevler
       <span class="badge" id="task-badge">0</span>
@@ -3327,6 +3330,77 @@
 
   </div>
 </div>
+
+<!-- ═══ SMM HESAPLAMA ═══ -->
+<div id="page-smmHesap" class="page">
+  <div style="max-width:820px;margin:0 auto">
+
+    <!-- Hesaplama yönü seçimi -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">🧾 Hesaplama Türü</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="smm-tur-btn" data-tur="brutten" onclick="_smmTurSec('brutten')" style="flex:1;min-width:150px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--gold);background:rgba(201,168,76,0.12);color:var(--gold);font-family:inherit">Brütten Hesapla</button>
+        <button class="smm-tur-btn" data-tur="kdvdahil" onclick="_smmTurSec('kdvdahil')" style="flex:1;min-width:150px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">Karşı Vekalet (KDV Dahil)</button>
+        <button class="smm-tur-btn" data-tur="netten" onclick="_smmTurSec('netten')" style="flex:1;min-width:150px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-family:inherit">Net Ücretten Tamamla</button>
+      </div>
+      <div id="smm-tur-aciklama" style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.5">
+        Sözleşmede/anlaşmada belirlenen <strong style="color:var(--text2)">KDV hariç brüt hizmet bedelini</strong> girin — stopaj ve KDV bu tutar üzerinden hesaplanır.
+      </div>
+    </div>
+
+    <!-- Giriş formu -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="form-group full" style="grid-column:1/-1">
+          <label id="smm-tutar-label">Tutar (₺)</label>
+          <input type="text" id="smm-tutar" placeholder="0,00" oninput="_smmFormatVeHesapla(this)" style="font-size:18px;font-weight:700;font-family:'DM Mono',monospace">
+        </div>
+        <div class="form-group">
+          <label>Müvekkil / Ödeyen Türü</label>
+          <select id="smm-alici-tur" onchange="_smmHesapla()">
+            <option value="gercek">Gerçek Kişi (stopaj yok)</option>
+            <option value="tuzel" selected>Şirket / Kurum / Tüzel Kişi (stopaj %20)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>KDV Oranı (%)</label>
+          <input type="number" id="smm-kdv-oran" value="20" min="0" max="100" onchange="_smmHesapla()">
+        </div>
+        <div class="form-group full" style="grid-column:1/-1;display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="smm-kdv-tevkifat" onchange="_smmTevkifatToggle(this)" style="width:16px;height:16px;accent-color:var(--gold)">
+          <label for="smm-kdv-tevkifat" style="margin:0;cursor:pointer;font-size:12px">Belirlenmiş alıcı (kamu kurumu, banka, halka açık şirket vb.) — KDV tevkifatı uygulanacak</label>
+        </div>
+        <div class="form-group" id="smm-tevkifat-oran-wrap" style="display:none">
+          <label>KDV Tevkifat Oranı</label>
+          <select id="smm-tevkifat-oran" onchange="_smmHesapla()">
+            <option value="0.5">5/10 (Avukatlık / Arabuluculuk / Karşı Vekalet)</option>
+            <option value="0.9">9/10 (Danışmanlık Hizmeti)</option>
+          </select>
+        </div>
+        <div class="form-group full" style="grid-column:1/-1">
+          <label>Açıklama <span style="color:var(--text3);font-weight:400">(dosya no, dava adı vb. — makbuz açıklaması için)</span></label>
+          <input type="text" id="smm-aciklama" placeholder="Örn: 2026/123 E. — Vekalet ücreti">
+        </div>
+      </div>
+    </div>
+
+    <!-- Sonuç kartı -->
+    <div id="smm-sonuc" style="display:none">
+      <div style="background:linear-gradient(135deg,rgba(201,168,76,0.1),rgba(201,168,76,0.02));border:1px solid rgba(201,168,76,0.25);border-radius:14px;padding:20px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:14px">📋 Serbest Meslek Makbuzu Kırılımı</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="smm-sonuc-grid"></div>
+      </div>
+      <div id="smm-uyari-kutu" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text3);line-height:1.6"></div>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text3);line-height:1.6;margin-top:16px">
+      ⚠️ <strong style="color:var(--gold)">Önemli:</strong> Bu araç yalnızca hesaplama desteği sunar, resmi e-SMM belgesi düzenlemez.
+      Güncel KDV/stopaj oranları, tevkifat kapsamı ve eşik tutarları (2026 için KDV dahil 12.000₺) zaman zaman değişebilir —
+      kesin rakamlar için mali müşavirinize danışın.
+    </div>
+  </div>
+</div>
+<!-- ═══ /SMM HESAPLAMA ═══ -->
 
 
     <div id="page-tasks" class="page">
@@ -5447,6 +5521,8 @@ function _sbUetsToRow(obj) {
     konu: obj.konu, dava_id: obj.davaId || null, dosya_no: obj.dosyaNo,
     teblig_tarihi: obj.tebligTarihi, okunma_tarihi: obj.okunmaTarihi || null,
     son_sure_tarihi: obj.sonSureTarihi || null, durum: obj.durum || 'okunmadi',
+    hukuki_sure_gun: obj.hukukiSureGun || null,
+    son_basvuru_tarihi: obj.sonBasvuruTarihi || null,
     notlar: obj.notlar, user_id: window._currentUserId
   };
 }
@@ -5456,6 +5532,7 @@ function _sbUetsRowToObj(row) {
     konu: row.konu, davaId: row.dava_id, dosyaNo: row.dosya_no,
     tebligTarihi: row.teblig_tarihi, okunmaTarihi: row.okunma_tarihi,
     sonSureTarihi: row.son_sure_tarihi, durum: row.durum || 'okunmadi',
+    hukukiSureGun: row.hukuki_sure_gun, sonBasvuruTarihi: row.son_basvuru_tarihi,
     notlar: row.notlar, created: row.created_at
   };
 }
@@ -9609,8 +9686,8 @@ function initMobileTopbar() {
   window.addEventListener('resize', updateTopbar);
 }
 
-const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip'};
-const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', 'ptt-takip':'PTT Tebligat'};
+const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip'};
+const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'PTT Tebligat'};
 
 function showSubpage(id) {
   const page = id.split('-')[0];
@@ -14884,6 +14961,30 @@ function _saveTaskInner() {
     done: false,
     created: new Date().toISOString()
   };
+
+  // ⚖️ Çakışan duruşma kontrolü — aynı tarih+saatte başka bir (bitmemiş) duruşma var mı?
+  if (tip === 'durusma' && obj.tarih && obj.tarih.includes('T')) {
+    const mevcutArr = DB.get('tasks');
+    const cakisan = mevcutArr.filter(function(t) {
+      return t.tip === 'durusma' && t.id !== editingId && !t.done && t.tarih === obj.tarih;
+    });
+    if (cakisan.length > 0) {
+      const detay = cakisan.map(function(t) {
+        return '• ' + escHtml(t.baslik || 'İsimsiz duruşma') + (t.mahkeme ? ' — ' + escHtml(t.mahkeme) : '') + (t.ilgili ? ' (' + escHtml(t.ilgili) + ')' : '');
+      }).join('<br>');
+      showConfirmModal(
+        '⚠️ Aynı tarih ve saatte (' + fmtDate(obj.tarih.slice(0,10)) + ' saat ' + obj.tarih.slice(11,16) + ') zaten kayıtlı duruşma(lar) var:<br><br>' + detay + '<br><br>Yine de kaydetmek istiyor musunuz?',
+        function() { _saveTaskFinalize(obj, tip); },
+        { okLabel: 'Yine de Kaydet', okBg: 'rgba(201,168,76,0.85)', okBorder: 'rgba(201,168,76,0.4)', icon: '⚖️', iconBg: 'rgba(201,168,76,0.15)', iconBorder: 'rgba(201,168,76,0.3)' }
+      );
+      return;
+    }
+  }
+
+  _saveTaskFinalize(obj, tip);
+}
+
+function _saveTaskFinalize(obj, tip) {
   let arr = DB.get('tasks');
   if (editingId) {
     const eskiTask = arr.find(x=>x.id===editingId);
@@ -15289,6 +15390,123 @@ function _uetsSureUyariKontrol() {
     else if (kritik.length > 1) notify('📨 ' + kritik.length + ' tebligatın süresi dolmak üzere!', true);
   } catch(e) {}
 }
+
+// ══════════════════════════════════════════════════════════════
+// 🧾 SMM (Serbest Meslek Makbuzu) HESAPLAYICI
+// KDV %20, Stopaj %20 (GVK 94/2-b) — 2026 genel oranları.
+// Gerçek kişi müvekkillerden stopaj kesilmez (GVK m.94).
+// Karşı vekalet ücreti (mahkeme kararıyla) genelde KDV DAHİL kabul
+// edilir, iç yüzde ile ayrıştırılır (311 seri no'lu GV Tebliği).
+// ══════════════════════════════════════════════════════════════
+
+window._smmTur = 'brutten';
+
+const _SMM_TUR_ACIKLAMA = {
+  brutten: 'Sözleşmede/anlaşmada belirlenen <strong style="color:var(--text2)">KDV hariç brüt hizmet bedelini</strong> girin — stopaj ve KDV bu tutar üzerinden hesaplanır.',
+  kdvdahil: 'Mahkeme kararında hükmedilen <strong style="color:var(--text2)">KDV dahil karşı vekalet ücretini</strong> girin — brüt (KDV hariç) matrah iç yüzde ile ayrıştırılır (tutar ÷ 1,20).',
+  netten: 'Elinize geçmesini istediğiniz <strong style="color:var(--text2)">net tahsilat tutarını</strong> girin — brüt matrah buna göre geriye doğru hesaplanır.'
+};
+
+function _smmTurSec(tur) {
+  window._smmTur = tur;
+  document.querySelectorAll('.smm-tur-btn').forEach(function(btn) {
+    const secili = btn.dataset.tur === tur;
+    btn.style.background = secili ? 'rgba(201,168,76,0.12)' : 'var(--bg3)';
+    btn.style.borderColor = secili ? 'var(--gold)' : 'var(--border)';
+    btn.style.color = secili ? 'var(--gold)' : 'var(--text2)';
+  });
+  document.getElementById('smm-tur-aciklama').innerHTML = _SMM_TUR_ACIKLAMA[tur];
+  const label = document.getElementById('smm-tutar-label');
+  if (label) label.textContent = tur === 'brutten' ? 'Brüt Tutar (KDV Hariç) (₺)' : tur === 'kdvdahil' ? 'KDV Dahil Tutar (₺)' : 'Net Tahsilat Tutarı (₺)';
+  _smmHesapla();
+}
+
+function _smmFormatVeHesapla(inp) {
+  // Basit rakam formatlama (binlik ayraç olmadan, sade sayı girişi)
+  _smmHesapla();
+}
+
+function _smmTevkifatToggle(cb) {
+  const wrap = document.getElementById('smm-tevkifat-oran-wrap');
+  if (wrap) wrap.style.display = cb.checked ? '' : 'none';
+  _smmHesapla();
+}
+
+function _smmHesapla() {
+  const tutarRaw = document.getElementById('smm-tutar')?.value || '';
+  const tutar = parsePara(tutarRaw) || 0;
+  const sonucEl = document.getElementById('smm-sonuc');
+  if (!tutar || tutar <= 0) { if (sonucEl) sonucEl.style.display = 'none'; return; }
+
+  const aliciTur = document.getElementById('smm-alici-tur').value;
+  const kdvOran = (parseFloat(document.getElementById('smm-kdv-oran').value) || 20) / 100;
+  const stopajOran = aliciTur === 'tuzel' ? 0.20 : 0;
+  const tevkifatVar = document.getElementById('smm-kdv-tevkifat')?.checked;
+  const tevkifatOran = tevkifatVar ? parseFloat(document.getElementById('smm-tevkifat-oran')?.value || 0.5) : 0;
+
+  // Tevkifat alanının görünürlüğünü senkronize et
+  const tevkifatWrap = document.getElementById('smm-tevkifat-oran-wrap');
+  if (tevkifatWrap) tevkifatWrap.style.display = tevkifatVar ? '' : 'none';
+
+  let brut;
+  const tur = window._smmTur;
+
+  if (tur === 'brutten') {
+    brut = tutar;
+  } else if (tur === 'kdvdahil') {
+    // KDV dahil tutar → iç yüzde ile brüt (KDV hariç) matrah bulunur
+    brut = tutar / (1 + kdvOran);
+  } else {
+    // netten: Net = Brüt - Stopaj  →  Brüt = Net / (1 - stopajOran)
+    brut = stopajOran > 0 ? tutar / (1 - stopajOran) : tutar;
+  }
+
+  const stopajTutari = brut * stopajOran;
+  const netUcret = brut - stopajTutari;
+  const kdvTutari = brut * kdvOran;
+  const kdvTevkifatTutari = kdvTutari * tevkifatOran;
+  const odenecekKdv = kdvTutari - kdvTevkifatTutari; // avukata fiilen ödenen KDV kısmı
+  const netTahsilat = netUcret + odenecekKdv;
+  const belgeToplami = brut + kdvTutari; // KDV dahil toplam belge tutarı
+
+  // 2026 eşiği: KDV dahil 12.000 TL altında tevkifat uygulanmaz uyarısı
+  const esikAltinda = tevkifatVar && belgeToplami < 12000;
+
+  const sonucGrid = document.getElementById('smm-sonuc-grid');
+  const satir = function(label, deger, renk, buyuk) {
+    return '<div style="background:var(--bg3);border-radius:8px;padding:10px 14px' + (buyuk ? ';grid-column:1/-1' : '') + '">' +
+      '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.03em;margin-bottom:4px">' + label + '</div>' +
+      '<div style="font-size:' + (buyuk ? '20px' : '15px') + ';font-weight:800;color:' + (renk || 'var(--text)') + ';font-family:\'DM Mono\',monospace">₺' + fmt(deger) + '</div>' +
+    '</div>';
+  };
+
+  let html = '';
+  html += satir('Brüt Hizmet Bedeli (KDV Hariç Matrah)', brut, 'var(--text)');
+  html += satir('Gelir Vergisi Stopajı' + (stopajOran > 0 ? ' (%20)' : ' (Uygulanmaz)'), stopajTutari, stopajOran > 0 ? 'var(--red)' : 'var(--text3)');
+  html += satir('Net Ücret (Brüt − Stopaj)', netUcret, 'var(--text2)');
+  html += satir('KDV Tutarı (%' + Math.round(kdvOran*100) + ')', kdvTutari, 'var(--green)');
+  if (tevkifatVar && !esikAltinda) {
+    html += satir('KDV Tevkifatı (Alıcı Öder — ' + (tevkifatOran===0.5?'5/10':'9/10') + ')', kdvTevkifatTutari, 'var(--text3)');
+    html += satir('Size Ödenecek KDV', odenecekKdv, 'var(--green)');
+  }
+  html += satir('💰 Net Tahsilat (Ele Geçecek Toplam)', netTahsilat, 'var(--gold)', true);
+  html += satir('📄 KDV Dahil Belge (Makbuz) Toplamı', belgeToplami, 'var(--text2)');
+
+  if (sonucGrid) sonucGrid.innerHTML = html;
+  if (sonucEl) sonucEl.style.display = '';
+
+  // Uyarı kutusu
+  const uyariEl = document.getElementById('smm-uyari-kutu');
+  if (uyariEl) {
+    let uyarilar = [];
+    if (esikAltinda) uyarilar.push('⚠️ KDV dahil belge toplamı (₺' + fmt(belgeToplami) + ') 2026 eşiği olan 12.000₺\'nin altında — KDV tevkifatı uygulanmamalıdır.');
+    if (stopajOran === 0) uyarilar.push('ℹ️ Gerçek kişi (vergi mükellefi olmayan) müvekkillerden gelir vergisi stopajı kesilmez, sadece KDV uygulanır.');
+    if (tur === 'kdvdahil') uyarilar.push('ℹ️ Mahkeme kararında "KDV hariç" ifadesi yoksa, hükmedilen tutarın KDV dahil olduğu kabul edilir (311 seri no\'lu GV Tebliği m.25/5).');
+    if (Math.abs(stopajOran - kdvOran) < 0.001 && stopajOran > 0 && !tevkifatVar) uyarilar.push('💡 Stopaj oranı KDV oranına eşit olduğu için brüt tutar ile net tahsilat tutarı birbirine eşit çıkar.');
+    uyariEl.innerHTML = uyarilar.length ? uyarilar.map(u => '<div style="margin-bottom:4px">' + u + '</div>').join('') : '<div>Hesaplama tamamlandı.</div>';
+  }
+}
+
 
 
 
