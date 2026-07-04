@@ -3468,6 +3468,21 @@
 
     <!-- PTT TEBLİGAT TAKİP -->
     <div id="page-ptt-takip" class="page">
+
+      <!-- Sekme başlıkları -->
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
+        <button id="ptt-sekme-sorgu" onclick="_pttSekme('sorgu')"
+          style="padding:10px 18px;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          🔍 PTT Sorgulama
+        </button>
+        <button id="ptt-sekme-uets" onclick="_pttSekme('uets')"
+          style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+          📨 UETS Kayıt Defteri
+        </button>
+      </div>
+
+      <!-- PTT Sorgulama Bölümü -->
+      <div id="ptt-bolum-sorgu">
       <!-- Hero -->
       <div class="ptt-hero">
         <div class="ptt-hero-icon">📬</div>
@@ -3506,6 +3521,23 @@
         </div>
         <div id="ptt-history-list"></div>
       </div>
+      </div>
+
+      <!-- UETS Kayıt Defteri Bölümü -->
+      <div id="ptt-bolum-uets" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--text)">📨 UETS / e-Tebligat Kayıt Defteri</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">Gelen e-tebligatları kaydedin · 5 iş günü okuma süresi otomatik hesaplanır</div>
+          </div>
+          <button class="btn btn-gold" onclick="_uetsYeniKayitAc()">+ Tebligat Ekle</button>
+        </div>
+        <!-- Özet kartlar -->
+        <div id="uets-ozet" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
+        <!-- Liste -->
+        <div id="uets-liste"></div>
+      </div>
+
     </div>
 
     <!-- NOTLAR -->
@@ -5191,6 +5223,7 @@ async function _oturumGeriYukle() {
     if (dash) dash.classList.add('active');
     try { renderDashboard(); } catch(e) { console.warn('renderDashboard:', e.message); }
     try { _kacirilmisHatirlatmalariKontrolEt(); } catch(e) {}
+    try { _uetsSureUyariKontrol(); } catch(e) {}
     const ls = document.getElementById('login-screen');
     if (ls) { ls.classList.add('hidden'); ls.style.display = 'none'; }
     // Login ekranı kapandı — alıntı döngüsü artık gereksiz, durdur
@@ -5221,9 +5254,9 @@ if (document.readyState === 'loading') {
 // "davalar" ve "icralar" artık localStorage'da değil, Supabase'de tutuluyor.
 // DB.get/DB.set bu key'ler için cache'i okur/günceller; gerçek senkronizasyon
 // (Supabase'e yazma) ilgili kaydet/sil fonksiyonlarında ayrıca yapılır.
-window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], finans: [], odeme_planlari: [], tasks: [], belgeler: [], icra_belgeler: [], icra_masraflar: [], notlar: [], cari: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
+window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], finans: [], odeme_planlari: [], tasks: [], belgeler: [], icra_belgeler: [], icra_masraflar: [], notlar: [], cari: [], uets_kayitlar: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
 const _SB_TABLES = { davalar: 'davalar', icralar: 'icralar', muvekkiller: 'muvekkiller', kisiler: 'kisiler', contacts: 'contacts' };
-const _SB_DIFF_TABLES = { finans: 'finans', odeme_planlari: 'odeme_planlari', tasks: 'tasks', belgeler: 'belgeler', icra_belgeler: 'icra_belgeler', icra_masraflar: 'icra_masraflar', notlar: 'notlar', cari: 'cari' };  // Bu key'ler DB.set çağrıldığında otomatik diff-sync edilir
+const _SB_DIFF_TABLES = { finans: 'finans', odeme_planlari: 'odeme_planlari', tasks: 'tasks', belgeler: 'belgeler', icra_belgeler: 'icra_belgeler', icra_masraflar: 'icra_masraflar', notlar: 'notlar', cari: 'cari', uets_kayitlar: 'uets_kayitlar' };  // Bu key'ler DB.set çağrıldığında otomatik diff-sync edilir
 
 // Bir chatter key'inin ('chatter_xxx' veya 'icra_chatter_xxx') dosya tipini ve id'sini çöz
 function _sbChatterKeyParse(key) {
@@ -5407,6 +5440,25 @@ function _sbCariRowToObj(row) {
     not: row.not_, created: row.created_at
   };
 }
+// uets_kayitlar satırı ⇄ eski obje dönüşümleri
+function _sbUetsToRow(obj) {
+  return {
+    id: obj.id, tebligat_no: obj.tebligatNo, gonderen: obj.gonderen,
+    konu: obj.konu, dava_id: obj.davaId || null, dosya_no: obj.dosyaNo,
+    teblig_tarihi: obj.tebligTarihi, okunma_tarihi: obj.okunmaTarihi || null,
+    son_sure_tarihi: obj.sonSureTarihi || null, durum: obj.durum || 'okunmadi',
+    notlar: obj.notlar, user_id: window._currentUserId
+  };
+}
+function _sbUetsRowToObj(row) {
+  return {
+    id: row.id, tebligatNo: row.tebligat_no, gonderen: row.gonderen,
+    konu: row.konu, davaId: row.dava_id, dosyaNo: row.dosya_no,
+    tebligTarihi: row.teblig_tarihi, okunmaTarihi: row.okunma_tarihi,
+    sonSureTarihi: row.son_sure_tarihi, durum: row.durum || 'okunmadi',
+    notlar: row.notlar, created: row.created_at
+  };
+}
 
 // ══ DIFF-BASED SUPABASE SENKRONU (kuyruk tabanlı, race-condition güvenli) ══
 // "finans" gibi, çok sayıda farklı yerden DB.set ile değiştirilen key'ler için:
@@ -5468,7 +5520,7 @@ async function _sbDiffSyncCalistir(key, yeniArr) {
       finans: _sbFinansToRow, odeme_planlari: _sbOdemePlaniToRow,
       tasks: _sbTaskToRow, belgeler: _sbBelgeToRow,
       icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow,
-      notlar: _sbNotToRow, cari: _sbCariToRow
+      notlar: _sbNotToRow, cari: _sbCariToRow, uets_kayitlar: _sbUetsToRow
     };
     const toRow = _TO_ROW_MAP[key] || null;
     if (!toRow) return;  // Sadece bilinen key'ler için senkron yapılır
@@ -5593,7 +5645,8 @@ async function _sbYukleDavalarIcralar() {
       icra_belgeler:  _sbIcraBelgeRowToObj,
       icra_masraflar: _sbIcraMasrafRowToObj,
       notlar:         _sbNotRowToObj,
-      cari:           _sbCariRowToObj
+      cari:           _sbCariRowToObj,
+      uets_kayitlar:  _sbUetsRowToObj
     };
     const _asama4Anahtarlar = Object.keys(_ASAMA4_TABLOLAR);
     const _asama4Sonuclar = await Promise.all(
@@ -5794,6 +5847,7 @@ async function doLogin() {
       await _sbYukleDavalarIcralar();
       try { renderDashboard(); } catch(e4) { console.warn('renderDashboard:', e4.message); }
       try { _kacirilmisHatirlatmalariKontrolEt(); } catch(e) {}
+      try { _uetsSureUyariKontrol(); } catch(e) {}
       window._appStarted = true;
     } catch(e2) { console.warn('dashboard açma hatası:', e2.message); }
     // Veriler hazır — şimdi login ekranını VE yükleme katmanını birlikte kapat.
@@ -14935,6 +14989,219 @@ function _kacirilmisHatirlatmalariKontrolEt() {
   } catch(e) {}
 }
 
+// ══════════════════════════════════════════════════════════════
+// 📨 UETS / e-TEBLIGAT KAYIT DEFTERİ
+// ══════════════════════════════════════════════════════════════
+
+window._uetsEditingId = null;
+
+// 5 iş günü ekle (pazar + resmi tatil atlanır, dini bayramlar için sync değil basit kontrol)
+function _uets5IsGunu(baslangicISO) {
+  const tarih = new Date(baslangicISO);
+  tarih.setHours(0, 0, 0, 0);
+  let kalan = 5;
+  while (kalan > 0) {
+    tarih.setDate(tarih.getDate() + 1);
+    const gun = tarih.getDay();
+    const ay = tarih.getMonth();
+    const d = tarih.getDate();
+    const tatil = _RESMI_TATILLER_SABIT.some(t => t.ay === ay && t.gun === d);
+    if (gun !== 0 && !tatil) kalan--;
+  }
+  return tarih.toISOString().slice(0, 10);
+}
+
+function _pttSekme(sekme) {
+  document.getElementById('ptt-bolum-sorgu').style.display = sekme === 'sorgu' ? '' : 'none';
+  document.getElementById('ptt-bolum-uets').style.display = sekme === 'uets' ? '' : 'none';
+  const s1 = document.getElementById('ptt-sekme-sorgu');
+  const s2 = document.getElementById('ptt-sekme-uets');
+  if (s1) { s1.style.borderBottomColor = sekme === 'sorgu' ? 'var(--gold)' : 'transparent'; s1.style.color = sekme === 'sorgu' ? 'var(--gold)' : 'var(--text3)'; }
+  if (s2) { s2.style.borderBottomColor = sekme === 'uets' ? 'var(--gold)' : 'transparent'; s2.style.color = sekme === 'uets' ? 'var(--gold)' : 'var(--text3)'; }
+  if (sekme === 'uets') _uetsRender();
+}
+
+function _uetsRender() {
+  const kayitlar = (DB.get('uets_kayitlar') || []).slice().sort(function(a, b) {
+    return new Date(b.tebligTarihi) - new Date(a.tebligTarihi);
+  });
+  const bugun = new Date(); bugun.setHours(0,0,0,0);
+
+  // Otomatik durum güncelleme: süresi dolmuş ama hâlâ 'okunmadi' olanları işaretle
+  let degisti = false;
+  const guncellendi = kayitlar.map(function(k) {
+    if (k.durum === 'okunmadi' && k.sonSureTarihi && new Date(k.sonSureTarihi) < bugun) {
+      degisti = true;
+      return Object.assign({}, k, { durum: 'sure_doldu' });
+    }
+    return k;
+  });
+  if (degisti) DB.set('uets_kayitlar', guncellendi);
+
+  const liste = degisti ? guncellendi : kayitlar;
+
+  // Özet
+  const okunmadi = liste.filter(function(k) { return k.durum === 'okunmadi'; }).length;
+  const sureDoldu = liste.filter(function(k) { return k.durum === 'sure_doldu'; }).length;
+  const okundu = liste.filter(function(k) { return k.durum === 'okundu'; }).length;
+  const ozet = document.getElementById('uets-ozet');
+  if (ozet) {
+    ozet.innerHTML =
+      '<div style="background:var(--bg2);border:1px solid rgba(192,83,58,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Okunmadı</div><div style="font-size:22px;font-weight:800;color:var(--red)">' + okunmadi + '</div></div>' +
+      '<div style="background:var(--bg2);border:1px solid rgba(201,168,76,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Süresi Doldu</div><div style="font-size:22px;font-weight:800;color:var(--gold)">' + sureDoldu + '</div></div>' +
+      '<div style="background:var(--bg2);border:1px solid rgba(74,140,92,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Okundu</div><div style="font-size:22px;font-weight:800;color:var(--green)">' + okundu + '</div></div>';
+  }
+
+  const listeEl = document.getElementById('uets-liste');
+  if (!listeEl) return;
+
+  if (!liste.length) {
+    listeEl.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">📨</div><div>Henüz tebligat kaydı yok</div><div style="font-size:12px;margin-top:6px">+ Tebligat Ekle butonunu kullanın</div></div>';
+    return;
+  }
+
+  listeEl.innerHTML = liste.map(function(k) {
+    const sure = k.sonSureTarihi ? new Date(k.sonSureTarihi) : null;
+    const kalanGun = sure ? Math.ceil((sure - bugun) / 86400000) : null;
+    const gecti = kalanGun !== null && kalanGun < 0;
+    const yakin = kalanGun !== null && kalanGun >= 0 && kalanGun <= 2;
+
+    const durumRenk = k.durum === 'okundu' ? 'var(--green)' : k.durum === 'sure_doldu' ? 'var(--red)' : yakin ? 'var(--gold)' : 'var(--text2)';
+    const durumMetin = k.durum === 'okundu' ? '✅ Okundu' : k.durum === 'sure_doldu' ? '⚠️ Süre Doldu' : kalanGun === null ? '📨 Okunmadı' : kalanGun === 0 ? '🔴 BUGÜN SON GÜN' : gecti ? '🔴 Süre Doldu' : yakin ? `🟡 ${kalanGun} gün kaldı` : `📨 ${kalanGun} gün kaldı`;
+
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:start' + (k.durum === 'sure_doldu' ? ';border-left:3px solid var(--red)' : yakin && k.durum !== 'okundu' ? ';border-left:3px solid var(--gold)' : '') + '">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">' +
+          '<span style="font-size:13px;font-weight:600;color:var(--text)">' + escHtml(k.konu) + '</span>' +
+          '<span style="font-size:11px;font-weight:700;color:' + durumRenk + ';background:rgba(255,255,255,0.06);padding:1px 7px;border-radius:10px">' + durumMetin + '</span>' +
+        '</div>' +
+        '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text3)">' +
+          (k.gonderen ? '<span>🏛 ' + escHtml(k.gonderen) + '</span>' : '') +
+          (k.tebligatNo ? '<span>📋 ' + escHtml(k.tebligatNo) + '</span>' : '') +
+          '<span>📅 Tebliğ: ' + fmtDate(k.tebligTarihi) + '</span>' +
+          (k.sonSureTarihi && k.durum !== 'okundu' ? '<span>⏰ Son Gün: ' + fmtDate(k.sonSureTarihi) + '</span>' : '') +
+          (k.dosyaNo ? '<span>📁 ' + escHtml(k.dosyaNo) + '</span>' : '') +
+        '</div>' +
+        (k.notlar ? '<div style="font-size:11px;color:var(--text3);margin-top:4px">' + escHtml(k.notlar) + '</div>' : '') +
+      '</div>' +
+      '<div style="display:flex;gap:4px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">' +
+        (k.durum !== 'okundu' ? '<button onclick="_uetsOkundu(\'' + k.id + '\')" style="font-size:10px;background:rgba(74,140,92,0.15);border:1px solid rgba(74,140,92,0.3);border-radius:6px;color:var(--green);padding:4px 8px;cursor:pointer;font-family:inherit">✓ Okundu</button>' : '') +
+        '<button onclick="_uetsDuzenle(\'' + k.id + '\')" class="btn btn-ghost" style="font-size:11px">✏</button>' +
+        '<button onclick="_uetsSil(\'' + k.id + '\')" class="btn btn-ghost" style="font-size:11px;color:var(--red)">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function _uetsYeniKayitAc() {
+  window._uetsEditingId = null;
+  document.getElementById('modal-uets-title').textContent = '📨 Tebligat Ekle';
+  document.getElementById('uets-konu').value = '';
+  document.getElementById('uets-no').value = '';
+  document.getElementById('uets-gonderen').value = '';
+  document.getElementById('uets-tarih').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('uets-notlar').value = '';
+  document.getElementById('uets-error').textContent = '';
+  // Dosya listesini doldur
+  const sel = document.getElementById('uets-dosya');
+  const davalar = DB.get('davalar') || [];
+  const icralar = DB.get('icralar') || [];
+  sel.innerHTML = '<option value="">— Dosya seçin (opsiyonel) —</option>'
+    + '<optgroup label="📁 Davalar">' + davalar.map(d => `<option value="${escHtml(d.no)}">${escHtml(d.no)} — ${escHtml(d.muvekkil||'')}</option>`).join('') + '</optgroup>'
+    + '<optgroup label="⚡ İcralar">' + icralar.map(i => `<option value="${escHtml(i.no)}">${escHtml(i.no)} — ${escHtml(i.borclu||'')}</option>`).join('') + '</optgroup>';
+  openModal('modal-uets');
+}
+
+function _uetsDuzenle(id) {
+  const k = (DB.get('uets_kayitlar') || []).find(function(x) { return x.id === id; });
+  if (!k) return;
+  window._uetsEditingId = id;
+  document.getElementById('modal-uets-title').textContent = '📨 Tebligat Düzenle';
+  document.getElementById('uets-konu').value = k.konu || '';
+  document.getElementById('uets-no').value = k.tebligatNo || '';
+  document.getElementById('uets-gonderen').value = k.gonderen || '';
+  document.getElementById('uets-tarih').value = k.tebligTarihi || '';
+  document.getElementById('uets-notlar').value = k.notlar || '';
+  document.getElementById('uets-error').textContent = '';
+  // Dosya listesi
+  const sel = document.getElementById('uets-dosya');
+  const davalar = DB.get('davalar') || [];
+  const icralar = DB.get('icralar') || [];
+  sel.innerHTML = '<option value="">— Dosya seçin (opsiyonel) —</option>'
+    + '<optgroup label="📁 Davalar">' + davalar.map(d => `<option value="${escHtml(d.no)}"${d.no===k.dosyaNo?' selected':''}>${escHtml(d.no)} — ${escHtml(d.muvekkil||'')}</option>`).join('') + '</optgroup>'
+    + '<optgroup label="⚡ İcralar">' + icralar.map(i => `<option value="${escHtml(i.no)}"${i.no===k.dosyaNo?' selected':''}>${escHtml(i.no)} — ${escHtml(i.borclu||'')}</option>`).join('') + '</optgroup>';
+  openModal('modal-uets');
+}
+
+function _uetsKaydet() {
+  const konu = document.getElementById('uets-konu').value.trim();
+  const tarih = document.getElementById('uets-tarih').value;
+  const errEl = document.getElementById('uets-error');
+  if (!konu) { errEl.textContent = 'Konu zorunludur!'; return; }
+  if (!tarih) { errEl.textContent = 'Tebligat tarihi zorunludur!'; return; }
+
+  const obj = {
+    id: window._uetsEditingId || DB.genId(),
+    konu,
+    tebligatNo: document.getElementById('uets-no').value.trim(),
+    gonderen: document.getElementById('uets-gonderen').value.trim(),
+    tebligTarihi: tarih,
+    sonSureTarihi: _uets5IsGunu(tarih),
+    dosyaNo: document.getElementById('uets-dosya').value || '',
+    notlar: document.getElementById('uets-notlar').value.trim(),
+    durum: window._uetsEditingId
+      ? ((DB.get('uets_kayitlar') || []).find(function(x) { return x.id === window._uetsEditingId; }) || {}).durum || 'okunmadi'
+      : 'okunmadi',
+    created: new Date().toISOString()
+  };
+
+  let arr = DB.get('uets_kayitlar') || [];
+  if (window._uetsEditingId) arr = arr.map(function(x) { return x.id === window._uetsEditingId ? obj : x; });
+  else arr = [obj, ...arr];
+  DB.set('uets_kayitlar', arr);
+  closeModal('modal-uets');
+  _uetsRender();
+  notify(window._uetsEditingId ? 'Tebligat güncellendi ✓' : 'Tebligat kaydedildi ✓');
+  window._uetsEditingId = null;
+}
+
+function _uetsOkundu(id) {
+  let arr = DB.get('uets_kayitlar') || [];
+  const bugun = new Date().toISOString().slice(0, 10);
+  arr = arr.map(function(k) {
+    return k.id === id ? Object.assign({}, k, { durum: 'okundu', okunmaTarihi: bugun }) : k;
+  });
+  DB.set('uets_kayitlar', arr);
+  _uetsRender();
+  notify('✅ Tebligat okundu olarak işaretlendi');
+}
+
+function _uetsSil(id) {
+  showConfirmModal('Bu tebligat kaydını silmek istediğinizden emin misiniz?', function() {
+    DB.set('uets_kayitlar', (DB.get('uets_kayitlar') || []).filter(function(k) { return k.id !== id; }));
+    _uetsRender();
+    notify('Tebligat silindi');
+  });
+}
+
+// Giriş sonrası yaklaşan UETS sürelerini kontrol et
+function _uetsSureUyariKontrol() {
+  try {
+    const bugun = new Date(); bugun.setHours(0,0,0,0);
+    const kayitlar = DB.get('uets_kayitlar') || [];
+    const kritik = kayitlar.filter(function(k) {
+      if (k.durum === 'okundu') return false;
+      if (!k.sonSureTarihi) return false;
+      const kalanGun = Math.ceil((new Date(k.sonSureTarihi) - bugun) / 86400000);
+      return kalanGun >= 0 && kalanGun <= 2;
+    });
+    if (kritik.length === 1) notify('📨 UETS: "' + kritik[0].konu + '" — ' + (Math.ceil((new Date(kritik[0].sonSureTarihi) - bugun) / 86400000) === 0 ? 'Bugün son gün!' : 'Son 2 günde!'), true);
+    else if (kritik.length > 1) notify('📨 ' + kritik.length + ' tebligatın süresi dolmak üzere!', true);
+  } catch(e) {}
+}
+
+
+
 // ========== NOTLAR ==========
 function renderNotes(filter='') {
   let notes = DB.get('notlar');
@@ -17857,6 +18124,51 @@ window._lqInterval = setInterval(_loginQuoteRotate, 6000);
 
 
 </script>
+
+<!-- UETS KAYIT MODAL -->
+<div class="modal-overlay" id="modal-uets">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-uets-title">📨 Tebligat Ekle</div>
+      <button class="modal-close" onclick="closeModal('modal-uets')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Konu <span style="color:var(--red)">*</span></label>
+          <input id="uets-konu" placeholder="Tebligat konusu (dava adı, karar özeti...)">
+        </div>
+        <div class="form-group">
+          <label>Tebligat No / Barkod</label>
+          <input id="uets-no" placeholder="UETS / PTT barkod no">
+        </div>
+        <div class="form-group">
+          <label>Gönderen Kurum</label>
+          <input id="uets-gonderen" placeholder="Mahkeme, İcra Müdürlüğü...">
+        </div>
+        <div class="form-group">
+          <label>Tebligat Tarihi <span style="color:var(--red)">*</span></label>
+          <input type="date" id="uets-tarih">
+        </div>
+        <div class="form-group">
+          <label>İlgili Dosya No</label>
+          <select id="uets-dosya">
+            <option value="">— Dosya seçin (opsiyonel) —</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Notlar</label>
+          <textarea id="uets-notlar" placeholder="Ek bilgiler..." style="min-height:60px;resize:vertical;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px;width:100%;outline:none;font-family:inherit"></textarea>
+        </div>
+      </div>
+      <div id="uets-error" style="color:var(--red);font-size:12px;margin-top:8px;min-height:16px"></div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal('modal-uets')">İptal</button>
+        <button class="btn btn-gold" onclick="_uetsKaydet()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL -->
 <div id="confirm-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);align-items:center;justify-content:center">
