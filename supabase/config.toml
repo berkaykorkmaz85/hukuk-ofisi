@@ -1,0 +1,7 @@
+# Supabase CLI proje yapılandırması — yalnız Edge Function deploy etmek
+# için gereken minimal dosya. `supabase link` çalıştırıldığında proje
+# referansı otomatik olarak buraya eklenir/güncellenir.
+project_id = "cbxgdnwunvjndiwwzcfn"
+
+[functions.nightly-backup]
+verify_jwt = true
