@@ -674,26 +674,13 @@ function deleteIcraBelge(belgeId, icraId) {
   });
 }
 
-// İcra belge kaydetme
-function saveIcraBelge(icraId) {
-  var ad = document.getElementById('ib-ad').value.trim();
-  if(!ad) return notify('Belge adı zorunludur!');
-  var belge = {
-    id: DB.genId(), icraId: icraId, ad: ad,
-    tur: document.getElementById('ib-tur').value,
-    tarih: document.getElementById('ib-tarih').value || new Date().toISOString().slice(0,10),
-    url: document.getElementById('ib-url').value.trim(),
-    taraf: document.getElementById('ib-taraf').value,
-    aciklama: document.getElementById('ib-aciklama').value.trim()
-  };
-  var arr = DB.get('icra_belgeler')||[];
-  arr.push(belge);
-  DB.set('icra_belgeler', arr);
-  document.getElementById('ib-ad').value='';
-  document.getElementById('ib-url').value='';
-  document.getElementById('ib-aciklama').value='';
-  renderIcraTab(icraId, 'belge');
-  notify('Belge kaydedildi ✓');
+function _icraBelgeFilter(icraId, aramaMetni, turFilter) {
+  var kartlar = document.querySelectorAll('#idp-belge-list .ddp-belge-card');
+  kartlar.forEach(function(k) {
+    var adMatch = !aramaMetni || (k.dataset.ad||'').includes(aramaMetni.toLowerCase());
+    var turMatch = !turFilter || (k.dataset.tur||'') === turFilter;
+    k.style.display = (adMatch && turMatch) ? '' : 'none';
+  });
 }
 
 // İcra görev silme
@@ -975,37 +962,36 @@ function renderIcraTab(id, sekme) {
       + '</div>';
 
   } else if (sekme === 'belge') {
-    // Ö3: Belgeler sekmesi
+    var icraBelgeIcon = function(tur) {
+      return tur==='Ödeme Emri'?'📬':tur==='İcra Emri'?'⚖️':tur==='Haciz Tutanağı'?'📋':tur==='Kıymet Takdir'?'📊':tur==='Satış İlanı'?'🏷️':tur==='Sıra Cetveli'?'📑':'📁';
+    };
     el.innerHTML = '<div style="padding:16px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'
       + '<div style="font-size:14px;font-weight:700;color:var(--text)">📎 Belgeler</div>'
+      + '<button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="openIcraBelgeModal(\''+id+'\')">+ Belge Ekle</button>'
       + '</div>'
-      // Belge ekleme formu
-      + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">+ Yeni Belge Ekle</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'
-      + '<input id="ib-ad" placeholder="Belge adı *" maxlength="200" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">'
-      + '<select id="ib-tur" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px"><option value="Ödeme Emri">📬 Ödeme Emri</option><option value="İcra Emri">⚖️ İcra Emri</option><option value="Haciz Tutanağı">📋 Haciz Tutanağı</option><option value="Kıymet Takdir">📊 Kıymet Takdir Raporu</option><option value="Satış İlanı">🏷️ Satış İlanı</option><option value="Sıra Cetveli">📑 Sıra Cetveli</option><option value="Diğer">📁 Diğer</option></select>'
-      + '</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">'
-      + '<input id="ib-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">'
-      + '<input id="ib-url" placeholder="Link/URL (opsiyonel)" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">'
-      + '<select id="ib-taraf" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px"><option value="Alacaklı">Alacaklı</option><option value="Borçlu">Borçlu</option><option value="İcra Müdürlüğü">İcra Müdürlüğü</option></select>'
-      + '</div>'
-      + '<div style="display:flex;gap:6px"><input id="ib-aciklama" placeholder="Açıklama..." maxlength="300" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 8px;outline:none">'
-      + '<button class="btn btn-gold" style="font-size:11px;padding:5px 12px" onclick="saveIcraBelge(\''+id+'\')">💾 Kaydet</button></div>'
-      + '</div>'
-      // Belge listesi
-      + (belgeler.length===0 ? '<div class="ddp-empty-state"><div class="ddp-empty-icon">📂</div><div class="ddp-empty-text">Henüz belge eklenmedi</div></div>'
+      + (belgeler.length>3
+        ? '<div class="ddp-belge-filter"><input type="text" placeholder="🔍 Belge ara..." oninput="_icraBelgeFilter(\''+id+'\',this.value,document.getElementById(\'idp-belge-tur-filter\').value)"><select id="idp-belge-tur-filter" onchange="_icraBelgeFilter(\''+id+'\',this.parentNode.querySelector(\'input\').value,this.value)"><option value="">Tüm Türler</option><option value="Ödeme Emri">Ödeme Emri</option><option value="İcra Emri">İcra Emri</option><option value="Haciz Tutanağı">Haciz Tutanağı</option><option value="Kıymet Takdir">Kıymet Takdir</option><option value="Satış İlanı">Satış İlanı</option><option value="Sıra Cetveli">Sıra Cetveli</option><option value="Diğer">Diğer</option></select></div>'
+        : '')
+      + '<div id="idp-belge-list">'
+      + (belgeler.length===0
+        ? '<div class="ddp-empty-state"><div class="ddp-empty-icon">📂</div><div class="ddp-empty-text">Henüz belge eklenmedi</div><button class="btn btn-gold" style="font-size:12px" onclick="openIcraBelgeModal(\''+id+'\')">İlk Belgeyi Ekleyin →</button></div>'
         : '<div style="display:flex;flex-direction:column;gap:8px">'+belgeler.sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);}).map(function(b,idx){
-          var tarafClass = b.taraf==='Alacaklı'?'taraf-biz':b.taraf==='Borçlu'?'taraf-karsi':b.taraf==='İcra Müdürlüğü'?'taraf-mahkeme':'';
-          return '<div class="ddp-belge-card '+tarafClass+'">'
-            + '<div style="font-size:10px;color:var(--text3);font-weight:700;font-family:monospace;flex-shrink:0;width:20px">'+(idx+1)+'</div>'
-            + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">'+escHtml(b.ad)+'</div><div style="font-size:11px;color:var(--text3);margin-top:2px">'+escHtml(b.tur||'')+(b.taraf?' · '+escHtml(b.taraf):'')+' · '+fmtDate(b.tarih)+'</div></div>'
-            + (b.url?'<a href="'+escHtml(b.url)+'" target="_blank" class="btn btn-outline" style="font-size:11px;padding:4px 10px;flex-shrink:0">Aç →</a>':'')
-            + '<button class="btn btn-ghost" style="color:var(--red);font-size:12px;flex-shrink:0" onclick="deleteIcraBelge(\''+b.id+'\',\''+id+'\')">🗑</button>'
-            + '</div>';
-        }).join('')+'</div>')
+            var tarafClass = b.taraf==='Alacaklı'?'taraf-biz':b.taraf==='Borçlu'?'taraf-karsi':b.taraf==='İcra Müdürlüğü'?'taraf-mahkeme':'';
+            return '<div class="ddp-belge-card '+tarafClass+'" data-ad="'+escHtml(b.ad).toLowerCase()+'" data-tur="'+(b.tur||'')+'">'
+              + '<div style="font-size:10px;color:var(--text3);font-weight:700;font-family:monospace;flex-shrink:0;width:20px">'+(idx+1)+'</div>'
+              + '<div style="font-size:20px;flex-shrink:0">'+icraBelgeIcon(b.tur)+'</div>'
+              + '<div style="flex:1;min-width:0">'
+              +   '<div style="font-size:13px;font-weight:600;color:var(--text)">'+escHtml(b.ad)+'</div>'
+              +   '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+escHtml(b.tur||'')+(b.taraf?' · '+escHtml(b.taraf):'')+' · '+fmtDate(b.tarih)+'</div>'
+              +   (b.aciklama?'<div style="font-size:12px;color:var(--text3);margin-top:3px">'+escHtml(b.aciklama)+'</div>':'')
+              + '</div>'
+              + (b.url?'<a href="'+escHtml(b.url)+'" target="_blank" class="btn btn-outline" style="font-size:11px;padding:4px 10px;flex-shrink:0">Aç →</a>':'')
+              + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 6px;flex-shrink:0" onclick="editIcraBelge(\''+b.id+'\',\''+id+'\')">✏</button>'
+              + '<button class="btn btn-ghost" style="color:var(--red);font-size:12px;flex-shrink:0" onclick="deleteIcraBelge(\''+b.id+'\',\''+id+'\')">🗑</button>'
+              + '</div>';
+          }).join('')+'</div>')
+      + '</div>'
       + '</div>';
 
   } else if (sekme === 'gorev') {

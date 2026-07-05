@@ -1101,19 +1101,105 @@ function clearForms() {
 
 // ══ BELGE MODAL ══
 var currentBelgeDavaId = null;
+var _currentBelgeMode = 'dava'; // 'dava' veya 'icra'
+var _currentBelgeIcraId = null;
+
+var _ICRA_BELGE_TURLER = [
+  {v:'Ödeme Emri', l:'📬 Ödeme Emri'},
+  {v:'İcra Emri', l:'⚖️ İcra Emri'},
+  {v:'Haciz Tutanağı', l:'📋 Haciz Tutanağı'},
+  {v:'Kıymet Takdir', l:'📊 Kıymet Takdir Raporu'},
+  {v:'Satış İlanı', l:'🏷️ Satış İlanı'},
+  {v:'Sıra Cetveli', l:'📑 Sıra Cetveli'},
+  {v:'Diğer', l:'📁 Diğer'}
+];
+var _DAVA_BELGE_TURLER = [
+  {v:'Dilekçe', l:'📄 Dilekçe'},
+  {v:'Karar', l:'⚖️ Mahkeme Kararı'},
+  {v:'Vekaletname', l:'📜 Vekaletname'},
+  {v:'Bilirkişi', l:'🔬 Bilirkişi Raporu'},
+  {v:'Tebligat', l:'📬 Tebligat'},
+  {v:'Sözleşme', l:'✍️ Sözleşme'},
+  {v:'Diğer', l:'📁 Diğer'}
+];
+
+function _belgeTurSeceneklerGuncelle(mode, secilenTur) {
+  var turSel = document.getElementById('belge-tur');
+  if (!turSel) return;
+  var liste = mode === 'icra' ? _ICRA_BELGE_TURLER : _DAVA_BELGE_TURLER;
+  turSel.innerHTML = liste.map(function(t){ return '<option value="'+t.v+'">'+t.l+'</option>'; }).join('');
+  if (secilenTur) turSel.value = secilenTur;
+}
+
+function _belgeTarafSeceneklerGuncelle(mode, secilenTaraf) {
+  var tarafSel = document.getElementById('belge-taraf');
+  if (!tarafSel) return;
+  if (mode === 'icra') {
+    tarafSel.innerHTML = '<option value="Alacaklı">Alacaklı</option><option value="Borçlu">Borçlu</option><option value="İcra Müdürlüğü">İcra Müdürlüğü</option>';
+  } else {
+    tarafSel.innerHTML = '<option value="Biz">Biz</option><option value="Karşı">Karşı</option><option value="Mahkeme">Mahkeme</option>';
+  }
+  if (secilenTaraf) tarafSel.value = secilenTaraf;
+}
 
 function openBelgeModal(davaId) {
+  _currentBelgeMode = 'dava';
+  _currentBelgeIcraId = null;
   currentBelgeDavaId = davaId;
   _saveBelgeLock = false;
   _belgeSelectedFile = null;
   document.getElementById('modal-belge-title').textContent = '📎 Belge Ekle';
   document.getElementById('belge-ad').value = '';
-  document.getElementById('belge-tur').value = 'Dilekçe';
+  _belgeTurSeceneklerGuncelle('dava', 'Dilekçe');
   document.getElementById('belge-tarih').value = _localDateStr();
   document.getElementById('belge-url').value = '';
-  document.getElementById('belge-taraf').value = 'Biz';
+  _belgeTarafSeceneklerGuncelle('dava', 'Biz');
   document.getElementById('belge-aciklama').value = '';
   document.getElementById('belge-edit-id').value = '';
+  var fnEl = document.getElementById('belge-file-name');
+  if(fnEl) fnEl.style.display = 'none';
+  var fiEl = document.getElementById('belge-file-input');
+  if(fiEl) fiEl.value = '';
+  openModal('modal-belge');
+}
+
+function openIcraBelgeModal(icraId) {
+  _currentBelgeMode = 'icra';
+  _currentBelgeIcraId = icraId;
+  currentBelgeDavaId = null;
+  _saveBelgeLock = false;
+  _belgeSelectedFile = null;
+  document.getElementById('modal-belge-title').textContent = '📎 İcra Belgesi Ekle';
+  document.getElementById('belge-ad').value = '';
+  _belgeTurSeceneklerGuncelle('icra', 'Ödeme Emri');
+  document.getElementById('belge-tarih').value = _localDateStr();
+  document.getElementById('belge-url').value = '';
+  _belgeTarafSeceneklerGuncelle('icra', 'Alacaklı');
+  document.getElementById('belge-aciklama').value = '';
+  document.getElementById('belge-edit-id').value = '';
+  var fnEl = document.getElementById('belge-file-name');
+  if(fnEl) fnEl.style.display = 'none';
+  var fiEl = document.getElementById('belge-file-input');
+  if(fiEl) fiEl.value = '';
+  openModal('modal-belge');
+}
+
+function editIcraBelge(belgeId, icraId) {
+  var b = (DB.get('icra_belgeler')||[]).find(function(x){ return x.id === belgeId; });
+  if (!b) return;
+  _currentBelgeMode = 'icra';
+  _currentBelgeIcraId = icraId;
+  currentBelgeDavaId = null;
+  _saveBelgeLock = false;
+  _belgeSelectedFile = null;
+  document.getElementById('modal-belge-title').textContent = '📎 Belge Düzenle';
+  document.getElementById('belge-ad').value = b.ad || '';
+  _belgeTurSeceneklerGuncelle('icra', b.tur);
+  document.getElementById('belge-tarih').value = b.tarih || _localDateStr();
+  document.getElementById('belge-url').value = b.url || '';
+  _belgeTarafSeceneklerGuncelle('icra', b.taraf);
+  document.getElementById('belge-aciklama').value = b.aciklama || '';
+  document.getElementById('belge-edit-id').value = belgeId;
   var fnEl = document.getElementById('belge-file-name');
   if(fnEl) fnEl.style.display = 'none';
   var fiEl = document.getElementById('belge-file-input');
@@ -1128,10 +1214,10 @@ function saveBelge() {
   if (!ad) { alert('Belge adı zorunludur.'); return; }
   _saveBelgeLock = true;
   var editId = document.getElementById('belge-edit-id').value;
+  var isIcra = (_currentBelgeMode === 'icra');
 
   var belge = {
     id: editId || DB.genId(),
-    davaId: currentBelgeDavaId,
     ad: ad,
     tur: document.getElementById('belge-tur').value,
     tarih: document.getElementById('belge-tarih').value,
@@ -1140,6 +1226,8 @@ function saveBelge() {
     aciklama: document.getElementById('belge-aciklama').value.trim(),
     olusturma: new Date().toISOString()
   };
+  if (isIcra) { belge.icraId = _currentBelgeIcraId; }
+  else { belge.davaId = currentBelgeDavaId; }
 
   // B5: If file selected, upload to Supabase storage
   if(_belgeSelectedFile && window._supabaseToken) {
@@ -1147,8 +1235,8 @@ function saveBelge() {
     _belgeSelectedFile = null;
     var ts = Date.now();
     var temizAd = dosya.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    // Use same path pattern as working chatter upload: chatter/{id}/{ts}_{name}
-    var yol = 'belgeler/' + currentBelgeDavaId + '/' + ts + '_' + temizAd;
+    var klasor = isIcra ? ('icra-belgeler/' + _currentBelgeIcraId) : ('belgeler/' + currentBelgeDavaId);
+    var yol = klasor + '/' + ts + '_' + temizAd;
     fetch(SUPABASE_URL + '/storage/v1/object/chatter-files/' + yol, {
       method: 'POST',
       headers: {
@@ -1179,6 +1267,21 @@ function saveBelge() {
 }
 
 function _saveBelgeFinish(belge, editId) {
+  if (_currentBelgeMode === 'icra') {
+    var icraBelgeler = DB.get('icra_belgeler') || [];
+    if (editId) { icraBelgeler = icraBelgeler.map(function(b){ return b.id===editId ? belge : b; }); }
+    else { icraBelgeler.push(belge); }
+    DB.set('icra_belgeler', icraBelgeler);
+    closeModal('modal-belge');
+    document.getElementById('belge-edit-id').value = '';
+    _saveBelgeLock = false;
+    notify(editId ? 'Belge güncellendi' : 'Belge kaydedildi ✓');
+    if (_currentBelgeIcraId && typeof renderIcraTab === 'function') {
+      renderIcraTab(_currentBelgeIcraId, 'belge');
+    }
+    return;
+  }
+
   var belgeler = DB.get('belgeler') || [];
   if(editId) { belgeler = belgeler.map(function(b){return b.id===editId?belge:b;}); }
   else { belgeler.push(belge); }
@@ -1191,7 +1294,6 @@ function _saveBelgeFinish(belge, editId) {
 
   // Dava detay sayfası açıksa anında yenile
   if (currentBelgeDavaId) {
-    // Belge sekmesini aktif yap ve yenile
     const sekmeler = document.querySelectorAll('.ddp-sekme');
     sekmeler.forEach(s => {
       s.classList.remove('aktif');
