@@ -2712,7 +2712,15 @@ function deleteFinans(id) {
   // Silinecek kaydı önceden sakla
   var silinenF = (DB.get('finans')||[]).find(function(x){ return x.id === id; });
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
-    DB.set('finans', DB.get('finans').filter(function(x){ return x.id !== id; }));
+    var yeniFinans = DB.get('finans').filter(function(x){ return x.id !== id; });
+    // Taksit Tahsilatı silinirse orijinal taksit kaydını "bekliyor"a döndür
+    if (silinenF && silinenF.tur === 'Taksit Tahsilatı' && silinenF.kaynakTaksitId) {
+      yeniFinans = yeniFinans.map(function(f) {
+        if (f.id === silinenF.kaynakTaksitId) return Object.assign({}, f, { taksitDurumu: 'bekliyor', odenmeTarihi: null });
+        return f;
+      });
+    }
+    DB.set('finans', yeniFinans);
     // Ana finans listesini yenile
     renderFinans();
     renderKarsiVekalet();

@@ -1742,7 +1742,9 @@ function _tabTypeClass(t) {
 }
 
 function tabEkle(label, icon, page, subpage, itemId) {
-  const existing = itemId ? _tabs.find(t => t.itemId === itemId && t.subpage === subpage) : null;
+  const existing = itemId
+    ? _tabs.find(t => t.itemId === itemId && t.subpage === subpage)
+    : _tabs.find(t => !t.itemId && t.page === page && !t.subpage);
   if (existing) { tabAktiflestir(existing.id); return; }
   const id = 'tab_' + Date.now();
   _tabs.push({id, label, icon: icon||'📌', page: page||'dashboard', subpage: subpage||null, itemId: itemId||null});

@@ -161,12 +161,30 @@ async function _oturumGeriYukle() {
       if (rmEl) rmEl.checked = true;
     }
   } catch(e) {}
+  // Önce önbelleği kontrol et: oturum muhtemelen açıksa login ekranını gizle
+  try {
+    const cachedSb = sessionStorage.getItem('sb_session');
+    if (cachedSb) {
+      const ls = document.getElementById('login-screen');
+      const pl = document.getElementById('post-login-loading');
+      if (ls) { ls.classList.add('hidden'); ls.style.display = 'none'; }
+      if (pl) pl.style.display = 'flex';
+    }
+  } catch(e) {}
   let session = null;
   try {
     const { data } = await _supabaseClient.auth.getSession();
     session = data && data.session;
   } catch(e) { console.warn('Oturum sorgulanamadı:', e); }
-  if (!session) return false;
+  if (!session) {
+    // Geçersiz önbellek varsa temizle ve login ekranını göster
+    try { sessionStorage.removeItem('sb_session'); } catch(e) {}
+    const ls = document.getElementById('login-screen');
+    const pl = document.getElementById('post-login-loading');
+    if (ls) { ls.classList.remove('hidden'); ls.style.display = ''; }
+    if (pl) pl.style.display = 'none';
+    return false;
+  }
   window._supabaseToken = session.access_token;
   window._currentUserId = session.user.id;
   try { sessionStorage.setItem('sb_session', JSON.stringify({ access_token: session.access_token, user_id: session.user.id, email: session.user.email, expires_at: session.expires_at })); } catch(e) {}

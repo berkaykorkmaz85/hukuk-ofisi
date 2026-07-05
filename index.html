@@ -639,7 +639,7 @@
   .detail-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
   .info-item label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 3px; }
-  .info-item span { font-size: 13.5px; color: var(--text); }
+  .info-item span { font-size: 13.5px; color: var(--text); font-weight: 500; }
 
   /* TABS */
   .tabs { display: flex; gap: 2px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
@@ -1100,8 +1100,8 @@
   .finans-sekme {
     padding: 10px 18px;
     font-size: 13px;
-    font-weight: 600;
-    color: var(--text3);
+    font-weight: 500;
+    color: var(--text2);
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -1110,13 +1110,13 @@
     transition: all 0.15s;
     font-family: 'DM Sans', sans-serif;
   }
-  .finans-sekme:hover { color: var(--text); }
-  .finans-sekme.aktif { color: var(--gold); border-bottom-color: var(--gold); }
+  .finans-sekme:hover { color: var(--text); font-weight: 600; }
+  .finans-sekme.aktif { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
   .ddp-sekme {
     padding: 11px 18px;
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text3);
+    font-weight: 500;
+    color: var(--text2);
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -1125,8 +1125,8 @@
     transition: all 0.15s;
     font-family: 'DM Sans', sans-serif;
   }
-  .ddp-sekme:hover { color: var(--text); }
-  .ddp-sekme.aktif { color: var(--gold); border-bottom-color: var(--gold); }
+  .ddp-sekme:hover { color: var(--text); font-weight: 600; }
+  .ddp-sekme.aktif { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
   /* Mobile-only kontroller — masaüstünde gizli, 768px altı media query'de açılır */
   .ddp-sekme-mobil-notlar { display: none; }
   .ddp-mobil-geri-btn { display: none; }

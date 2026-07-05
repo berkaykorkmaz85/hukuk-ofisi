@@ -1201,7 +1201,7 @@ function showPage(page) {
     idp.classList.remove('open');
     if (currentIcraId) {
       var iTab = _tabs.find(function(t){ return t.itemId === currentIcraId && t.subpage === 'icra-detail'; });
-      if (iTab) { _tabs = _tabs.filter(function(t){ return t.id !== iTab.id; }); if (_activeTabId === iTab.id) _activeTabId = null; }
+      if (iTab) { _tabs = _tabs.filter(function(t){ return t.id !== iTab.id; }); if (_activeTabId === iTab.id) _activeTabId = null; tabRender(); if (typeof _tabSaveSession === 'function') _tabSaveSession(); }
     }
     currentIcraId = null;
   }
