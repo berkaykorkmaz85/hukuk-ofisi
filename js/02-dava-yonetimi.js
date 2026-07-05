@@ -2231,6 +2231,27 @@ function _ddpDeleteFinans(fId) {
   var silinenF = (DB.get('finans')||[]).find(function(f){ return f.id === fId; });
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
     DB.set('finans', DB.get('finans').filter(function(f){ return f.id !== fId; }));
+    // odeme_planlari taksit senkronizasyonu
+    if (silinenF && silinenF.tur === 'Taksit Tahsilatı') {
+      var planlar = DB.get('odeme_planlari') || [];
+      var planGuncellendi = false;
+      planlar = planlar.map(function(plan) {
+        var degisti = false;
+        var yeniTaksitler = (plan.taksitler || []).map(function(t) {
+          if (t.finansId === fId) {
+            degisti = true; planGuncellendi = true;
+            var yeni = Object.assign({}, t);
+            yeni.durum = 'bekliyor';
+            delete yeni.odenmeTarihi;
+            delete yeni.finansId;
+            return yeni;
+          }
+          return t;
+        });
+        return degisti ? Object.assign({}, plan, { taksitler: yeniTaksitler }) : plan;
+      });
+      if (planGuncellendi) DB.set('odeme_planlari', planlar);
+    }
     // Dava detay sayfasını yenile
     if (currentDavaId) renderDavaTab(currentDavaId, 'finans');
     // Finans ana listesi açıksa yenile

@@ -517,6 +517,7 @@ async function _dosyaIliskiliVerileriSil(tip, id, dosyaNo) {
     DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(m => m.icraId !== id));
     DB.set('finans', (DB.get('finans')||[]).filter(f => !(f.icraId === id || (dosyaNo && f.ilgili === dosyaNo))));
     localStorage.removeItem('icra_haciz_' + id);
+    localStorage.removeItem('icra_kapak_' + id);
   }
   DB.set('tasks', (DB.get('tasks')||[]).filter(t => !(t.ilgili && (t.ilgili === id || (dosyaNo && t.ilgili === dosyaNo)))));
   if (dosyaNo) {
@@ -538,7 +539,12 @@ function deleteDava(id) {
     DB.set('davalar', DB.get('davalar').filter(x=>x.id!==id));
     await _dosyaIliskiliVerileriSil('dava', id, d ? d.no : '');
     var ddp = document.getElementById('dava-detail-page');
-    if (ddp && ddp.classList.contains('open')) { ddp.classList.remove('open'); currentDavaId = null; }
+    if (ddp && ddp.classList.contains('open')) {
+      ddp.classList.remove('open');
+      var ddpCtxDel = document.getElementById('ddp-topbar-context');
+      if (ddpCtxDel) ddpCtxDel.style.display = 'none';
+      currentDavaId = null;
+    }
     showPage('davalar');
     renderDavalar();
     notify('Dava ve bağlı kayıtları silindi');
@@ -961,6 +967,100 @@ function renderIcraTab(id, sekme) {
       + '</div></div>'
       + '</div>';
 
+  } else if (sekme === 'kapak') {
+    var kd = JSON.parse(localStorage.getItem('icra_kapak_' + id) || '{}');
+    // Faiz hesaplama: ana para × oran × gün / 365
+    var faizHesapla = function() {
+      var ana = parseFloat((kd.anaPara||'').replace(',','.')) || 0;
+      var oran = parseFloat((kd.faizOrani||'').replace(',','.')) || 0;
+      var bas = kd.faizBasTarih;
+      if (!ana || !oran || !bas) return null;
+      var gun = Math.max(0, Math.floor((new Date() - new Date(bas)) / 86400000));
+      return ana * (oran / 100) * (gun / 365);
+    };
+    var hesaplananFaiz = faizHesapla();
+    var gosterilecekFaiz = hesaplananFaiz !== null ? hesaplananFaiz.toFixed(2) : null;
+
+    var kalemler = [
+      { key: 'anaPara',      label: 'Ana Para',         icon: '💰', zorunlu: true },
+      { key: 'islemiFaiz',   label: 'İşlemiş Faiz',     icon: '📈', readonly: gosterilecekFaiz !== null },
+      { key: 'vekaletUcreti',label: 'Vekalet Ücreti',   icon: '⚖️', zorunlu: false },
+      { key: 'masrafMiktari',label: 'Masraf Miktarı',   icon: '📋', zorunlu: false },
+      { key: 'tahsilHarci',  label: 'Tahsil Harcı',     icon: '🏛️', zorunlu: false },
+      { key: 'cezaeviHarci', label: 'Cezaevi Harcı',    icon: '🔒', zorunlu: false },
+    ];
+
+    // Toplam hesapla
+    var toplam = kalemler.reduce(function(acc, k) {
+      var val;
+      if (k.key === 'islemiFaiz' && gosterilecekFaiz !== null) {
+        val = parseFloat(gosterilecekFaiz) || 0;
+      } else {
+        val = parseFloat((kd[k.key]||'').replace(',','.')) || 0;
+      }
+      return acc + val;
+    }, 0);
+
+    var fmtTL = function(n) {
+      return n.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' ₺';
+    };
+
+    el.innerHTML = '<div style="padding:16px;max-width:560px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--text)">🧮 Kapak Hesabı</div>'
+      + '<button onclick="icraKapakYenile(\''+id+'\')" style="display:flex;align-items:center;gap:6px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer">🔄 Yenile & Hesapla</button>'
+      + '</div>'
+      // Faiz parametreleri kutusu
+      + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">'
+      + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:10px">⚙️ Faiz Parametreleri</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+      + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Faiz Oranı (%)</div>'
+      + '<input type="text" inputmode="decimal" value="'+escAttr(kd.faizOrani||'')+'" placeholder="ör: 9.00" onchange="icraKapakKaydet(\''+id+'\',\'faizOrani\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;box-sizing:border-box"></div>'
+      + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Faiz Başlangıç Tarihi</div>'
+      + '<input type="date" value="'+escAttr(kd.faizBasTarih||'')+'" onchange="icraKapakKaydet(\''+id+'\',\'faizBasTarih\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;box-sizing:border-box">'
+      + '</div>'
+      + '</div>'
+      + (kd.faizBasTarih && kd.faizOrani && kd.anaPara
+        ? '<div style="font-size:11px;color:var(--text3);margin-top:8px">📅 Bugün itibarıyla <strong style="color:var(--text2)">'
+          + Math.max(0,Math.floor((new Date()-new Date(kd.faizBasTarih))/86400000))
+          + ' gün</strong> — Hesaplanan faiz: <strong style="color:var(--gold)">'+fmtTL(hesaplananFaiz||0)+'</strong></div>'
+        : '')
+      + '</div>'
+      // Alacak kalemleri
+      + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px">'
+      + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--border)">📊 Alacak Kalemleri</div>'
+      + kalemler.map(function(k) {
+          var isReadonly = k.key === 'islemiFaiz' && gosterilecekFaiz !== null;
+          var displayVal = isReadonly ? gosterilecekFaiz : escAttr(kd[k.key]||'');
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04)">'
+            + '<span style="font-size:16px;width:22px;text-align:center;flex-shrink:0">'+k.icon+'</span>'
+            + '<div style="flex:1;font-size:13px;color:var(--text2)">'+escHtml(k.label)+'</div>'
+            + (isReadonly
+              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(201,168,76,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(gosterilecekFaiz))+'</div>'
+              : '<input type="text" inputmode="decimal" value="'+displayVal+'" placeholder="0,00" onchange="icraKapakKaydet(\''+id+'\',\''+k.key+'\',this.value)" style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:6px 10px;outline:none;text-align:right;font-family:monospace">')
+            + '</div>';
+        }).join('')
+      + '</div>'
+      // Toplam alacak kutusu
+      + '<div style="background:rgba(201,168,76,0.08);border:1.5px solid rgba(201,168,76,0.4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="font-size:14px;font-weight:700;color:var(--gold)">Toplam Alacak</div>'
+      + '<div style="font-size:20px;font-weight:800;color:var(--gold);font-family:monospace">'+fmtTL(toplam)+'</div>'
+      + '</div>'
+      // Tahsilat varsa bakiye
+      + (kd.yatanPara
+        ? '<div style="margin-top:8px;background:rgba(74,140,92,0.1);border:1px solid rgba(74,140,92,0.3);border-radius:10px;padding:12px 16px">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+          + '<div style="font-size:12px;color:var(--text3)">Yatan Para</div>'
+          + '<input type="text" inputmode="decimal" value="'+escAttr(kd.yatanPara)+'" onchange="icraKapakKaydet(\''+id+'\',\'yatanPara\',this.value)" style="width:110px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;padding:3px 6px;outline:none;text-align:right;font-family:monospace">'
+          + '</div>'
+          + '<div style="display:flex;align-items:center;justify-content:space-between">'
+          + '<div style="font-size:13px;font-weight:700;color:'+(toplam-(parseFloat((kd.yatanPara||'').replace(',','.'))||0)<=0?'var(--green)':'var(--red)')+'">Bakiye Borç</div>'
+          + '<div style="font-size:16px;font-weight:800;font-family:monospace;color:'+(toplam-(parseFloat((kd.yatanPara||'').replace(',','.'))||0)<=0?'var(--green)':'var(--red)')+'">'+fmtTL(Math.max(0,toplam-(parseFloat((kd.yatanPara||'').replace(',','.'))||0)))+'</div>'
+          + '</div>'
+          + '</div>'
+        : '<button onclick="icraKapakKaydet(\''+id+'\',\'yatanPara\',\'0\');renderIcraTab(\''+id+'\',\'kapak\')" style="margin-top:8px;width:100%;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--text3);font-size:12px;padding:8px;cursor:pointer">+ Yatan Para Ekle</button>')
+      + '</div>';
+
   } else if (sekme === 'belge') {
     var icraBelgeIcon = function(tur) {
       return tur==='Ödeme Emri'?'📬':tur==='İcra Emri'?'⚖️':tur==='Haciz Tutanağı'?'📋':tur==='Kıymet Takdir'?'📊':tur==='Satış İlanı'?'🏷️':tur==='Sıra Cetveli'?'📑':'📁';
@@ -1086,8 +1186,12 @@ function _hacizSbToLocal() {
   icralar.forEach(function(i) {
     if (i.haciz && typeof i.haciz === 'object') {
       try {
-        // Supabase her zaman yetkili kaynak — localStorage'ı doğrudan üzerine yaz
         localStorage.setItem('icra_haciz_' + i.id, JSON.stringify(i.haciz));
+      } catch(e) {}
+    }
+    if (i.kapakHesabi && typeof i.kapakHesabi === 'object') {
+      try {
+        localStorage.setItem('icra_kapak_' + i.id, JSON.stringify(i.kapakHesabi));
       } catch(e) {}
     }
   });
@@ -1099,6 +1203,22 @@ function saveIcraHaciz(icraId, key, val) {
   _hacizLocalYaz(icraId, data);
 }
 
+function icraKapakKaydet(icraId, key, val) {
+  const data = JSON.parse(localStorage.getItem('icra_kapak_' + icraId) || '{}');
+  data[key] = val;
+  localStorage.setItem('icra_kapak_' + icraId, JSON.stringify(data));
+  // Supabase'e de yaz
+  const icra = (DB.get('icralar')||[]).find(x=>x.id===icraId);
+  if (icra) {
+    const guncel = Object.assign({}, icra, { kapakHesabi: data });
+    supabase.from('icralar').upsert(guncel).then(function(r){ if(r.error) console.error('[kapak] sb yazılamadı:', r.error); });
+  }
+}
+
+function icraKapakYenile(icraId) {
+  renderIcraTab(icraId, 'kapak');
+}
+
 function toggleIcraBank(icraId, banka) {
   const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
   const arr = data.bankalar || [];
@@ -1106,15 +1226,7 @@ function toggleIcraBank(icraId, banka) {
   if (idx >= 0) arr.splice(idx, 1); else arr.push(banka);
   data.bankalar = arr;
   _hacizLocalYaz(icraId, data);
-  const key = 'bank-' + icraId + '-' + banka.replace(/[^a-zA-Z0-9]/g,'_');
-  const chip = document.getElementById(key);
-  if (chip) {
-    const secili = arr.includes(banka);
-    chip.style.background = secili?'var(--gold-dim)':'var(--bg2)';
-    chip.style.borderColor = secili?'var(--gold)':'var(--border)';
-    chip.style.color = secili?'var(--gold2)':'var(--text3)';
-    chip.style.fontWeight = secili?'600':'400';
-  }
+  renderIcraTab(icraId, 'haciz');
 }
 
 function toggleMaasAy(icraId, key2) {
@@ -2700,11 +2812,34 @@ function deleteFinans(id) {
   showConfirmModal('Bu finansal işlemi silmek istediğinizden emin misiniz?', function() {
     var yeniFinans = DB.get('finans').filter(function(x){ return x.id !== id; });
     // Taksit Tahsilatı silinirse orijinal taksit kaydını "bekliyor"a döndür
-    if (silinenF && silinenF.tur === 'Taksit Tahsilatı' && silinenF.kaynakTaksitId) {
-      yeniFinans = yeniFinans.map(function(f) {
-        if (f.id === silinenF.kaynakTaksitId) return Object.assign({}, f, { taksitDurumu: 'bekliyor', odenmeTarihi: null });
-        return f;
+    if (silinenF && silinenF.tur === 'Taksit Tahsilatı') {
+      // Durum 1: finans tablosundaki taksit (kaynakTaksitId ile bağlı)
+      if (silinenF.kaynakTaksitId) {
+        yeniFinans = yeniFinans.map(function(f) {
+          if (f.id === silinenF.kaynakTaksitId) return Object.assign({}, f, { taksitDurumu: 'bekliyor', odenmeTarihi: null });
+          return f;
+        });
+      }
+      // Durum 2: odeme_planlari tablosundaki manuel taksit (finansId ile bağlı)
+      var planlar = DB.get('odeme_planlari') || [];
+      var planGuncellendi = false;
+      planlar = planlar.map(function(plan) {
+        var degisti = false;
+        var yeniTaksitler = (plan.taksitler || []).map(function(t) {
+          if (t.finansId === id) {
+            degisti = true;
+            planGuncellendi = true;
+            var yeni = Object.assign({}, t);
+            yeni.durum = 'bekliyor';
+            delete yeni.odenmeTarihi;
+            delete yeni.finansId;
+            return yeni;
+          }
+          return t;
+        });
+        return degisti ? Object.assign({}, plan, { taksitler: yeniTaksitler }) : plan;
       });
+      if (planGuncellendi) DB.set('odeme_planlari', planlar);
     }
     DB.set('finans', yeniFinans);
     // Ana finans listesini yenile
