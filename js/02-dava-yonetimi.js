@@ -1189,6 +1189,13 @@ function showPage(page) {
   if (ddp && ddp.classList.contains('open')) {
     ddp.classList.remove('open');
     document.body.style.overflow = '';
+    // Topbar'ı sıfırla (closeDavaDetailPage ile aynı)
+    var ddpCtx = document.getElementById('ddp-topbar-context');
+    if (ddpCtx) ddpCtx.style.display = 'none';
+    var addBtn = document.getElementById('topbar-add-btn');
+    if (addBtn) addBtn.textContent = '+ Yeni Ekle';
+    var pgTitle = document.getElementById('page-title');
+    if (pgTitle) pgTitle.style.display = '';
     if (currentDavaId) {
       var dTab = _tabs.find(function(t){ return t.itemId === currentDavaId && t.subpage === 'dava-detail'; });
       if (dTab) { _tabs = _tabs.filter(function(t){ return t.id !== dTab.id; }); if (_activeTabId === dTab.id) _activeTabId = null; tabRender(); if (typeof _tabSaveSession === 'function') _tabSaveSession(); }
@@ -1199,6 +1206,13 @@ function showPage(page) {
   const idp = document.getElementById('icra-detail-page');
   if (idp && idp.classList.contains('open')) {
     idp.classList.remove('open');
+    // Topbar'ı sıfırla
+    var idpCtx = document.getElementById('ddp-topbar-context');
+    if (idpCtx) idpCtx.style.display = 'none';
+    var addBtn2 = document.getElementById('topbar-add-btn');
+    if (addBtn2) addBtn2.textContent = '+ Yeni Ekle';
+    var pgTitle2 = document.getElementById('page-title');
+    if (pgTitle2) pgTitle2.style.display = '';
     if (currentIcraId) {
       var iTab = _tabs.find(function(t){ return t.itemId === currentIcraId && t.subpage === 'icra-detail'; });
       if (iTab) { _tabs = _tabs.filter(function(t){ return t.id !== iTab.id; }); if (_activeTabId === iTab.id) _activeTabId = null; tabRender(); if (typeof _tabSaveSession === 'function') _tabSaveSession(); }
