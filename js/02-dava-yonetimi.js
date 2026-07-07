@@ -709,8 +709,8 @@ function renderDurusmaTakvim() {
   var AY = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   var allTasks = DB.get('tasks') || [];
   var tasks = allTasks.filter(function(t) { return t.tip === 'durusma' || (t.mahkeme && t.mahkeme.length > 0); });
-  var today = new Date(); today.setHours(0,0,0,0);
-  var todayStr = today.toISOString().slice(0,10);
+  var today = new Date();
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
 
   if (_dtView === 'ay') {
     if (labelEl) labelEl.textContent = AY[_dtMonth] + ' ' + _dtYear;

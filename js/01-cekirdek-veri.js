@@ -161,6 +161,15 @@ async function _oturumGeriYukle() {
       if (rmEl) rmEl.checked = true;
     }
   } catch(e) {}
+  // "Beni hatırla" seçilmemişse ve aynı tarayıcı oturumunda değilsek otomatik giriş yapma
+  try {
+    const persistLogin = localStorage.getItem('hukuk_persist_login');
+    const sessionCached = sessionStorage.getItem('sb_session');
+    if (!persistLogin && !sessionCached) {
+      await _supabaseClient.auth.signOut();
+      return false;
+    }
+  } catch(e) {}
   // Önce önbelleği kontrol et: oturum muhtemelen açıksa login ekranını gizle
   try {
     const cachedSb = sessionStorage.getItem('sb_session');
@@ -795,8 +804,10 @@ async function doLogin() {
     // Beni hatırla
     if (document.getElementById('remember-me')?.checked) {
       localStorage.setItem('hukuk_remember_user', emailOrUser);
+      localStorage.setItem('hukuk_persist_login', '1');
     } else {
       localStorage.removeItem('hukuk_remember_user');
+      localStorage.removeItem('hukuk_persist_login');
     }
     // Auth doğrulandı, ama login ekranını HENÜZ kapatmıyoruz — önce tam ekran
     // yükleme katmanını login ekranının ÜSTÜNE gösteriyoruz, ki kullanıcı "boş/donuk
