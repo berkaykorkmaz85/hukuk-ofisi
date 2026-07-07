@@ -2251,26 +2251,6 @@ function _ddpDeleteFinans(fId) {
         return degisti ? Object.assign({}, plan, { taksitler: yeniTaksitler }) : plan;
       });
       if (planGuncellendi) DB.set('odeme_planlari', planlar);
-
-      // FINANS-TABANLI plan taksiti senkronizasyonu:
-      // Taksitli davalardan üretilen planlarda taksit durumu odeme_planlari'nda
-      // DEĞİL, finans tablosundaki taksit kaydının `taksitDurumu` alanında tutulur.
-      // Ödeme yapılınca (taksitiOde finans yolu) ayrı bir "Taksit Tahsilatı" kaydı
-      // oluşur ve `kaynakTaksitId` ile asıl taksite bağlanır. Bu tahsilat silinince
-      // asıl taksitin `taksitDurumu`'nu 'bekliyor'a geri çekmek gerekir — aksi halde
-      // taksit ekranda "Ödendi" görünmeye devam eder (asıl hata buydu).
-      if (silinenF.kaynakTaksitId) {
-        var finansGuncel = DB.get('finans') || [];
-        var finansDegisti = false;
-        finansGuncel = finansGuncel.map(function(f) {
-          if (f.id === silinenF.kaynakTaksitId && f.odemeSekli === 'taksit') {
-            finansDegisti = true;
-            return Object.assign({}, f, { taksitDurumu: 'bekliyor', odenmeTarihi: null });
-          }
-          return f;
-        });
-        if (finansDegisti) DB.set('finans', finansGuncel);
-      }
     }
     // Dava detay sayfasını yenile
     if (currentDavaId) renderDavaTab(currentDavaId, 'finans');

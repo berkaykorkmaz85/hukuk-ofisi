@@ -3339,3 +3339,287 @@ function _saveTaskFinalize(obj, tip) {
   if (obj.hatirlatma) scheduleReminder(obj);
 }
 
+// ================================================================
+// UYAP İÇE AKTARMA — FAZ 1 (manuel Excel içe aktarma)
+// UYAP Avukat Portal → Duruşmalarım → "Excel'e Aktar" çıktısını okur.
+// Eşleştirme: dava.esas / icra.esas (dava.no DEĞİL — o bizim dahili
+// büro numaramız, örn. "BK001"). Dedup: esas no + tarih + saat + mahkeme.
+// Duruşma kaydı normal akışla aynı yere gider: tasks tablosu, tip:'durusma'.
+// ================================================================
+
+var _uyapImportRows = [];
+
+var _UYAP_HEADER_MAP = [
+  { key: 'mahkeme',   al: ['birim'] },
+  { key: 'esasNo',    al: ['dosya no', 'esas no'] },
+  { key: 'dosyaTuru', al: ['dosya turu', 'dosya türü'] },
+  { key: 'tarih',     al: ['duruşma tarihi', 'durusma tarihi'] },
+  { key: 'taraflar',  al: ['taraf bilgisi', 'taraflar'] },
+  { key: 'islem',     al: ['işlem', 'islem'] },
+  { key: 'sonuc',     al: ['sonuç', 'sonuc'] },
+];
+var _UYAP_ROLLER = ['DAVACI','DAVALI','TANIK','VEKİL','VEKIL','MÜŞTEKİ','MUSTEKI','SANIK','BORÇLU','BORCLU','ALACAKLI','ŞÜPHELİ','SUPHELI','KATILAN','MÜDAHİL','MUDAHIL','BİLİRKİŞİ','BILIRKISI'];
+
+function _uyapTrLow(s) { return (s == null ? '' : String(s)).trim().toLocaleLowerCase('tr'); }
+function _uyapTrUp(s) { return (s == null ? '' : String(s)).trim().toLocaleUpperCase('tr'); }
+
+function _uyapMapHeaders(headerRow) {
+  var idx = {};
+  headerRow.forEach(function(h, i) {
+    var t = _uyapTrLow(h);
+    for (var m = 0; m < _UYAP_HEADER_MAP.length; m++) {
+      if (_UYAP_HEADER_MAP[m].al.indexOf(t) !== -1) { idx[_UYAP_HEADER_MAP[m].key] = i; break; }
+    }
+  });
+  return idx;
+}
+
+function _uyapParseTarih(v) {
+  var s = (v == null ? '' : String(v)).trim();
+  var m = s.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if (!m) return { iso: '', saat: '', ok: false };
+  var d = m[1], mo = m[2], y = m[3], hh = m[4], mm = m[5];
+  var p = function(n) { return String(n).padStart(2, '0'); };
+  return { iso: y + '-' + p(mo) + '-' + p(d), saat: (hh != null ? p(hh) + ':' + mm : ''), ok: true };
+}
+
+function _uyapParseTaraflar(v) {
+  var s = (v == null ? '' : String(v)).trim();
+  if (!s) return [];
+  var segs = s.split(' - ').map(function(x){return x.trim();}).filter(Boolean);
+  if (segs.length === 1) return [{ ad: segs[0], rol: null }];
+  var out = [];
+  var sonRol = _UYAP_ROLLER.indexOf(_uyapTrUp(segs[segs.length - 1])) !== -1 ? _uyapTrUp(segs[segs.length - 1]) : null;
+  out.push({ ad: segs[0], rol: sonRol });
+  for (var i = 1; i < segs.length - 1; i++) {
+    var kel = segs[i].split(/\s+/);
+    var first = _uyapTrUp(kel[0]);
+    if (_UYAP_ROLLER.indexOf(first) !== -1) out.push({ ad: kel.slice(1).join(' '), rol: first });
+    else out.push({ ad: segs[i], rol: null });
+  }
+  return out.filter(function(t){return t.ad;});
+}
+
+function _uyapTurBelirle(dosyaTuru) {
+  var t = _uyapTrLow(dosyaTuru);
+  return (t.indexOf('icra') !== -1 || t.indexOf('iflas') !== -1) ? 'icra' : 'dava';
+}
+
+// Müvekkil rolü davanın/icranın kayıtlı tarafına göre çıkarılır (bkz. eşleştirme);
+// eşleşmeyen (stub) kayıtlarda hangi tarafın müvekkil olduğu belli olmadığından boş bırakılır.
+function _uyapAnaTaraf(taraflar) {
+  var ANA = ['DAVACI','DAVALI','ALACAKLI','BORÇLU','BORCLU','MÜŞTEKİ','MUSTEKI','SANIK','KATILAN'];
+  var ana = taraflar.filter(function(t){ return t.rol && ANA.indexOf(t.rol) !== -1; });
+  return ana.length ? ana : taraflar;
+}
+
+function openUyapImportModal() {
+  document.getElementById('uyap-import-step-pick').style.display = '';
+  document.getElementById('uyap-import-step-preview').style.display = 'none';
+  document.getElementById('uyap-import-msg').innerHTML = '';
+  document.getElementById('uyap-import-file').value = '';
+  _uyapImportRows = [];
+  openModal('modal-uyap-import');
+}
+function _uyapImportClose() { closeModal('modal-uyap-import'); }
+function _uyapImportBack() {
+  document.getElementById('uyap-import-step-pick').style.display = '';
+  document.getElementById('uyap-import-step-preview').style.display = 'none';
+}
+
+function _uyapImportPreview(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  var msgEl = document.getElementById('uyap-import-msg');
+  msgEl.style.color = ''; msgEl.innerHTML = 'Okunuyor…';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: '' });
+      if (!aoa.length) { msgEl.style.color = 'var(--red)'; msgEl.innerHTML = 'Dosya boş görünüyor.'; return; }
+      var idx = _uyapMapHeaders(aoa[0]);
+      if (idx.esasNo == null || idx.tarih == null) {
+        msgEl.style.color = 'var(--red)';
+        msgEl.innerHTML = 'Beklenen sütunlar bulunamadı ("Dosya No" ve "Duruşma Tarihi" gerekli). Bu, UYAP Duruşmalarım → Excel\'e Aktar çıktısı mı?';
+        return;
+      }
+      var dataRows = aoa.slice(1).filter(function(r){ return r.some(function(c){ return String(c).trim() !== ''; }); });
+      var get = function(r, k) { return idx[k] != null ? r[idx[k]] : ''; };
+
+      var davalar = DB.get('davalar') || [];
+      var icralar = DB.get('icralar') || [];
+      var tasks = DB.get('tasks') || [];
+
+      _uyapImportRows = dataRows.map(function(r) {
+        var t = _uyapParseTarih(get(r, 'tarih'));
+        var esasNo = (get(r, 'esasNo') || '').toString().trim();
+        var mahkeme = (get(r, 'mahkeme') || '').toString().trim();
+        var tur = _uyapTurBelirle(get(r, 'dosyaTuru'));
+        var taraflar = _uyapParseTaraflar(get(r, 'taraflar'));
+        var dedupKey = esasNo + '|' + t.iso + '|' + t.saat + '|' + mahkeme;
+
+        // Eşleştirme: esas no üzerinden (dava.no/icra.no DEĞİL — dahili büro no'su onlar)
+        var eslesenDava = tur === 'icra'
+          ? icralar.find(function(x){ return x.esas && x.esas === esasNo; })
+          : davalar.find(function(x){ return x.esas && x.esas === esasNo; });
+
+        // Aynı duruşma daha önce içe aktarılmış mı? (tasks üzerinde dedup)
+        var mevcutTask = tasks.find(function(tk) {
+          return tk.tip === 'durusma' && tk._uyapDedupKey === dedupKey;
+        });
+
+        return {
+          tur: tur, esasNo: esasNo, mahkeme: mahkeme,
+          dosyaTuru: (get(r, 'dosyaTuru') || '').toString().trim(),
+          tarihIso: t.iso, saat: t.saat, tarihOk: t.ok,
+          islem: (get(r, 'islem') || '').toString().trim(),
+          sonuc: (get(r, 'sonuc') || '').toString().trim(),
+          taraflar: taraflar,
+          dedupKey: dedupKey,
+          eslesenId: eslesenDava ? eslesenDava.id : null,
+          eslesenNo: eslesenDava ? eslesenDava.no : null,
+          zatenVar: !!mevcutTask,
+          secili: t.ok && !!esasNo
+        };
+      });
+
+      var eksik = [];
+      if (idx.mahkeme == null) eksik.push('Birim');
+      if (idx.taraflar == null) eksik.push('Taraf Bilgisi');
+      msgEl.style.color = eksik.length ? 'var(--gold)' : 'var(--green)';
+      msgEl.innerHTML = eksik.length
+        ? 'Şu sütunlar bulunamadı, o alanlar boş kalacak: ' + escHtml(eksik.join(', '))
+        : ('✓ ' + _uyapImportRows.length + ' satır okundu.');
+
+      _uyapRenderPreview();
+      document.getElementById('uyap-import-step-pick').style.display = 'none';
+      document.getElementById('uyap-import-step-preview').style.display = '';
+    } catch (err) {
+      msgEl.style.color = 'var(--red)';
+      msgEl.innerHTML = 'Dosya okunamadı: ' + escHtml(err.message || String(err));
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function _uyapRenderPreview() {
+  var rows = _uyapImportRows;
+  var dava = rows.filter(function(r){ return r.tur === 'dava'; }).length;
+  var icra = rows.length - dava;
+  var eslesen = rows.filter(function(r){ return r.eslesenId; }).length;
+  var yeni = rows.filter(function(r){ return !r.eslesenId; }).length;
+  var tekrar = rows.filter(function(r){ return r.zatenVar; }).length;
+
+  var cards = [
+    ['Duruşma satırı', rows.length],
+    ['Dava / İcra', dava + ' / ' + icra],
+    ['Eşleşen / Yeni dosya', eslesen + ' / ' + yeni],
+    ['Zaten içe aktarılmış', tekrar]
+  ];
+  document.getElementById('uyap-import-cards').innerHTML = cards.map(function(c) {
+    return '<div class="card" style="padding:10px 12px"><div style="font-size:11px;color:var(--text3)">' + c[0] + '</div>' +
+      '<div style="font-size:18px;font-weight:700;color:var(--text)">' + c[1] + '</div></div>';
+  }).join('');
+
+  document.getElementById('uyap-import-tbody').innerHTML = rows.map(function(r, i) {
+    var badge = r.zatenVar
+      ? '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(192,83,58,0.12);color:var(--red)">zaten var</span>'
+      : r.eslesenId
+        ? '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(74,163,110,0.12);color:var(--green)">eşleşti · ' + escHtml(r.eslesenNo) + '</span>'
+        : '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(201,168,76,0.15);color:var(--gold)">yeni dosya</span>';
+    var ana = _uyapAnaTaraf(r.taraflar).map(function(t){ return (t.rol ? t.rol + ' ' : '') + escHtml(t.ad); }).join(', ') || '—';
+    var when = r.tarihOk ? escHtml(r.tarihIso) + (r.saat ? ' · ' + escHtml(r.saat) : '') : '<span style="color:var(--red)">okunamadı</span>';
+    return '<tr' + (r.zatenVar ? ' style="opacity:.5"' : '') + '>' +
+      '<td>' + (r.secili ? '<input type="checkbox" checked data-uyap-idx="' + i + '"' + (r.zatenVar ? ' disabled' : '') + '></td>' : '<td>') +
+      '<td>' + escHtml(r.esasNo || '—') + '</td>' +
+      '<td>' + (r.tur === 'icra' ? '⚡ İcra' : '⚖️ Dava') + '</td>' +
+      '<td>' + escHtml(r.mahkeme || '—') + '</td>' +
+      '<td>' + when + '</td>' +
+      '<td>' + ana + '</td>' +
+      '<td>' + badge + '</td></tr>';
+  }).join('');
+}
+
+function saveUyapImport() { withSaveLock('saveUyapImport', _saveUyapImportInner); }
+function _saveUyapImportInner() {
+  var checkboxes = document.querySelectorAll('#uyap-import-tbody input[type=checkbox]:checked');
+  var secilenIdx = Array.prototype.map.call(checkboxes, function(cb) { return parseInt(cb.dataset.uyapIdx, 10); });
+  var secilenler = secilenIdx.map(function(i) { return _uyapImportRows[i]; }).filter(function(r) { return r && !r.zatenVar; });
+  if (!secilenler.length) { notify('İçe aktarılacak yeni duruşma yok.'); return; }
+
+  var davalar = DB.get('davalar') || [];
+  var icralar = DB.get('icralar') || [];
+  var tasks = DB.get('tasks') || [];
+  var yeniTask = 0, yeniStub = 0, davaGuncellendi = false, icraGuncellendi = false;
+
+  secilenler.forEach(function(r) {
+    var hedefId = r.eslesenId;
+    var hedefNo = r.eslesenNo;
+
+    // Eşleşme yoksa hafif bir iskelet dosya oluştur (esas no + mahkeme + taraf kadarıyla).
+    // Faz 2'de (Chrome eklentisi) bu iskelet tam kapak/taraf/safahat ile zenginleşecek.
+    if (!hedefId) {
+      var ana = _uyapAnaTaraf(r.taraflar);
+      var muvekkilAdi = ana.length ? ana[0].ad : '';
+      if (r.tur === 'icra') {
+        var yeniNo = 'BK-' + r.esasNo.replace(/[^0-9]/g, '');
+        var icraObj = {
+          id: DB.genId(), no: yeniNo, esas: r.esasNo, borclu: muvekkilAdi,
+          muvekkil: '', alacak: 0, faiz: 0, durum: 'Aktif',
+          _uyapStub: true, created: new Date().toISOString()
+        };
+        icralar.push(icraObj); hedefId = icraObj.id; hedefNo = icraObj.no; icraGuncellendi = true;
+      } else {
+        var yeniNoD = 'BK-' + r.esasNo.replace(/[^0-9]/g, '');
+        var davaObj = {
+          id: DB.genId(), no: yeniNoD, esas: r.esasNo, mahkeme: r.mahkeme,
+          muvekkil: '', konu: '', ad: (muvekkilAdi ? muvekkilAdi + ' – ' : '') + r.mahkeme + ' – ' + r.esasNo,
+          durum: 'Aktif', _uyapStub: true, created: new Date().toISOString()
+        };
+        davalar.push(davaObj); hedefId = davaObj.id; hedefNo = davaObj.no; davaGuncellendi = true;
+      }
+      yeniStub++;
+    }
+
+    var taraflarOzet = r.taraflar.map(function(t){ return (t.rol ? t.rol + ': ' : '') + t.ad; }).join(' · ');
+    var taskObj = {
+      id: DB.genId(), tip: 'durusma',
+      baslik: (r.islem || 'DURUŞMA') + (r.sonuc ? ' — ' + r.sonuc : ''),
+      tarih: r.tarihIso + (r.saat ? 'T' + r.saat : ''),
+      oncelik: 'Normal', ilgili: hedefNo, mahkeme: r.mahkeme,
+      aciklama: taraflarOzet, done: false, gecmis: [],
+      kaynak: 'uyap-excel', _uyapDedupKey: r.dedupKey,
+      created: new Date().toISOString()
+    };
+    tasks.push(taskObj); yeniTask++;
+
+    // dava.sonraki alanını güncelle — bu, dava detayındaki "Sonraki Duruşma"
+    // hero kartının kaynağı ve saveTask akışında normalde de böyle güncellenir.
+    if (r.tur === 'dava') {
+      var davaIdx = davalar.findIndex(function(d){ return d.id === hedefId; });
+      if (davaIdx !== -1) {
+        var d = davalar[davaIdx];
+        if (!d.sonraki || r.tarihIso < d.sonraki || new Date(d.sonraki) < new Date()) {
+          davalar[davaIdx] = Object.assign({}, d, { sonraki: r.tarihIso });
+          davaGuncellendi = true;
+        }
+      }
+    }
+  });
+
+  DB.set('tasks', tasks);
+  if (davaGuncellendi) DB.set('davalar', davalar);
+  if (icraGuncellendi) DB.set('icralar', icralar);
+
+  _uyapImportClose();
+  renderTasks();
+  renderCalendar();
+  if (typeof renderDavalar === 'function' && currentPage === 'davalar') renderDavalar();
+  if (typeof renderIcralar === 'function' && currentPage === 'icralar') renderIcralar();
+  if (typeof renderDurusmaTakvim === 'function' && currentPage === 'durusmatakvim') renderDurusmaTakvim();
+
+  notify('✓ ' + yeniTask + ' duruşma içe aktarıldı' + (yeniStub ? ' (' + yeniStub + ' yeni dosya oluşturuldu)' : ''));
+}
+
