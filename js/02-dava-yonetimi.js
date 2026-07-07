@@ -1590,8 +1590,10 @@ function makeDonut(id, labels, data, colors, legendId) {
   dashCharts[id] = c;
   if (legendId) {
     document.getElementById(legendId).innerHTML = labels.map((l,i) =>
-      `<span style="color:${colors[i]};display:flex;align-items:center;gap:4px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0;display:inline-block"></span>${l}: ${data[i]}
+      `<span style="display:flex;align-items:center;gap:5px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0;display:inline-block"></span>
+        <span style="color:var(--text3);font-size:11px">${l}:</span>
+        <span style="color:${colors[i]};font-size:14px;font-weight:700">${data[i]}</span>
       </span>`
     ).join('');
   }
