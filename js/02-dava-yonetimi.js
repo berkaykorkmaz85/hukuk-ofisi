@@ -2028,6 +2028,8 @@ function _ddpUpdateBadges(d, id) {
   var durusmalar = (DB.get('tasks')||[]).filter(function(t){return t.ilgili&&(t.ilgili===d.no||t.ilgili===d.id)&&t.tip==='durusma';});
   var belgeler = (DB.get('belgeler')||[]).filter(function(b){return b.davaId===id;});
   var tasks = DB.get('tasks').filter(function(t){return t.ilgili&&(t.ilgili===d.no||t.ilgili===d.id)&&t.tip!=='durusma';});
+  var masrafBadge = document.getElementById('ddp-badge-masraf');
+  if (masrafBadge) { var mc = (DB.get('dava_masraflar')||[]).filter(function(m){return m.davaId===id;}).length; masrafBadge.textContent = mc||''; }
   var today2 = new Date(); today2.setHours(0,0,0,0);
   var gecikmisCnt = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0;}).length;
 
@@ -2657,6 +2659,9 @@ function renderDavaTab(id, sekme) {
       <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="_ddpOpenFinansModal('${id}','${escHtml(d.no)}','${escHtml(d.muvekkil)}')">+ Yeni İşlem Ekle</button>
     </div>`;
 
+  } else if (sekme === 'masraf') {
+    _ddpRenderMasraflar(id, d);
+    return;
   } else if (sekme === 'gorev') {
     const today2 = new Date(); today2.setHours(0,0,0,0);
     const allTasks = tasks;
@@ -2756,6 +2761,88 @@ function renderDavaTab(id, sekme) {
         +(showTamamlanan?tamamTasks.map(t=>gorevSatiri(t,true)).join(''):''):''}
     </div>`;
   }
+}
+
+// ── DAVA MASRAF SEKMESİ ──────────────────────────────────────────────────────
+
+function _ddpRenderMasraflar(id, d) {
+  var masraflar = (DB.get('dava_masraflar')||[]).filter(function(m){return m.davaId===id;})
+    .sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
+  var toplam = masraflar.reduce(function(a,b){return a+Number(b.tutar||0);},0);
+
+  // Müvekkilin toplam avans bakiyesi
+  var finans = DB.get('finans')||[];
+  var tumMasraflar = (DB.get('dava_masraflar')||[]);
+  var muvekkilAd = d.muvekkil||'';
+  var avansAlinan = finans.filter(function(f){return f.muvekkil===muvekkilAd&&f.tur==='Masraf Ödemesi';})
+    .reduce(function(a,b){return a+Number(b.tutar);},0);
+  var tumHarcanan = tumMasraflar.filter(function(m){return m.muvekkilAd===muvekkilAd;})
+    .reduce(function(a,b){return a+Number(b.tutar||0);},0)
+    + finans.filter(function(f){return f.muvekkil===muvekkilAd&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);})
+    .reduce(function(a,b){return a+Number(b.tutar);},0);
+  var bakiye = avansAlinan - tumHarcanan;
+
+  var el = document.getElementById('ddp-info');
+  el.innerHTML = '<div style="padding:16px">'
+    // KPI satırı
+    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'
+    + '<div style="background:var(--bg3);border:1px solid rgba(192,83,58,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Bu Dava Masrafı</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplam)+'</div></div>'
+    + '<div style="background:var(--bg3);border:1px solid rgba(58,107,140,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Müvekkil Toplam Avans</div><div style="font-size:16px;font-weight:800;color:#7ab5d4;font-family:monospace">₺'+fmt(avansAlinan)+'</div></div>'
+    + '<div style="background:var(--bg3);border:1px solid '+(bakiye>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.5)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Avans Bakiyesi</div><div style="font-size:16px;font-weight:800;color:'+(bakiye>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(bakiye>=0?'+':'')+'₺'+fmt(Math.abs(bakiye))+'</div></div>'
+    + '</div>'
+    // Masraf ekleme formu
+    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:10px">+ Masraf Ekle</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tarih</label><input type="date" id="ddp-masraf-tarih" value="'+new Date().toISOString().slice(0,10)+'" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none;color-scheme:dark"></div>'
+    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tutar (₺)</label><input type="number" id="ddp-masraf-tutar" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"></div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tür</label><select id="ddp-masraf-tur" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"><option>Harç</option><option>Tebligat Ücreti</option><option>Bilirkişi Ücreti</option><option>Posta Ücreti</option><option>Keşif Masrafı</option><option>Tercüman Ücreti</option><option>Yol/Konaklama</option><option>Diğer</option></select></div>'
+    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Açıklama</label><input type="text" id="ddp-masraf-aciklama" placeholder="İsteğe bağlı..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"></div>'
+    + '</div>'
+    + '<button class="btn btn-gold" style="width:100%;justify-content:center;font-size:13px" onclick="_ddpAddDavaMasraf(\''+id+'\',\''+escHtml(d.muvekkil||'')+'\')">+ Masraf Kaydet</button>'
+    + '</div>'
+    // Liste başlığı
+    + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Masraf Geçmişi</div>'
+    + (masraflar.length === 0
+      ? '<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Henüz masraf kaydı yok</div>'
+      : masraflar.map(function(m){
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
+            + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(192,83,58,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🧾</div>'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:13px;font-weight:600;color:var(--text2)">'+escHtml(m.tur||'Masraf')+'</div>'
+            + '<div style="font-size:11px;color:var(--text3)">'+fmtDate(m.tarih)+(m.aciklama?' · '+escHtml(m.aciklama):'')+'</div>'
+            + '</div>'
+            + '<span style="font-size:13px;font-weight:700;color:var(--red);font-family:monospace;flex-shrink:0">−₺'+fmt(Number(m.tutar||0))+'</span>'
+            + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 5px;color:var(--red)" onclick="_ddpDeleteDavaMasraf(\''+m.id+'\',\''+id+'\')">🗑</button>'
+            + '</div>';
+        }).join('')
+    )
+    + '</div>';
+}
+
+function _ddpAddDavaMasraf(davaId, muvekkilAd) {
+  var tarih = document.getElementById('ddp-masraf-tarih')?.value;
+  var tutar = parseFloat(document.getElementById('ddp-masraf-tutar')?.value)||0;
+  var tur   = document.getElementById('ddp-masraf-tur')?.value||'Harç';
+  var aciklama = document.getElementById('ddp-masraf-aciklama')?.value||'';
+  if (!tutar || tutar <= 0) { notify('Tutar giriniz'); return; }
+  var arr = DB.get('dava_masraflar')||[];
+  arr.push({ id: 'dm_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), davaId: davaId, muvekkilAd: muvekkilAd, tarih: tarih, tutar: tutar, tur: tur, aciklama: aciklama });
+  DB.set('dava_masraflar', arr);
+  _ddpUpdateBadges(DB.get('davalar').find(function(x){return x.id===davaId;})||{}, davaId);
+  renderDavaTab(davaId, 'masraf');
+  notify('Masraf kaydedildi ✓');
+}
+
+function _ddpDeleteDavaMasraf(masrafId, davaId) {
+  showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
+    DB.set('dava_masraflar', (DB.get('dava_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
+    _ddpUpdateBadges(DB.get('davalar').find(function(x){return x.id===davaId;})||{}, davaId);
+    renderDavaTab(davaId, 'masraf');
+    notify('Masraf silindi');
+  });
 }
 
 // B1: Client-side filter for belgeler

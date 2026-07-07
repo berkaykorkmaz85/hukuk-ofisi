@@ -1709,7 +1709,9 @@ function showMuvekkilDetail(id) {
   const kvBekleyen = kvTumKayitlar.filter(f => f.karsiVekaletDurum !== 'tamam');
   const kvTahsilatToplam = kvTahsil.reduce((a,b)=>a+Number(b.tutar),0);
   const kvBekleyenToplam = kvBekleyen.reduce((a,b)=>a+Number(b.tutar),0);
-  const topMas  = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topMasFinans = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topMasDava   = (DB.get('dava_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const topMas  = topMasFinans + topMasDava;
   const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
 
   // Anlaşılan: ucretAnlasmalari VEYA dava+icra dosyalarındaki akdiUcret toplamı
@@ -2620,7 +2622,9 @@ function renderAvansKasa() {
   // Müvekkillerle avans bakiyesi hesapla
   var mvBakiyeler = muvekkiller.map(function(mv){
     var alinan = finans.filter(function(f){return f.muvekkil===mv.ad&&f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+Number(b.tutar);},0);
-    var harcanan = finans.filter(function(f){return f.muvekkil===mv.ad&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
+    var harcananFinans = finans.filter(function(f){return f.muvekkil===mv.ad&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
+    var harcananDavaMasraf = (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
+    var harcanan = harcananFinans + harcananDavaMasraf;
     return {ad:mv.ad, alinan:alinan, harcanan:harcanan, bakiye:alinan-harcanan};
   }).filter(function(m){return m.alinan>0||m.harcanan>0;});
 

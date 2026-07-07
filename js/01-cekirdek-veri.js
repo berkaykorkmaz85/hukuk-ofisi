@@ -243,9 +243,9 @@ if (document.readyState === 'loading') {
 // "davalar" ve "icralar" artık localStorage'da değil, Supabase'de tutuluyor.
 // DB.get/DB.set bu key'ler için cache'i okur/günceller; gerçek senkronizasyon
 // (Supabase'e yazma) ilgili kaydet/sil fonksiyonlarında ayrıca yapılır.
-window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], finans: [], odeme_planlari: [], tasks: [], belgeler: [], icra_belgeler: [], icra_masraflar: [], notlar: [], cari: [], uets_kayitlar: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
+window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], finans: [], odeme_planlari: [], tasks: [], belgeler: [], icra_belgeler: [], icra_masraflar: [], dava_masraflar: [], notlar: [], cari: [], uets_kayitlar: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
 const _SB_TABLES = { davalar: 'davalar', icralar: 'icralar', muvekkiller: 'muvekkiller', kisiler: 'kisiler', contacts: 'contacts' };
-const _SB_DIFF_TABLES = { finans: 'finans', odeme_planlari: 'odeme_planlari', tasks: 'tasks', belgeler: 'belgeler', icra_belgeler: 'icra_belgeler', icra_masraflar: 'icra_masraflar', notlar: 'notlar', cari: 'cari', uets_kayitlar: 'uets_kayitlar' };  // Bu key'ler DB.set çağrıldığında otomatik diff-sync edilir
+const _SB_DIFF_TABLES = { finans: 'finans', odeme_planlari: 'odeme_planlari', tasks: 'tasks', belgeler: 'belgeler', icra_belgeler: 'icra_belgeler', icra_masraflar: 'icra_masraflar', dava_masraflar: 'dava_masraflar', notlar: 'notlar', cari: 'cari', uets_kayitlar: 'uets_kayitlar' };  // Bu key'ler DB.set çağrıldığında otomatik diff-sync edilir
 
 // Bir chatter key'inin ('chatter_xxx' veya 'icra_chatter_xxx') dosya tipini ve id'sini çöz
 function _sbChatterKeyParse(key) {
@@ -401,6 +401,21 @@ function _sbIcraMasrafRowToObj(row) {
     created: row.created_at
   };
 }
+// dava_masraflar satırı ⇄ dava masraf objesi dönüşümleri
+function _sbDavaMasrafToRow(obj) {
+  return {
+    id: obj.id, dava_id: obj.davaId || null, muvekkil: obj.muvekkilAd || null,
+    tur: obj.tur, tutar: Number(obj.tutar) || 0, tarih: obj.tarih,
+    aciklama: obj.aciklama, user_id: window._currentUserId
+  };
+}
+function _sbDavaMasrafRowToObj(row) {
+  return {
+    id: row.id, davaId: row.dava_id, muvekkilAd: row.muvekkil,
+    tur: row.tur, tutar: row.tutar, tarih: row.tarih,
+    aciklama: row.aciklama, created: row.created_at
+  };
+}
 // notlar satırı ⇄ eski not objesi dönüşümleri
 function _sbNotToRow(obj) {
   return {
@@ -511,7 +526,7 @@ async function _sbDiffSyncCalistir(key, yeniArr) {
     const _TO_ROW_MAP = {
       finans: _sbFinansToRow, odeme_planlari: _sbOdemePlaniToRow,
       tasks: _sbTaskToRow, belgeler: _sbBelgeToRow,
-      icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow,
+      icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow, dava_masraflar: _sbDavaMasrafToRow,
       notlar: _sbNotToRow, cari: _sbCariToRow, uets_kayitlar: _sbUetsToRow
     };
     const toRow = _TO_ROW_MAP[key] || null;
@@ -636,6 +651,7 @@ async function _sbYukleDavalarIcralar() {
       belgeler:       _sbBelgeRowToObj,
       icra_belgeler:  _sbIcraBelgeRowToObj,
       icra_masraflar: _sbIcraMasrafRowToObj,
+      dava_masraflar: _sbDavaMasrafRowToObj,
       notlar:         _sbNotRowToObj,
       cari:           _sbCariRowToObj,
       uets_kayitlar:  _sbUetsRowToObj
@@ -1886,7 +1902,7 @@ function renderSbSessionInfo() {
 // bellek içi cache'ten (DB.get) toplanır. Cihaz-yerel icra haciz verileri
 // (localStorage 'icra_haciz_*') de yedeğe dahil edilir.
 // NOT: Dosya günlüğü (chatter) mesajları tembel yüklendiği için yedeğe girmez.
-const _YEDEK_SB_KEYS = ['muvekkiller','davalar','icralar','kisiler','contacts','finans','odeme_planlari','tasks','belgeler','icra_belgeler','icra_masraflar','notlar','cari','uets_kayitlar'];
+const _YEDEK_SB_KEYS = ['muvekkiller','davalar','icralar','kisiler','contacts','finans','odeme_planlari','tasks','belgeler','icra_belgeler','icra_masraflar','dava_masraflar','notlar','cari','uets_kayitlar'];
 
 function _yedekVerisiTopla() {
   const backup = { version: 2, tarih: new Date().toISOString(), data: {} };
@@ -1907,7 +1923,7 @@ const _YEDEK_TO_ROW = {
   muvekkiller: _sbMuvekkilToRow, davalar: _sbDavaToRow, icralar: _sbIcraToRow,
   kisiler: _sbKisiToRow, contacts: _sbContactToRow,
   finans: _sbFinansToRow, odeme_planlari: _sbOdemePlaniToRow, tasks: _sbTaskToRow,
-  belgeler: _sbBelgeToRow, icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow,
+  belgeler: _sbBelgeToRow, icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow, dava_masraflar: _sbDavaMasrafToRow,
   notlar: _sbNotToRow, cari: _sbCariToRow, uets_kayitlar: _sbUetsToRow
 };
 async function _yedekGeriYukle(backup) {
