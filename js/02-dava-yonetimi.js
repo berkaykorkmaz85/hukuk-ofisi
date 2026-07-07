@@ -1578,8 +1578,8 @@ function makeDonut(id, labels, data, colors, legendId) {
         const { ctx, chartArea: { left, top, right, bottom } } = chart;
         const cx = (left+right)/2, cy = (top+bottom)/2;
         ctx.save();
-        ctx.font = 'bold 22px DM Mono, monospace';
-        ctx.fillStyle = '#f0ead8';
+        ctx.font = 'bold 32px DM Mono, monospace';
+        ctx.fillStyle = 'var(--text)';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(total, cx, cy);
