@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "UYAP Evrak Takip",
+  "version": "1.0",
+  "description": "UYAP'ta açtığın dosyalarda yeni evrak eklenince bildirim gösterir.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://avukat.uyap.gov.tr/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://avukat.uyap.gov.tr/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "UYAP Evrak Takip"
+  }
+}
