@@ -598,6 +598,90 @@ function hesaplaIcraAaüt(alacak) {
   return Math.max(Math.round(ucret), 9000);
 }
 
+function _getDavaTarife() {
+  try {
+    var k = JSON.parse(localStorage.getItem('hukuk_dava_tarife') || 'null');
+    if (k && k.dilimler && k.asgari) return k;
+  } catch(e) {}
+  // AAÜT 2025-2026 (RG 4 Kasım 2025 / 33067) — Birinci Kısım Nispi Tarife
+  return {
+    yil: '2025-2026',
+    asgari: 9000,
+    dilimler: [
+      { kadar: 100000,   oran: 0.15 }, // İlk 100.000 TL        → %15
+      { kadar: 150000,   oran: 0.13 }, // Sonraki 150.000 TL    → %13
+      { kadar: 250000,   oran: 0.10 }, // Sonraki 250.000 TL    → %10
+      { kadar: 500000,   oran: 0.08 }, // Sonraki 500.000 TL    → %8
+      { kadar: 1000000,  oran: 0.05 }, // Sonraki 1.000.000 TL  → %5
+      { kadar: 3000000,  oran: 0.03 }, // Sonraki 3.000.000 TL  → %3
+      { kadar: 5000000,  oran: 0.02 }, // Sonraki 5.000.000 TL  → %2
+      { kadar: Infinity, oran: 0.01 }  // Üstü                  → %1
+    ]
+  };
+}
+
+function hesaplaVekaletUcreti(tip) {
+  if (tip !== 'dava') return;
+  var deger = parseFloat(document.getElementById('d-dava-degeri')?.value || '0') || 0;
+  var el = document.getElementById('d-asgari-ucret');
+  if (!el) return;
+  if (!deger || deger <= 0) { el.value = ''; return; }
+  var t = _getDavaTarife();
+  var ucret = 0, kalan = deger;
+  for (var i = 0; i < t.dilimler.length; i++) {
+    if (kalan <= 0) break;
+    var limit = t.dilimler[i].kadar;
+    var dilim = (limit === Infinity) ? kalan : Math.min(kalan, limit);
+    ucret += dilim * t.dilimler[i].oran;
+    kalan -= dilim;
+  }
+  ucret = Math.max(Math.round(ucret), t.asgari);
+  el.value = ucret.toLocaleString('tr-TR') + ' ₺';
+}
+
+function openTarifeGuncelleModal() {
+  var t = _getDavaTarife();
+  document.getElementById('tg-yil').value = t.yil;
+  document.getElementById('tg-asgari').value = t.asgari;
+  // Dilim oranlarını doldur
+  var orDilimler = t.dilimler.filter(function(d){ return d.kadar !== Infinity; });
+  var sonDilim = t.dilimler.find(function(d){ return d.kadar === Infinity; });
+  var tablo = document.getElementById('tg-dilimler');
+  if (tablo) {
+    tablo.innerHTML = '';
+    orDilimler.forEach(function(d, i) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td style="padding:3px 6px;font-size:12px;color:var(--text3)">' + (i===0?'İlk':'Sonraki') + ' ' + (d.kadar/1000).toLocaleString('tr-TR') + '.000 ₺</td>'
+        + '<td style="padding:3px 6px"><input type="number" class="tg-oran" data-idx="'+i+'" value="' + Math.round(d.oran*100) + '" min="1" max="30" style="width:60px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px"> %</td>';
+      tablo.appendChild(tr);
+    });
+    if (sonDilim) {
+      var tr2 = document.createElement('tr');
+      tr2.innerHTML = '<td style="padding:3px 6px;font-size:12px;color:var(--text3)">Üstü</td>'
+        + '<td style="padding:3px 6px"><input type="number" class="tg-oran" data-idx="'+orDilimler.length+'" value="' + Math.round(sonDilim.oran*100) + '" min="1" max="30" style="width:60px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px"> %</td>';
+      tablo.appendChild(tr2);
+    }
+  }
+  document.getElementById('modal-tarife-guncelle').style.display = 'flex';
+}
+
+function saveTarifeGuncelle() {
+  var t = _getDavaTarife();
+  t.yil = document.getElementById('tg-yil').value.trim() || t.yil;
+  t.asgari = parseInt(document.getElementById('tg-asgari').value) || t.asgari;
+  var oranInputs = document.querySelectorAll('.tg-oran');
+  oranInputs.forEach(function(inp, i) {
+    if (t.dilimler[i]) t.dilimler[i].oran = (parseInt(inp.value) || 1) / 100;
+  });
+  localStorage.setItem('hukuk_dava_tarife', JSON.stringify(t));
+  // AAÜT label'ı güncelle
+  var lbl = document.getElementById('d-asgari-ucret-label');
+  if (lbl) lbl.textContent = 'AAÜT ' + t.yil + ' Asgari (₺)';
+  closeModal('modal-tarife-guncelle');
+  hesaplaVekaletUcreti('dava');
+  notify('Tarife güncellendi ✓');
+}
+
 // Türkiye İl/İlçe verisi (özet - temsili)
 const TR_IL_ILCE = {
   'Adana':['Aladağ','Ceyhan','Çukurova','Feke','İmamoğlu','Karaisalı','Karataş','Kozan','Pozantı','Saimbeyli','Sarıçam','Seyhan','Tufanbeyli','Yumurtalık','Yüreğir'],
