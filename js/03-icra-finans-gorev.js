@@ -3668,3 +3668,231 @@ function _saveUyapImportInner() {
   notify('✓ ' + yeniTask + ' duruşma takvime eklendi' + (tamamlananDosya ? ', ' + tamamlananDosya + ' dosyanın eksik alanı tamamlandı' : ''));
 }
 
+
+// ============================================================
+// UYAP DOSYA LİSTESİ İÇE AKTARMA — FAZ 1B
+// UYAP → Dosya Sorgulama → XLSX Olarak Dışa Aktar
+// Kolonlar: Birim | Dosya No | Dosya Türü | Dosya Durumu | Dosya Açılış Tarihi
+// ============================================================
+
+var _uyapDosyaRows = []; // { esasNo, mahkeme, tur, durum, tarih, eslesen, eslesenId, eslesenTablo }
+
+function openUyapDosyaImportModal() {
+  document.getElementById('uyap-dosya-step-pick').style.display = '';
+  document.getElementById('uyap-dosya-step-preview').style.display = 'none';
+  document.getElementById('uyap-dosya-msg').textContent = '';
+  document.getElementById('uyap-dosya-file').value = '';
+  _uyapDosyaRows = [];
+  openModal('modal-uyap-dosya-import');
+}
+
+function _uyapDosyaBack() {
+  document.getElementById('uyap-dosya-step-pick').style.display = '';
+  document.getElementById('uyap-dosya-step-preview').style.display = 'none';
+  document.getElementById('uyap-dosya-file').value = '';
+  _uyapDosyaRows = [];
+}
+
+function _uyapDosyaImportPreview(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  var msgEl = document.getElementById('uyap-dosya-msg');
+  msgEl.textContent = 'Dosya okunuyor...';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(e.target.result, { type: 'array' });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      if (!rows.length) { msgEl.textContent = '❌ Dosyada veri bulunamadı.'; return; }
+
+      // Kolon adlarını normalize et
+      var kolonMap = {};
+      Object.keys(rows[0]).forEach(function(k) {
+        var kl = _uyapTrLow(k.trim());
+        if (kl.indexOf('birim') !== -1) kolonMap.birim = k;
+        else if (kl.indexOf('dosya no') !== -1 || kl.indexOf('dosya_no') !== -1) kolonMap.dosyaNo = k;
+        else if (kl.indexOf('dosya t') !== -1) kolonMap.dosyaTuru = k;
+        else if (kl.indexOf('dosya d') !== -1 && kl.indexOf('durum') !== -1) kolonMap.dosyaDurumu = k;
+        else if (kl.indexOf('tarih') !== -1 || kl.indexOf('açılış') !== -1) kolonMap.tarih = k;
+      });
+
+      if (!kolonMap.birim || !kolonMap.dosyaNo) {
+        msgEl.textContent = '❌ Beklenen kolonlar bulunamadı. UYAP Dosya Sorgulama XLSX\'i mi seçtiniz?';
+        return;
+      }
+
+      var davalar = DB.get('davalar') || [];
+      var icralar = DB.get('icralar') || [];
+
+      _uyapDosyaRows = rows.map(function(r) {
+        var esasNo   = String(r[kolonMap.dosyaNo] || '').trim();
+        var mahkeme  = String(r[kolonMap.birim] || '').trim();
+        var dosyaTur = String(r[kolonMap.dosyaTuru] || '').trim();
+        var durumStr = String(r[kolonMap.dosyaDurumu] || '').trim();
+        var tarihStr = String(r[kolonMap.tarih] || '').trim();
+
+        var tur      = _uyapTurBelirle(dosyaTur);
+        var durum    = durumStr === 'Açık' ? 'Aktif' : durumStr === 'Kapalı' ? 'Kapalı' : '';
+        var tarih    = tarihStr ? tarihStr.slice(0, 10).split('.').reverse().join('-') : '';
+
+        // Önce davalar, sonra icralar içinde eşleştir
+        var eslesen = null, eslesenId = null, eslesenTablo = null;
+        var dEslesen = davalar.find(function(d) {
+          return d.esas && d.esas.trim() === esasNo && _uyapMahkemeEsit(d.mahkeme, mahkeme);
+        });
+        if (dEslesen) {
+          eslesen = dEslesen; eslesenId = dEslesen.id; eslesenTablo = 'davalar';
+        } else {
+          var iEslesen = icralar.find(function(i) {
+            return i.esas && i.esas.trim() === esasNo && _uyapMahkemeEsit(i.mahkeme, mahkeme);
+          });
+          if (iEslesen) { eslesen = iEslesen; eslesenId = iEslesen.id; eslesenTablo = 'icralar'; }
+        }
+
+        return { esasNo: esasNo, mahkeme: mahkeme, dosyaTur: dosyaTur, tur: tur, durum: durum, tarih: tarih, eslesen: eslesen, eslesenId: eslesenId, eslesenTablo: eslesenTablo };
+      }).filter(function(r) { return r.esasNo; });
+
+      if (!_uyapDosyaRows.length) { msgEl.textContent = '❌ Geçerli satır bulunamadı.'; return; }
+
+      msgEl.textContent = '';
+      _uyapDosyaRenderPreview();
+      document.getElementById('uyap-dosya-step-pick').style.display = 'none';
+      document.getElementById('uyap-dosya-step-preview').style.display = '';
+    } catch(err) {
+      msgEl.textContent = '❌ Dosya okunamadı: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function _uyapDosyaRenderPreview() {
+  var eslesenler = _uyapDosyaRows.filter(function(r) { return r.eslesen; });
+  var yeniler    = _uyapDosyaRows.filter(function(r) { return !r.eslesen; });
+
+  // Özet kartlar
+  var cardsEl = document.getElementById('uyap-dosya-cards');
+  cardsEl.innerHTML = [
+    { label: 'Toplam Dosya', val: _uyapDosyaRows.length, clr: 'var(--text)' },
+    { label: 'Eşleşen',      val: eslesenler.length,     clr: 'var(--green)' },
+    { label: 'Yeni / Kayıt Yok', val: yeniler.length,   clr: 'var(--gold)' }
+  ].map(function(c) {
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-align:center">'
+      + '<div style="font-size:22px;font-weight:700;color:' + c.clr + '">' + c.val + '</div>'
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + c.label + '</div></div>';
+  }).join('');
+
+  // Eşleşen tablo
+  var eslesenWrap = document.getElementById('uyap-dosya-eslesen-wrap');
+  if (eslesenler.length) {
+    var tbody = document.getElementById('uyap-dosya-eslesen-tbody');
+    tbody.innerHTML = eslesenler.map(function(r, i) {
+      var idx = _uyapDosyaRows.indexOf(r);
+      var burodaki = r.eslesen.no + (r.eslesen.ad || r.eslesen.borclu ? ' — ' + (r.eslesen.ad || r.eslesen.borclu) : '');
+      return '<tr>'
+        + '<td><input type="checkbox" checked data-uyap-dosya-idx="' + idx + '"></td>'
+        + '<td>' + escHtml(r.esasNo) + '</td>'
+        + '<td style="font-size:11px">' + escHtml(r.mahkeme) + '</td>'
+        + '<td>' + escHtml(r.durum) + '</td>'
+        + '<td style="font-size:11px;color:var(--text3)">' + escHtml(burodaki) + '</td>'
+        + '</tr>';
+    }).join('');
+    eslesenWrap.style.display = '';
+  } else {
+    eslesenWrap.style.display = 'none';
+  }
+
+  // Yeni / eşleşmeyen tablo
+  var yeniWrap = document.getElementById('uyap-dosya-yeni-wrap');
+  if (yeniler.length) {
+    var yeniTbody = document.getElementById('uyap-dosya-yeni-tbody');
+    yeniTbody.innerHTML = yeniler.map(function(r) {
+      var idx = _uyapDosyaRows.indexOf(r);
+      return '<tr>'
+        + '<td>' + escHtml(r.esasNo) + '</td>'
+        + '<td style="font-size:11px">' + escHtml(r.mahkeme) + '</td>'
+        + '<td>' + escHtml(r.dosyaTur) + '</td>'
+        + '<td>' + escHtml(r.durum) + '</td>'
+        + '<td><button class="btn btn-outline" style="font-size:11px;padding:3px 10px" onclick="_uyapDosyaAcYeni(' + idx + ')">'
+          + (r.tur === 'icra' ? '+ Yeni İcra Aç' : '+ Yeni Dava Aç') + '</button></td>'
+        + '</tr>';
+    }).join('');
+    yeniWrap.style.display = '';
+  } else {
+    yeniWrap.style.display = 'none';
+  }
+
+  var confirmBtn = document.getElementById('uyap-dosya-confirm-btn');
+  if (confirmBtn) confirmBtn.style.display = eslesenler.length ? '' : 'none';
+}
+
+function _uyapDosyaAcYeni(idx) {
+  var r = _uyapDosyaRows[idx];
+  if (!r) return;
+  closeModal('modal-uyap-dosya-import');
+  if (r.tur === 'icra') {
+    openModal('modal-icra');
+    setTimeout(function() {
+      var esasEl = document.getElementById('i-esas');
+      var mEl    = document.getElementById('i-mahkeme');
+      if (esasEl) esasEl.value = r.esasNo;
+      if (mEl)    mEl.value    = r.mahkeme;
+    }, 100);
+  } else {
+    openModal('modal-dava');
+    setTimeout(function() {
+      var esasEl = document.getElementById('d-esas');
+      var mEl    = document.getElementById('d-mahkeme');
+      populateMuvekkilSelects && populateMuvekkilSelects();
+      if (esasEl) esasEl.value = r.esasNo;
+      if (mEl)    mEl.value    = r.mahkeme;
+    }, 100);
+  }
+}
+
+function saveUyapDosyaImport() {
+  var davalar  = DB.get('davalar')  || [];
+  var icralar  = DB.get('icralar')  || [];
+  var dGuncellendi = false, iGuncellendi = false, sayac = 0;
+
+  document.querySelectorAll('[data-uyap-dosya-idx]:checked').forEach(function(cb) {
+    var r = _uyapDosyaRows[parseInt(cb.dataset.uyapDosyaIdx)];
+    if (!r || !r.eslesenId) return;
+
+    var patch = {};
+    if (r.eslesenTablo === 'davalar') {
+      var d = davalar.find(function(x){ return x.id === r.eslesenId; });
+      if (!d) return;
+      if (!d.esas    && r.esasNo)  patch.esas    = r.esasNo;
+      if (!d.mahkeme && r.mahkeme) patch.mahkeme = r.mahkeme;
+      if (!d.durum   && r.durum)   patch.durum   = r.durum;
+      if (!d.tarih   && r.tarih)   patch.tarih   = r.tarih;
+      if (Object.keys(patch).length) {
+        var idx = davalar.indexOf(d);
+        davalar[idx] = Object.assign({}, d, patch);
+        dGuncellendi = true; sayac++;
+      }
+    } else {
+      var ic = icralar.find(function(x){ return x.id === r.eslesenId; });
+      if (!ic) return;
+      if (!ic.esas    && r.esasNo)  patch.esas    = r.esasNo;
+      if (!ic.mahkeme && r.mahkeme) patch.mahkeme = r.mahkeme;
+      if (!ic.tarih   && r.tarih)   patch.tarih   = r.tarih;
+      if (Object.keys(patch).length) {
+        var idx2 = icralar.indexOf(ic);
+        icralar[idx2] = Object.assign({}, ic, patch);
+        iGuncellendi = true; sayac++;
+      }
+    }
+  });
+
+  if (dGuncellendi) DB.set('davalar', davalar);
+  if (iGuncellendi) DB.set('icralar', icralar);
+
+  closeModal('modal-uyap-dosya-import');
+  if (typeof renderDavalar === 'function') renderDavalar();
+  if (typeof renderIcralar === 'function') renderIcralar();
+  notify(sayac ? '✓ ' + sayac + ' dosyanın bilgileri güncellendi.' : 'Güncellenecek alan bulunamadı.');
+}

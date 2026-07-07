@@ -3015,7 +3015,8 @@
             <option value="Bekliyor">Bekliyor</option>
             <option value="Kapalı">Kapalı</option>
           </select>
-          <button class="btn btn-outline" style="white-space:nowrap" onclick="openUyapImportModal()">⚖️ UYAP'tan İçe Aktar</button>
+          <button class="btn btn-outline" style="white-space:nowrap" onclick="openUyapImportModal()">⚖️ UYAP Duruşma İçe Aktar</button>
+          <button class="btn btn-outline" style="white-space:nowrap" onclick="openUyapDosyaImportModal()">📋 UYAP Dosya İçe Aktar</button>
         </div>
         <div class="card">
           <div class="table-wrap">
@@ -4919,6 +4920,47 @@
         <div class="form-actions" style="margin-top:16px">
           <button class="btn btn-outline" onclick="_uyapImportBack()">‹ Geri</button>
           <button class="btn btn-gold" id="uyap-import-confirm-btn" onclick="saveUyapImport()">Seçilenleri Takvime Ekle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UYAP DOSYA İÇE AKTARMA MODAL -->
+<div class="modal-overlay" id="modal-uyap-dosya-import">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <div class="modal-title">📋 UYAP Dosya Listesi İçe Aktar</div>
+      <button class="modal-close" onclick="closeModal('modal-uyap-dosya-import')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="uyap-dosya-step-pick">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px">
+          UYAP Avukat Portal → <b>Dosya Sorgulama</b> → <b>XLSX Olarak Dışa Aktar</b> ile indirdiğiniz dosyayı seçin.
+        </p>
+        <button class="btn btn-outline" onclick="document.getElementById('uyap-dosya-file').click()">📂 Dosya Seç</button>
+        <input type="file" id="uyap-dosya-file" accept=".xlsx,.xls" style="display:none" onchange="_uyapDosyaImportPreview(this)">
+        <div id="uyap-dosya-msg" style="font-size:12.5px;margin-top:12px;min-height:18px;color:var(--text3)"></div>
+      </div>
+      <div id="uyap-dosya-step-preview" style="display:none">
+        <div id="uyap-dosya-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px"></div>
+        <div id="uyap-dosya-eslesen-wrap" style="display:none;margin-bottom:18px">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">EŞLEŞEN DOSYALAR — boş alanlar doldurulacak</div>
+          <table class="data-table" style="font-size:12.5px">
+            <thead><tr><th></th><th>Esas No</th><th>Mahkeme</th><th>Durum</th><th>Bürodaki Dosya</th></tr></thead>
+            <tbody id="uyap-dosya-eslesen-tbody"></tbody>
+          </table>
+        </div>
+        <div id="uyap-dosya-yeni-wrap" style="display:none">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">BÜRONUZDA KAYDI OLMAYAN DOSYALAR</div>
+          <table class="data-table" style="font-size:12.5px">
+            <thead><tr><th>Esas No</th><th>Mahkeme</th><th>Tür</th><th>Durum</th><th></th></tr></thead>
+            <tbody id="uyap-dosya-yeni-tbody"></tbody>
+          </table>
+        </div>
+        <div class="form-actions" style="margin-top:16px">
+          <button class="btn btn-outline" onclick="_uyapDosyaBack()">‹ Geri</button>
+          <button class="btn btn-gold" id="uyap-dosya-confirm-btn" onclick="saveUyapDosyaImport()">Seçilenleri Güncelle</button>
         </div>
       </div>
     </div>
