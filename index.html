@@ -3331,6 +3331,34 @@
       <div id="fh-donem-sonuc" style="display:none;margin-top:16px"></div>
     </div>
 
+    <!-- VEKALET ÜCRETİ HESAPLAMA -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text)">⚖️ Vekalet Ücreti Hesaplama</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:3px">AAÜT 2025-2026 nispi tarifeye göre — barobirlik.org.tr mantığı</div>
+        </div>
+        <button onclick="openTarifeGuncelleModal()" style="font-size:11px;padding:5px 13px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;white-space:nowrap">🔄 Tarife Güncelle</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div>
+          <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Hesaplama Türü</label>
+          <select id="vu-tur" onchange="vuHesapla()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;outline:none">
+            <option value="dava">⚖️ Dava — Birinci Kısım (Hukuk/İdare)</option>
+            <option value="icra">📋 İcra Takibi — Üçüncü Kısım</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Dava Değeri / Takip Alacağı (₺)</label>
+          <input id="vu-tutar" type="text" inputmode="decimal" placeholder="Örn: 500.000" oninput="vuHesapla()"
+            style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:10px 12px;outline:none;font-family:'DM Mono',monospace;font-weight:600">
+        </div>
+      </div>
+
+      <div id="vu-sonuc"></div>
+    </div>
+
   </div>
 </div>
 
@@ -4219,12 +4247,8 @@
               </select>
             </div>
             <div class="form-group" id="d-dava-degeri-wrap">
-              <label>Dava Değeri (₺) <span style="color:var(--text3);font-size:10px">— nispi için</span></label>
-              <input id="d-dava-degeri" type="number" placeholder="0" oninput="hesaplaVekaletUcreti('dava')">
-            </div>
-            <div class="form-group">
-              <label><span id="d-asgari-ucret-label">AAÜT 2025-2026 Asgari (₺)</span> <span style="color:var(--text3);font-size:10px">— otomatik &nbsp;<button type="button" onclick="openTarifeGuncelleModal()" style="font-size:10px;padding:1px 7px;border-radius:10px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit">🔄 Tarife</button></span></label>
-              <input id="d-asgari-ucret" readonly style="color:#4a8c5c;background:var(--bg)">
+              <label>Dava Değeri (₺) <span style="color:var(--text3);font-size:10px">— bilgi amaçlı</span></label>
+              <input id="d-dava-degeri" type="number" placeholder="0">
             </div>
             <div class="form-group">
               <label>Akdi Vekâlet Ücreti (₺) <span style="color:var(--text3);font-weight:400;font-size:10px">— bu dosyaya özel</span></label>
@@ -5214,10 +5238,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260707"></script>
-<script src="js/02-dava-yonetimi.js?v=20260707"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260707"></script>
-<script src="js/04-arac-ve-modul.js?v=20260707"></script>
+<script src="js/01-cekirdek-veri.js?v=20260707b"></script>
+<script src="js/02-dava-yonetimi.js?v=20260707b"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260707b"></script>
+<script src="js/04-arac-ve-modul.js?v=20260707b"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">

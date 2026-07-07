@@ -639,6 +639,88 @@ function hesaplaVekaletUcreti(tip) {
   el.value = ucret.toLocaleString('tr-TR') + ' ₺';
 }
 
+function _getIcraTarife() {
+  // AAÜT 2025-2026 (RG 4 Kasım 2025 / 33067) — Üçüncü Kısım Nispi Tarife (icra)
+  return {
+    yil: '2025-2026',
+    asgari: 9000,
+    dilimler: [
+      { kadar: 600000,   oran: 0.16 },
+      { kadar: 600000,   oran: 0.15 },
+      { kadar: 1200000,  oran: 0.14 },
+      { kadar: 1200000,  oran: 0.13 },
+      { kadar: 1800000,  oran: 0.11 },
+      { kadar: 2400000,  oran: 0.08 },
+      { kadar: 3000000,  oran: 0.05 },
+      { kadar: 3600000,  oran: 0.03 },
+      { kadar: Infinity, oran: 0.02 }
+    ]
+  };
+}
+
+function _vuFmt(n) {
+  return (Math.round(n) || 0).toLocaleString('tr-TR');
+}
+
+function vuHesapla() {
+  var sonucEl = document.getElementById('vu-sonuc');
+  if (!sonucEl) return;
+  var tutarRaw = document.getElementById('vu-tutar')?.value || '';
+  var tutar = (typeof parsePara === 'function') ? parsePara(tutarRaw) : parseFloat(tutarRaw.replace(/\./g, '').replace(',', '.')) || 0;
+  var tur = document.getElementById('vu-tur')?.value || 'dava';
+  if (!tutar || tutar <= 0) { sonucEl.innerHTML = ''; return; }
+
+  var tarife = (tur === 'icra') ? _getIcraTarife() : _getDavaTarife();
+  var baslik = (tur === 'icra') ? 'İcra Takibi (Üçüncü Kısım)' : 'Hukuk Davası (Birinci Kısım)';
+
+  var satirlar = [];
+  var toplam = 0, kalan = tutar;
+  for (var i = 0; i < tarife.dilimler.length; i++) {
+    if (kalan <= 0) break;
+    var d = tarife.dilimler[i];
+    var uygulanan = (d.kadar === Infinity) ? kalan : Math.min(kalan, d.kadar);
+    var ucret = uygulanan * d.oran;
+    toplam += ucret;
+    kalan -= uygulanan;
+    var dilimAciklamasi = i === 0
+      ? 'İlk ' + _vuFmt(d.kadar) + ' TL için'
+      : (d.kadar === Infinity ? 'Üstü (' + _vuFmt(uygulanan) + ' TL için)' : 'Sonraki ' + _vuFmt(d.kadar) + ' TL için (' + _vuFmt(uygulanan) + ' TL)');
+    satirlar.push({ aciklama: dilimAciklamasi, oran: d.oran, ucret: ucret, sifir: uygulanan <= 0 || ucret === 0 });
+  }
+
+  var toplamGosterilen = Math.max(Math.round(toplam), tarife.asgari);
+  var asgariUygulandi = toplamGosterilen > Math.round(toplam);
+
+  var html = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:12px">'
+    + '<div style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text3);font-size:11px">'
+    + 'AAÜT ' + tarife.yil + ' · ' + baslik + ' · ' + _vuFmt(tutar) + ',00 TL için VEKALET ÜCRETİ Hesap Tablosu</div>'
+    + '<table style="width:100%;border-collapse:collapse">'
+    + '<thead><tr style="background:rgba(108,71,255,0.07)">'
+    + '<th style="text-align:left;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Dilim</th>'
+    + '<th style="text-align:center;padding:7px 8px;font-size:11px;color:var(--text3);font-weight:600">Oran</th>'
+    + '<th style="text-align:right;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Tutar</th>'
+    + '</tr></thead><tbody>';
+
+  satirlar.forEach(function(s) {
+    html += '<tr style="border-top:1px solid var(--border)">'
+      + '<td style="padding:7px 12px;color:' + (s.sifir ? 'var(--text3)' : 'var(--text2)') + '">' + s.aciklama + '</td>'
+      + '<td style="padding:7px 8px;text-align:center;font-weight:700;color:' + (s.sifir ? 'var(--text3)' : 'var(--gold)') + '">%' + Math.round(s.oran * 100) + '</td>'
+      + '<td style="padding:7px 12px;text-align:right;font-family:monospace;font-weight:600;color:' + (s.sifir ? 'var(--text3)' : 'var(--text)') + '">' + _vuFmt(Math.round(s.ucret)) + ',00 TL</td>'
+      + '</tr>';
+  });
+
+  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(108,71,255,0.1)">'
+    + '<td colspan="2" style="padding:10px 12px;font-size:13px;font-weight:700;color:var(--gold)">' + _vuFmt(tutar) + ',00 TL için TOPLAM</td>'
+    + '<td style="padding:10px 12px;text-align:right;font-size:15px;font-family:monospace;font-weight:900;color:var(--gold)">' + _vuFmt(toplamGosterilen) + ',00 TL</td>'
+    + '</tr></tfoot></table>';
+
+  if (asgariUygulandi) {
+    html += '<div style="padding:7px 14px;font-size:11px;color:var(--text3);border-top:1px solid var(--border)">* Asgari ücret (' + _vuFmt(tarife.asgari) + ',00 TL) uygulandı.</div>';
+  }
+  html += '</div>';
+  sonucEl.innerHTML = html;
+}
+
 function openTarifeGuncelleModal() {
   var t = _getDavaTarife();
   document.getElementById('tg-yil').value = t.yil;
