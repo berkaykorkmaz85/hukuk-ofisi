@@ -744,7 +744,7 @@ function openTarifeGuncelleModal() {
       tablo.appendChild(tr2);
     }
   }
-  document.getElementById('modal-tarife-guncelle').style.display = 'flex';
+  openModal('modal-tarife-guncelle');
 }
 
 function saveTarifeGuncelle() {
@@ -1742,7 +1742,7 @@ function showMuvekkilDetail(id) {
     <button class="btn btn-danger" style="font-size:12px;padding:5px 10px" onclick="showConfirmModal('Bu müvekkili silmek istediğinizden emin misiniz?', function(){ deleteMuvekkil('${id}'); })">🗑 Sil</button>
   </div>
 
-  <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start">
+  <div class="mv-detail-grid">
 
   <!-- SOL: Profil -->
   <div style="display:flex;flex-direction:column;gap:12px">
@@ -2583,7 +2583,7 @@ function renderKarsiVekalet() {
   var toplamHukmedilen = kvlar.reduce(function(a,b){return a+Number(b.tutar);},0);
   var toplamTahsil = kvlar.filter(function(f){return f.karsiVekaletDurum==='tamam';}).reduce(function(a,b){return a+Number(b.tutar);},0);
 
-  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
+  el.innerHTML = '<div class="kpi-3col" style="gap:10px;margin-bottom:16px">'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Toplam Hükmedilen</div><div style="font-size:18px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(toplamHukmedilen)+'</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Tahsil Edilen</div><div style="font-size:18px;font-weight:800;color:var(--green);font-family:monospace">₺'+fmt(toplamTahsil)+'</div></div>'
     +'<div style="background:var(--bg2);border:1px solid '+(toplamHukmedilen-toplamTahsil>0?'rgba(192,83,58,0.3)':'var(--border)')+';border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Bekleyen Tahsilat</div><div style="font-size:18px;font-weight:800;color:'+(toplamHukmedilen-toplamTahsil>0?'var(--red)':'var(--green)')+';font-family:monospace">₺'+fmt(toplamHukmedilen-toplamTahsil)+'</div></div>'
@@ -2631,7 +2631,7 @@ function renderAvansKasa() {
   var topAlinan = mvBakiyeler.reduce(function(a,b){return a+b.alinan;},0);
   var topHarcanan = mvBakiyeler.reduce(function(a,b){return a+b.harcanan;},0);
 
-  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'
+  el.innerHTML = '<div class="kpi-3col" style="gap:10px;margin-bottom:16px">'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Toplam Avans Alınan</div><div style="font-size:18px;font-weight:800;color:#7ab5d4;font-family:monospace">₺'+fmt(topAlinan)+'</div></div>'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Toplam Harcanan</div><div style="font-size:18px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(topHarcanan)+'</div></div>'
     +'<div style="background:var(--bg2);border:1px solid '+(topAlinan-topHarcanan<0?'rgba(192,83,58,0.3)':'var(--border)')+';border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Kalan Avans</div><div style="font-size:18px;font-weight:800;color:'+(topAlinan-topHarcanan>=0?'var(--green)':'var(--red)')+';font-family:monospace">₺'+fmt(topAlinan-topHarcanan)+'</div></div>'

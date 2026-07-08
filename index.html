@@ -2007,6 +2007,9 @@
 .ptt-history-date { font-size: 11px; color: var(--text3); }
 .ptt-history-actions { display: flex; gap: 4px; }
 
+/* Responsive grid yardımcı sınıfları */
+.kpi-3col { display: grid; grid-template-columns: repeat(3,1fr); }
+.mv-detail-grid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
 
   /* ═══════════════════════════════════════════════════
      MOBİL OPTİMİZASYON — 768px ve altı
@@ -2288,6 +2291,22 @@
     }
 
     /* Tab bar yerine bottom nav */
+
+    /* ── RESPONSIVE GRİD SINIFLARI ── */
+    .kpi-3col { grid-template-columns: 1fr 1fr !important; }
+    .mv-detail-grid { grid-template-columns: 1fr !important; }
+
+    /* ── FAİZ HESAP SAYFASI ── */
+    #faiz-oranlar-grid { grid-template-columns: 1fr 1fr !important; }
+    #faiz-ana-grid { grid-template-columns: 1fr !important; }
+    #fhd-main-grid { grid-template-columns: 1fr !important; }
+    #vu-main-grid { grid-template-columns: 1fr !important; }
+
+    /* ── FİNANS MODAL — Müvekkil cari özeti ── */
+    #f-mv-cari-boxes { grid-template-columns: 1fr 1fr !important; }
+
+    /* ── DAVA FİNANS SEKMESİ — 4 metrik kart ── */
+    #ddp-finans-kpi { grid-template-columns: 1fr 1fr !important; }
   }
 
   /* 480px altı — küçük telefonlar */
@@ -3192,7 +3211,7 @@
   <div style="max-width:900px;margin:0 auto">
 
     <!-- Güncel Oranlar - büyük ve görsel -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    <div id="faiz-oranlar-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
       <div style="background:linear-gradient(135deg,rgba(108,71,255,0.15),rgba(108,71,255,0.05));border:1px solid rgba(108,71,255,0.3);border-radius:14px;padding:18px 20px;text-align:center">
         <div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;font-weight:700">Adi Kanuni</div>
         <div id="oran-kanuni" data-oran="24" style="font-size:32px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;line-height:1">%24</div>
@@ -3220,7 +3239,7 @@
     </div>
 
     <!-- Hesaplama Formu + Sonuç - yan yana -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+    <div id="faiz-ana-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
 
       <!-- SOL: Form -->
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px">
@@ -3300,7 +3319,7 @@
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px">
       <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px">📅 Dönemsel Faiz Hesaplama</div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Farklı yıllarda değişen yasal faiz oranlarına göre otomatik dönemsel hesaplama yapar</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div id="fhd-main-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
         <div>
           <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Anapara (₺)</label>
           <input id="fhd-anapara" type="text" inputmode="decimal" placeholder="Örn: 100.000" data-para style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;padding:10px 12px">
@@ -3341,7 +3360,7 @@
         <button onclick="openTarifeGuncelleModal()" style="font-size:11px;padding:5px 13px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;white-space:nowrap">🔄 Tarife Güncelle</button>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div id="vu-main-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
         <div>
           <label style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Hesaplama Türü</label>
           <select id="vu-tur" onchange="vuHesapla()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;outline:none">
@@ -5239,10 +5258,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260707c"></script>
-<script src="js/02-dava-yonetimi.js?v=20260707c"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260707c"></script>
-<script src="js/04-arac-ve-modul.js?v=20260707c"></script>
+<script src="js/01-cekirdek-veri.js?v=20260708b"></script>
+<script src="js/02-dava-yonetimi.js?v=20260708b"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260708b"></script>
+<script src="js/04-arac-ve-modul.js?v=20260708b"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">
