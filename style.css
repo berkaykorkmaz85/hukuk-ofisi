@@ -961,6 +961,41 @@ tbody tr:hover td {
   max-width: 120px;
 }
 
+/* ── TABLO: HEADER & HOVER ────────────────────────────────── */
+thead th {
+  background: var(--bg3) !important;
+  color: var(--text3) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.07em !important;
+  text-transform: uppercase !important;
+  padding: 10px 12px !important;
+  border-bottom: 1px solid var(--border) !important;
+  white-space: nowrap;
+}
+
+tbody tr { transition: background 0.1s; }
+
+tr:hover td {
+  background: var(--accent-dim) !important;
+  color: var(--text) !important;
+}
+
+/* ── STATUS TAGS ──────────────────────────────────────────── */
+.tag {
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 3px 9px !important;
+  border-radius: 20px !important;
+  letter-spacing: 0.02em !important;
+}
+
+.tag-aktif  { background: var(--green-dim)  !important; color: var(--green)  !important; }
+.tag-bekliyor { background: var(--accent-dim) !important; color: var(--accent) !important; }
+.tag-kapali { background: rgba(148,144,181,0.15) !important; color: var(--text3) !important; }
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media (max-width: 900px) {
   .chart-row-1 { grid-template-columns: 1fr; }
