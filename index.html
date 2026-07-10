@@ -4068,71 +4068,12 @@
         <input id="d-ad" type="hidden">
         <div class="form-group full"><label>Dava Konusu <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(isteğe bağlı)</span></label><input id="d-konu" maxlength="300" placeholder="Kira alacağı davası, boşanma davası..."></div>
 
-        <!-- ① İLK DERECE MAHKEMESİ -->
-        <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
-          <div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">⚖ İlk Derece Mahkemesi</div>
-          <div class="form-grid-3" style="gap:10px">
-            <div class="form-group">
-              <label>Mahkeme Türü</label>
-              <select id="d-tur" onchange="onDavaTuruChange()">
-                <option value="">Seçin...</option>
-                <optgroup label="── Hukuk">
-                  <option value="Asliye Hukuk">Asliye Hukuk</option>
-                  <option value="Sulh Hukuk">Sulh Hukuk</option>
-                  <option value="Aile">Aile</option>
-                  <option value="İş">İş</option>
-                  <option value="Ticaret">Ticaret (Asliye Ticaret)</option>
-                  <option value="Tüketici">Tüketici</option>
-                  <option value="Kira">Kira (Sulh Hukuk)</option>
-                  <option value="İcra Hukuk">İcra Hukuk</option>
-                  <option value="Kadastro">Kadastro</option>
-                  <option value="Fikri Mülkiyet">Fikri & Sınai Haklar</option>
-                </optgroup>
-                <optgroup label="── Ceza">
-                  <option value="Asliye Ceza">Asliye Ceza</option>
-                  <option value="Ağır Ceza">Ağır Ceza</option>
-                  <option value="Sulh Ceza Hâkimliği">Sulh Ceza Hâkimliği</option>
-                  <option value="Çocuk">Çocuk Mahkemesi</option>
-                  <option value="Çocuk Ağır Ceza">Çocuk Ağır Ceza</option>
-                </optgroup>
-                <optgroup label="── İdare">
-                  <option value="İdare">İdare Mahkemesi</option>
-                  <option value="Vergi">Vergi Mahkemesi</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>İl</label>
-              <select id="d-il" onchange="onMahkemeIlChange('dava');onAdliyeIlChange()">
-                <option value="">Önce tür seçin</option>
-              </select>
-            </div>
-            <div class="form-group" id="d-adliye-wrap" style="display:none">
-              <label>Adliye</label>
-              <select id="d-adliye" onchange="buildMahkemeAdi('dava')">
-                <option value="">Seçin...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Sıra No</label>
-              <select id="d-sira" onchange="buildMahkemeAdi('dava')">
-                <option value="">—</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" style="margin-top:10px">
-            <label>İlk Derece Mahkeme Adı <span style="color:var(--text3);font-weight:400;text-transform:none">(otomatik dolar, elle de düzenleyebilirsiniz)</span></label>
-            <input id="d-mahkeme" placeholder="Örn: Ankara 5. İcra Hukuk Mahkemesi">
-          </div>
-          <!-- DAVA ÇEŞİDİ -->
-          <div id="d-cesit-wrap" style="margin-top:10px;display:none">
-            <div class="form-group">
-              <label>Dava Çeşidi <span style="color:var(--text3);font-weight:400;text-transform:none">(mahkemeye göre)</span></label>
-              <select id="d-cesit" onchange="document.getElementById('d-konu').value = this.value !== '__diger__' ? this.value : ''">
-                <option value="">Seçin...</option>
-              </select>
-            </div>
-          </div>
+        <!-- ① MAHKEMESİ -->
+        <select id="d-tur" style="display:none"><option value="Asliye Hukuk">Asliye Hukuk</option></select>
+        <select id="d-cesit" style="display:none"><option value=""></option></select>
+        <div class="form-group full">
+          <label>Mahkeme</label>
+          <input id="d-mahkeme" placeholder="Örn: İstanbul 5. Asliye Hukuk Mahkemesi">
         </div>
 
         <!-- ② İSTİNAF MAHKEMESİ -->
@@ -4250,10 +4191,7 @@
             <option>Aktif</option><option>Bekliyor</option><option>Kapalı</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Yargı Kolu</label>
-          <input id="d-yargi-kolu" readonly placeholder="Dava türüne göre otomatik" style="color:var(--gold);background:var(--bg3)">
-        </div>
+        <input id="d-yargi-kolu" style="display:none">
         <!-- VEKÂLETÜCRETİ & MASRAF -->
         <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
           <div style="font-size:11px;color:#4a8c5c;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">💰 Vekâlet Ücreti & Masraf</div>
@@ -4391,33 +4329,11 @@
         <div class="form-group"><label>Müvekkil (Alacaklı)</label><select id="i-muvekkil"><option value="">Seçin...</option></select></div>
         <div class="form-group"><label>Borçlu</label><input id="i-borclu" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
 
-        <!-- AKILLI İCRA MÜDÜRLÜĞİ SEÇİCİ -->
-        <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
-          <div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">⚡ İcra Müdürlüğü Seçici</div>
-          <div class="form-grid" style="gap:10px">
-            <div class="form-group">
-              <label>İl</label>
-              <select id="i-il" onchange="onIcraIlChange()">
-                <option value="">İl seçin...</option>
-              </select>
-            </div>
-            <div class="form-group" id="i-adliye-wrap" style="display:none">
-              <label>Adliye / İlçe</label>
-              <select id="i-adliye" onchange="buildMahkemeAdi('icra')">
-                <option value="">Adliye seçin...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Sıra No</label>
-              <select id="i-sira" onchange="buildMahkemeAdi('icra')">
-                <option value="">—</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" style="margin-top:10px">
-            <label>İcra Müdürlüğü Adı <span style="color:var(--text3);font-weight:400;text-transform:none">(otomatik dolar, elle de düzenleyebilirsiniz)</span></label>
-            <input id="i-mudurluk" placeholder="İcra müdürlüğü adı...">
-          </div>
+        <!-- İCRA MÜDÜRLÜĞİ -->
+        <select id="i-il" style="display:none"><option value=""></option></select>
+        <div class="form-group full">
+          <label>İcra Müdürlüğü</label>
+          <input id="i-mudurluk" placeholder="Örn: İstanbul 1. İcra Müdürlüğü">
         </div>
 
         <div class="form-group"><label>Esas No</label><input id="i-esas" placeholder="2024/12345"></div>

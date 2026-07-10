@@ -2230,6 +2230,15 @@ function _ddpOpenFinansModal(davaId, davaNo, muvekkil) {
   }, 100);
 }
 
+function _ddpSaveFinansalNot(davaId) {
+  var not = (document.getElementById('ddp-finansal-not')||{}).value || '';
+  var arr = DB.get('davalar');
+  arr = arr.map(function(d){ return d.id===davaId ? Object.assign({}, d, {finansalNot: not}) : d; });
+  DB.set('davalar', arr);
+  _sbTekKayitYaz('davalar', arr.find(function(d){ return d.id===davaId; }));
+  notify('Finansal not kaydedildi');
+}
+
 function _ddpDeleteFinans(fId) {
   // Silinecek kaydı önceden sakla (müvekkil/icra yenilemesi için)
   var silinenF = (DB.get('finans')||[]).find(function(f){ return f.id === fId; });
@@ -2591,7 +2600,7 @@ function renderDavaTab(id, sekme) {
         <button class="ddp-fin-export" onclick="_ddpExportFinansCSV('${id}')">📊 CSV İndir</button>
       </div>
       <!-- KPI — F1: 4 cards + T11 -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+      <div id="ddp-finans-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
           <div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Anlaşılan Ücret</div>
           <div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺${fmt(akdiUcret)}</div>
@@ -2657,6 +2666,12 @@ function renderDavaTab(id, sekme) {
         })()
       }
       <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:12px" onclick="_ddpOpenFinansModal('${id}','${escHtml(d.no)}','${escHtml(d.muvekkil)}')">+ Yeni İşlem Ekle</button>
+      <!-- Finansal Notlar -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">📝 Finansal Notlar</div>
+        <textarea id="ddp-finansal-not" rows="4" placeholder="Bu dosyayla ilgili finansal notlarınızı buraya yazın…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box">${escHtml(d.finansalNot||'')}</textarea>
+        <button class="btn btn-outline" style="margin-top:6px;font-size:12px" onclick="_ddpSaveFinansalNot('${id}')">Kaydet</button>
+      </div>
     </div>`;
 
   } else if (sekme === 'masraf') {
@@ -2785,7 +2800,7 @@ function _ddpRenderMasraflar(id, d) {
   var el = document.getElementById('ddp-info');
   el.innerHTML = '<div style="padding:16px">'
     // KPI satırı
-    + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'
+    + '<div class="kpi-3col" style="gap:8px;margin-bottom:16px">'
     + '<div style="background:var(--bg3);border:1px solid rgba(192,83,58,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Bu Dava Masrafı</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplam)+'</div></div>'
     + '<div style="background:var(--bg3);border:1px solid rgba(58,107,140,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Müvekkil Toplam Avans</div><div style="font-size:16px;font-weight:800;color:#7ab5d4;font-family:monospace">₺'+fmt(avansAlinan)+'</div></div>'
     + '<div style="background:var(--bg3);border:1px solid '+(bakiye>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.5)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Avans Bakiyesi</div><div style="font-size:16px;font-weight:800;color:'+(bakiye>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(bakiye>=0?'+':'')+'₺'+fmt(Math.abs(bakiye))+'</div></div>'
@@ -2793,11 +2808,11 @@ function _ddpRenderMasraflar(id, d) {
     // Masraf ekleme formu
     + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
     + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:10px">+ Masraf Ekle</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+    + '<div class="form-grid" style="gap:8px;margin-bottom:8px">'
     + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tarih</label><input type="date" id="ddp-masraf-tarih" value="'+new Date().toISOString().slice(0,10)+'" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none;color-scheme:dark"></div>'
     + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tutar (₺)</label><input type="number" id="ddp-masraf-tutar" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"></div>'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+    + '<div class="form-grid" style="gap:8px;margin-bottom:10px">'
     + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tür</label><select id="ddp-masraf-tur" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"><option>Harç</option><option>Tebligat Ücreti</option><option>Bilirkişi Ücreti</option><option>Posta Ücreti</option><option>Keşif Masrafı</option><option>Tercüman Ücreti</option><option>Yol/Konaklama</option><option>Diğer</option></select></div>'
     + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Açıklama</label><input type="text" id="ddp-masraf-aciklama" placeholder="İsteğe bağlı..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"></div>'
     + '</div>'

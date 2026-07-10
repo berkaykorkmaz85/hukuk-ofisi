@@ -2,7 +2,10 @@ chrome.runtime.sendMessage({ type: 'GET_NEW' }, function (items) {
   var root = document.getElementById('root');
 
   if (!items || items.length === 0) {
-    root.innerHTML = '<div class="empty">✅ Yeni evrak yok.<br><small>UYAP\'ta bir dosyanın Evrak sekmesini açınca burada takip başlar.</small></div>';
+    root.innerHTML =
+      '<div class="empty">✅ Yeni evrak yok.<br><small>UYAP\'ta bir dosyanın Evrak sekmesini açınca burada takip başlar.</small></div>' +
+      '<div class="footer"><button class="reset-btn" id="resetBtn">🗑 Geçmişi Sıfırla</button></div>';
+    document.getElementById('resetBtn').addEventListener('click', resetStorage);
     return;
   }
 
@@ -30,10 +33,30 @@ chrome.runtime.sendMessage({ type: 'GET_NEW' }, function (items) {
     window.close();
   });
 
+  var resetBtn = document.createElement('button');
+  resetBtn.className = 'reset-btn';
+  resetBtn.textContent = '🗑 Geçmişi Sıfırla';
+  resetBtn.addEventListener('click', resetStorage);
+
   footer.appendChild(btn);
+  footer.appendChild(resetBtn);
   root.appendChild(listEl);
   root.appendChild(footer);
 });
+
+function resetStorage() {
+  chrome.storage.local.clear(function () {
+    chrome.runtime.sendMessage({ type: 'CLEAR_NEW' });
+    var btn = document.getElementById('resetBtn') || document.querySelector('.reset-btn');
+    if (btn) {
+      btn.textContent = '✅ Geçmiş sıfırlandı';
+      btn.className = 'reset-ok';
+      btn.style.border = 'none';
+      btn.disabled = true;
+    }
+    setTimeout(function () { window.close(); }, 1200);
+  });
+}
 
 function escapeHtml(str) {
   return String(str || '')

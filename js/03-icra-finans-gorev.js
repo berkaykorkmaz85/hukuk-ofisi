@@ -905,6 +905,15 @@ function _idpAddMasraf(icraId) {
   notify('Masraf kaydedildi ✓');
 }
 
+function _idpSaveFinansalNot(icraId) {
+  var not = (document.getElementById('idp-finansal-not')||{}).value || '';
+  var arr = DB.get('icralar');
+  arr = arr.map(function(i){ return i.id===icraId ? Object.assign({}, i, {finansalNot: not}) : i; });
+  DB.set('icralar', arr);
+  _sbTekKayitYaz('icralar', arr.find(function(i){ return i.id===icraId; }));
+  notify('Finansal not kaydedildi');
+}
+
 function _idpDeleteMasraf(masrafId, icraId) {
   showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
     DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
@@ -1043,6 +1052,12 @@ function renderIcraTab(id, sekme) {
       + '<input id="idp-masraf-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:5px 8px">'
       + '<input id="idp-masraf-aciklama" placeholder="Açıklama..." style="flex:1;min-width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:5px 8px">'
       + '<button class="btn btn-gold" style="font-size:11px;padding:5px 10px" onclick="_idpAddMasraf(\''+id+'\')">+ Ekle</button>'
+      + '</div>'
+      // Finansal Notlar
+      + '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">📝 Finansal Notlar</div>'
+      + '<textarea id="idp-finansal-not" rows="4" placeholder="Bu dosyayla ilgili finansal notlarınızı buraya yazın…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box">'+escHtml(i.finansalNot||'')+'</textarea>'
+      + '<button class="btn btn-outline" style="margin-top:6px;font-size:12px" onclick="_idpSaveFinansalNot(\''+id+'\')">Kaydet</button>'
       + '</div></div>';
 
   } else if (sekme === 'haciz') {
