@@ -1002,6 +1002,125 @@ tr:hover td {
   .chart-row-2 { grid-template-columns: 1fr; }
 }
 
+/* ── FİNANS ÖZET KPI KARTLARI ────────────────────────────── */
+.finans-kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.finans-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.finans-kpi-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.finans-kpi-val {
+  font-size: 20px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.finans-kpi-sub {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 5px;
+}
+
+/* ── GÖREVLER KPI KARTLARI ────────────────────────────────── */
+.task-kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.task-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.task-kpi-icon-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text3);
+  font-weight: 600;
+}
+.task-kpi-val {
+  font-size: 26px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+/* ── GÖREVLER TAB BAR ─────────────────────────────────────── */
+.task-tab-bar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.task-tab-btn {
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.task-tab-btn:hover {
+  background: var(--bg3);
+  color: var(--text);
+}
+.task-tab-btn.is-active {
+  background: var(--bg3);
+  border-color: var(--border);
+  font-weight: 700;
+  box-shadow: var(--shadow-xs);
+}
+.task-tab-count {
+  background: var(--bg4);
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── FİNANS SEKME BAR ─────────────────────────────────────── */
+#page-finans > div:has(.finans-sekme) {
+  background: var(--bg2) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
 /* ── DAVA/İCRA DETAY PAGE ─────────────────────────────────── */
 
 /* Note cards — light theme shadow fix */

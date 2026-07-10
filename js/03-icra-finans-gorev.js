@@ -2776,15 +2776,15 @@ function renderFinans() {
   if (summary) {
     summary.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px';
     summary.innerHTML = [
-      {l:'Tahsil Edilen',     v:'₺'+fmt(topTah),           c:'var(--green)', icon:'↗', sub:'Müvekkillerden alınan toplam ödeme'},
-      {l:'Tahsil Edilemeyen',  v:'₺'+fmt(tahsilEdilemyen),   c:tahsilEdilemyen>0?'var(--red)':'var(--green)', icon:'⏳', sub:'Anlaşılan − Tahsil Edilen'},
-      {l:'Masraf Bakiyesi',    v:'₺'+fmt(topMas),            c:'var(--red)', icon:'🧾', sub:'Tüm dosyalardaki toplam masraf'},
-      {l:'Toplam Anlaşılan',   v:'₺'+fmt(topAnlasilan),      c:'var(--gold)', icon:'📋', sub:'Tüm dosyalardaki anlaşılan ücret toplamı'},
+      {l:'Tahsil Edilen',    v:'₺'+fmt(topTah),          c:'var(--green)', icon:'↗', sub:'Müvekkillerden alınan toplam ödeme'},
+      {l:'Tahsil Edilemeyen', v:'₺'+fmt(tahsilEdilemyen),  c:tahsilEdilemyen>0?'var(--red)':'var(--green)', icon:'⏳', sub:'Anlaşılan − Tahsil Edilen'},
+      {l:'Masraf Bakiyesi',   v:'₺'+fmt(topMas),           c:'var(--red)', icon:'🧾', sub:'Tüm dosyalardaki toplam masraf'},
+      {l:'Toplam Anlaşılan',  v:'₺'+fmt(topAnlasilan),     c:'var(--accent)', icon:'📋', sub:'Tüm dosyalardaki anlaşılan ücret toplamı'},
     ].map(x=>`
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">${x.icon} ${x.l}</div>
-        <div style="font-size:20px;font-weight:800;color:${x.c};font-family:monospace;line-height:1">${x.v}</div>
-        ${x.sub?`<div style="font-size:10px;color:var(--text3);margin-top:5px">${x.sub}</div>`:''}
+      <div class="finans-kpi-card">
+        <div class="finans-kpi-label">${x.icon} ${x.l}</div>
+        <div class="finans-kpi-val" style="color:${x.c}">${x.v}</div>
+        ${x.sub?`<div class="finans-kpi-sub">${x.sub}</div>`:''}
       </div>`).join('');
   }
 
@@ -3120,9 +3120,9 @@ function renderTasks() {
       {icon:'✅', label:'Tamamlanan', val:tamamYuzde+'%', clr:'var(--green)', bg:'rgba(74,140,92,0.08)', border:'rgba(74,140,92,0.25)'},
     ];
     kpiBar.innerHTML = kpis.map(function(k){
-      return '<div style="background:'+k.bg+';border:1px solid '+k.border+';border-radius:12px;padding:14px 16px;cursor:pointer;transition:all 0.15s" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.15)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'
-        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:16px">'+k.icon+'</span><span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);font-weight:600">'+k.label+'</span></div>'
-        +'<div style="font-size:26px;font-weight:800;color:'+k.clr+';font-family:\'DM Mono\',monospace;line-height:1">'+k.val+'</div>'
+      return '<div class="task-kpi-card">'
+        +'<div class="task-kpi-icon-label"><span style="font-size:16px">'+k.icon+'</span>'+k.label+'</div>'
+        +'<div class="task-kpi-val" style="color:'+k.clr+'">'+k.val+'</div>'
         +'</div>';
     }).join('');
   }
@@ -3157,17 +3157,16 @@ function renderTasks() {
 
   listEl.innerHTML = '';
 
-  // === MODERN TAB BAR ===
+  // === TAB BAR ===
   var tabBar = document.createElement('div');
-  tabBar.style.cssText = 'display:flex;gap:4px;padding:4px;background:var(--bg2);border-radius:12px;border:1px solid var(--border);margin-bottom:16px;overflow-x:auto;scrollbar-width:none;flex-shrink:0';
+  tabBar.className = 'task-tab-bar';
 
   tabs.forEach(function(tab) {
     var btn = document.createElement('button');
     var isActive = activeTab === tab.id;
-    btn.style.cssText = 'padding:8px 14px;background:'+(isActive?'var(--bg)':'transparent')+';border:'+(isActive?'1px solid var(--border)':'1px solid transparent')+';border-radius:9px;color:'+(isActive?tab.clr:'var(--text3)')+';font-size:12px;font-weight:'+(isActive?'700':'500')+';cursor:pointer;white-space:nowrap;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px'+(isActive?';box-shadow:0 1px 3px rgba(0,0,0,0.2)':'');
-    btn.innerHTML = tab.label+(tab.count?'<span style="background:'+(isActive?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.06)')+';border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;min-width:18px;text-align:center">'+tab.count+'</span>':'');
-    btn.onmouseover = function(){ if(!isActive) this.style.background='rgba(255,255,255,0.04)'; };
-    btn.onmouseout  = function(){ if(!isActive) this.style.background='transparent'; };
+    btn.className = 'task-tab-btn' + (isActive ? ' is-active' : '');
+    if (isActive) btn.style.color = tab.clr;
+    btn.innerHTML = tab.label + (tab.count ? '<span class="task-tab-count">' + tab.count + '</span>' : '');
     btn.onclick = (function(tabId){ return function(){
       listEl.dataset.activeTab = tabId;
       renderTasks();
