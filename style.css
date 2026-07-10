@@ -1372,6 +1372,105 @@ tr:hover td {
   background: transparent !important;
 }
 
+/* ── FAZ 9: FINAL POLISH ──────────────────────────────────── */
+
+/* Logo section — subtle violet accent bottom gradient */
+.logo {
+  background: linear-gradient(180deg, var(--accent-dim) 0%, transparent 100%) !important;
+}
+
+/* Task filter tab active — violet dim bg + inherit color */
+.task-tab-btn.is-active {
+  background: var(--accent-dim) !important;
+  border-color: var(--accent) !important;
+  font-weight: 700 !important;
+  box-shadow: var(--shadow-xs) !important;
+}
+
+/* Calendar nav buttons (Bugün / < / >) */
+.dt-nav-btn, [onclick*="prevMonth"], [onclick*="nextMonth"],
+[onclick*="setDtView"], button[onclick*="dt"] {
+  font-family: var(--font-sans) !important;
+}
+
+/* Calendar view toggle buttons — active state */
+#dt-view-ay-btn.btn-gold,
+#dt-view-hafta-btn.btn-gold,
+#dt-view-liste-btn.btn-gold {
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+}
+
+/* Calendar grid cells */
+.cal-cell {
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  transition: background 0.12s !important;
+}
+.cal-cell:hover {
+  background: var(--accent-dim) !important;
+  cursor: pointer;
+}
+.cal-today-num {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-radius: 50% !important;
+  width: 26px !important;
+  height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 700 !important;
+}
+
+/* UYAP import buttons in topbar */
+[onclick*="uyap"], [onclick*="Uyap"] {
+  font-family: var(--font-sans) !important;
+  font-size: 12.5px !important;
+}
+
+/* Topbar search bar */
+#search-bar-input, input[placeholder*="Ctrl+K"], input[placeholder*="Ara"] {
+  font-family: var(--font-sans) !important;
+  background: var(--bg3) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text) !important;
+}
+#search-bar-input:focus, input[placeholder*="Ctrl+K"]:focus {
+  background: var(--bg2) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-dim) !important;
+  outline: none !important;
+}
+
+/* Empty state message styling */
+.empty-state, [style*="Henüz"] {
+  color: var(--text3) !important;
+}
+
+/* Dava / İcra list table row link color */
+td a, td .dava-link, td [onclick] {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+/* Müvekkil link in table */
+td a:hover {
+  text-decoration: underline !important;
+  color: var(--violet-700) !important;
+}
+
+/* Görev satırı (task row) red left border for overdue */
+.gorev-satir-gecikti {
+  border-left: 3px solid var(--red) !important;
+}
+
+/* Notlar page search bar */
+#notlar-search {
+  font-family: var(--font-sans) !important;
+}
+
 /* ── PRINT ────────────────────────────────────────────────── */
 @media print {
   #sidebar, #topbar, .btn { display: none !important; }
