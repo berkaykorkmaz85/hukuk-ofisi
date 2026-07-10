@@ -1555,6 +1555,7 @@ function makeDonut(id, labels, data, colors, legendId) {
     type: 'doughnut',
     data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: 'transparent', borderWidth: 0, hoverOffset: 4 }] },
     options: {
+      animation: { duration: 0 },
       cutout: '68%',
       responsive: true,
       maintainAspectRatio: false,
@@ -1606,6 +1607,7 @@ function makeBar(id, labels, datasets) {
     type: 'bar',
     data: { labels, datasets },
     options: {
+      animation: { duration: 0 },
       responsive: true,
       maintainAspectRatio: false,
       hover: { mode: 'index', intersect: false },
@@ -1655,6 +1657,7 @@ function makeHBar(id, labels, data) {
       datasets: [{ data, backgroundColor: 'rgba(201,168,76,0.5)', borderColor: '#c9a84c', borderWidth: 1, borderRadius: 4 }]
     },
     options: {
+      animation: { duration: 0 },
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
