@@ -1740,15 +1740,15 @@ function renderDashboard() {
     var davalar = (DB.get('davalar')||[]).filter(function(d){ return d.durusma && d.durusma.slice(0,10)===todayStr; }).slice(0,3);
     var html = '';
     davalar.forEach(function(d){
-      html += '<div class="bugun-item" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:6px;border-left:3px solid var(--gold)">' +
-        '<span>⚖️</span><span style="font-size:13px"><strong>'+(d.dosyaNo||d.taraflar||'Dava')+'</strong> — Duruşma bugün</span></div>';
+      html += '<div class="bugun-item bugun-durusma" style="cursor:pointer" onclick="openDavaDetailPage(\''+ d.id +'\')">' +
+        '<span>⚖️</span><span><strong>'+(d.ad||d.no||'Dava')+'</strong> — Duruşma bugün</span></div>';
     });
     tasks.forEach(function(t){
       var gecikti = t.tarih < todayStr;
-      html += '<div class="bugun-item" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:6px;border-left:3px solid '+(gecikti?'#e06060':'var(--gold)') + '">' +
-        '<span>'+(gecikti?'🔴':'📌')+'</span><span style="font-size:13px">'+(t.baslik||'Görev')+(gecikti?' <em style="color:#e06060;font-size:10px">(Gecikti)</em>':'')+'</span></div>';
+      html += '<div class="bugun-item '+(gecikti?'bugun-gecikme':'bugun-gorev')+'">' +
+        '<span>'+(gecikti?'🔴':'📌')+'</span><span>'+(t.baslik||'Görev')+(gecikti?'<em class="gecikme-label">(Gecikti)</em>':'')+'</span></div>';
     });
-    if (!html) html = '<div style="color:var(--text3);font-size:13px;padding:8px">✅ Bugün için planlanmış görev veya duruşma yok.</div>';
+    if (!html) html = '<div class="bugun-item bugun-bos">✅ Bugün için planlanmış görev veya duruşma yok.</div>';
     grid.innerHTML = html;
   })();
 
@@ -1860,7 +1860,7 @@ function renderDashboard() {
   const urgentTasks = tasks.filter(t=>!t.done).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih)).slice(0,5);
   document.getElementById('urgent-count').textContent = `${urgentTasks.length} görev bekliyor`;
   document.getElementById('upcoming-tasks').innerHTML = urgentTasks.length ? urgentTasks.map(t=>`
-    <div class="task-item" style="cursor:pointer" onclick="showPage('tasks')" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+    <div class="task-item" style="cursor:pointer" onclick="showPage('tasks')">
       <div class="task-check ${t.done?'done':''}" onclick="event.stopPropagation();toggleTask('${t.id}', renderDashboard)"></div>
       <div class="task-content">
         <div class="task-title">${t.baslik}</div>
@@ -2390,7 +2390,7 @@ function renderDavaTab(id, sekme) {
       <!-- Cover Card -->
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px">
         <!-- Top gradient banner -->
-        <div style="background:linear-gradient(135deg,rgba(201,168,76,0.12) 0%,rgba(122,181,212,0.08) 100%);padding:16px 20px 14px;border-bottom:1px solid var(--border)">
+        <div style="background:linear-gradient(135deg,var(--accent-dim) 0%,rgba(139,92,246,0.04) 100%);padding:16px 20px 14px;border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
             <span class="ddp-no-pill">${escHtml(d.no)}</span>
             <div style="display:flex;align-items:center;gap:6px">
@@ -2439,15 +2439,15 @@ function renderDavaTab(id, sekme) {
       <!-- İstinaf / Temyiz -->
       ${(d.istinafMahkeme||d.temyizMahkeme)?`
       <div style="margin-top:14px">
-        ${d.istinafMahkeme?`<div style="background:rgba(58,107,140,0.1);border:1px solid rgba(58,107,140,0.3);border-radius:8px;padding:10px 14px;margin-bottom:8px">
-          <div style="font-size:11px;font-weight:700;color:#7ab5d4;margin-bottom:4px">🔵 İSTİNAF</div>
-          <div style="font-size:13px;color:var(--text)">${escHtml(d.istinafMahkeme)}</div>
-          ${d.istinafEsas?`<div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:monospace">${escHtml(d.istinafEsas)}</div>`:''}
+        ${d.istinafMahkeme?`<div style="background:var(--blue-dim);border:1px solid rgba(37,99,235,0.2);border-radius:8px;padding:10px 14px;margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">🔵 İSTİNAF</div>
+          <div style="font-size:13px;color:var(--text);font-weight:500">${escHtml(d.istinafMahkeme)}</div>
+          ${d.istinafEsas?`<div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--font-mono)">${escHtml(d.istinafEsas)}</div>`:''}
         </div>`:''}
-        ${d.temyizMahkeme?`<div style="background:rgba(196,168,224,0.08);border:1px solid rgba(196,168,224,0.3);border-radius:8px;padding:10px 14px">
-          <div style="font-size:11px;font-weight:700;color:#c4a8e0;margin-bottom:4px">🟣 TEMYİZ</div>
-          <div style="font-size:13px;color:var(--text)">${escHtml(d.temyizMahkeme)}</div>
-          ${d.temyizEsas?`<div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:monospace">${escHtml(d.temyizEsas)}</div>`:''}
+        ${d.temyizMahkeme?`<div style="background:var(--accent-dim);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:10px 14px">
+          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">🟣 TEMYİZ</div>
+          <div style="font-size:13px;color:var(--text);font-weight:500">${escHtml(d.temyizMahkeme)}</div>
+          ${d.temyizEsas?`<div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:var(--font-mono)">${escHtml(d.temyizEsas)}</div>`:''}
         </div>`:''}
       </div>`:''}
       <!-- Notlar -->
@@ -2455,19 +2455,19 @@ function renderDavaTab(id, sekme) {
       <!-- Son Durum & Sonraki Adım — T6 lift effect -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
         <div class="ddp-note-card" onclick="editDavaNotKartInline('${id}','sonDurum')">
-          <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;display:flex;align-items:center;gap:6px">📌 Son Durum <span style="margin-left:auto;font-size:10px;color:var(--text3);font-weight:400">✏</span></div>
-          <div style="font-size:13px;color:${d.sonDurum?'var(--text2)':'var(--text3)'};white-space:pre-wrap;line-height:1.5">${d.sonDurum?escHtml(d.sonDurum):'Henüz girilmemiş — tıklayarak ekleyin'}</div>
-          ${d._sonDurumTarih?'<div style="font-size:9px;color:var(--text3);margin-top:6px;opacity:0.6">Son güncelleme: '+fmtDate(d._sonDurumTarih)+'</div>':''}
+          <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px">📌 Son Durum <span style="margin-left:auto;font-size:10px;color:var(--text3);font-weight:400;text-transform:none">✏</span></div>
+          <div style="font-size:13px;color:${d.sonDurum?'var(--text2)':'var(--text3)'};white-space:pre-wrap;line-height:1.6">${d.sonDurum?escHtml(d.sonDurum):'Henüz girilmemiş — tıklayarak ekleyin'}</div>
+          ${d._sonDurumTarih?'<div style="font-size:9px;color:var(--text4);margin-top:6px">Son güncelleme: '+fmtDate(d._sonDurumTarih)+'</div>':''}
         </div>
         <div class="ddp-note-card" onclick="editDavaNotKartInline('${id}','sonrakiAdim')">
-          <div style="font-size:11px;font-weight:700;color:#7dc495;margin-bottom:6px;display:flex;align-items:center;gap:6px">➡️ Sonraki Adım <span style="margin-left:auto;font-size:10px;color:var(--text3);font-weight:400">✏</span></div>
-          <div style="font-size:13px;color:${d.sonrakiAdim?'var(--text2)':'var(--text3)'};white-space:pre-wrap;line-height:1.5">${d.sonrakiAdim?escHtml(d.sonrakiAdim):'Henüz girilmemiş — tıklayarak ekleyin'}</div>
+          <div style="font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px">➡️ Sonraki Adım <span style="margin-left:auto;font-size:10px;color:var(--text3);font-weight:400;text-transform:none">✏</span></div>
+          <div style="font-size:13px;color:${d.sonrakiAdim?'var(--text2)':'var(--text3)'};white-space:pre-wrap;line-height:1.6">${d.sonrakiAdim?escHtml(d.sonrakiAdim):'Henüz girilmemiş — tıklayarak ekleyin'}</div>
         </div>
       </div>
-      <!-- Dava Stratejisi — T6 -->
+      <!-- Dava Stratejisi -->
       <div class="ddp-note-card" style="margin-top:10px" onclick="editDavaNotKartInline('${id}','strateji')">
-        <div style="font-size:11px;font-weight:700;color:#7ab5d4;margin-bottom:6px;display:flex;align-items:center;gap:6px">⚖️ Dava Stratejisi <span style="margin-left:auto;font-size:10px;color:var(--text3);font-weight:400">✏</span></div>
-        <div style="font-size:13px;color:${d.strateji?'var(--text2)':'var(--text3)'};white-space:pre-wrap;line-height:1.5">${d.strateji?escHtml(d.strateji):'Henüz girilmemiş — tıklayarak ekleyin'}</div>
+        <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;display:flex;align-items:center;gap:6px">⚖️ Dava Stratejisi <span style="margin-left:auto;font-size:10px;color:var(--text3);font-weight:400;text-transform:none">✏</span></div>
+        <div style="font-size:13px;color:${d.strateji?'var(--text2)':'var(--text3)'};white-space:pre-wrap;line-height:1.6">${d.strateji?escHtml(d.strateji):'Henüz girilmemiş — tıklayarak ekleyin'}</div>
       </div>
     </div>`;
 
