@@ -966,13 +966,13 @@ function renderIcraTab(id, sekme) {
     el.innerHTML = '<div style="padding:16px">'
       // Cover Card
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px">'
-      + '<div style="background:linear-gradient(135deg,rgba(125,196,149,0.12) 0%,rgba(122,181,212,0.08) 100%);padding:16px 20px 14px;border-bottom:1px solid var(--border)">'
+      + '<div style="background:linear-gradient(135deg,var(--accent-dim) 0%,rgba(139,92,246,0.04) 100%);padding:16px 20px 14px;border-bottom:1px solid var(--border)">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-      + '<span class="ddp-no-pill" style="background:rgba(125,196,149,0.15);color:var(--green)">'+escHtml(i.no)+'</span>'
+      + '<span class="ddp-no-pill">'+escHtml(i.no)+'</span>'
       + '<div style="display:flex;align-items:center;gap:6px">'
       + (ageStr?'<span style="font-size:10px;color:var(--text3)">📅 '+ageStr+'</span>':'')
       + '<span class="ddp-durum-badge ddp-durum-'+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'" onclick="_idpCycleStatus(\''+id+'\')" title="Tıklayarak durum değiştir" style="cursor:pointer"><span class="ddp-durum-dot '+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'"></span> '+escHtml(i.durum||'Aktif')+'</span>'
-      + (i.tur ? '<span style="font-size:10px;background:rgba(122,181,212,0.15);color:#7ab5d4;padding:2px 8px;border-radius:10px">'+escHtml(i.tur)+'</span>':'')
+      + (i.tur ? '<span style="font-size:10px;background:var(--accent-dim);color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:600">'+escHtml(i.tur)+'</span>':'')
       + '</div></div>'
       + '<div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
       + muvekkilLink+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+escHtml(i.borclu||'—')

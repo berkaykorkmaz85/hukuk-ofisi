@@ -967,6 +967,77 @@ tbody tr:hover td {
   .chart-row-2 { grid-template-columns: 1fr; }
 }
 
+/* ── DAVA/İCRA DETAY PAGE ─────────────────────────────────── */
+
+/* Note cards — light theme shadow fix */
+.ddp-note-card {
+  background: var(--bg3) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.ddp-note-card:hover {
+  box-shadow: var(--shadow-md) !important;
+  border-color: var(--border2) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Sonraki adım label */
+.ddp-note-label-green  { color: var(--green)  !important; }
+.ddp-note-label-blue   { color: var(--blue)   !important; }
+.ddp-note-label-accent { color: var(--accent) !important; }
+
+/* Info grid left border on hover */
+.info-grid .info-item:hover {
+  border-left-color: var(--accent) !important;
+  background: var(--bg4) !important;
+}
+
+/* Back / edit / delete buttons in topbar */
+.ddp-topbar .btn-outline {
+  border-color: var(--border2) !important;
+  font-size: 13px !important;
+}
+
+.ddp-topbar .btn-outline:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--accent-dim) !important;
+}
+
+.ddp-topbar .btn-danger {
+  font-size: 13px !important;
+}
+
+/* Sekme bar */
+#ddp-sekme-bar, #idp-sekme-bar {
+  background: var(--bg2) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.ddp-sekme {
+  font-family: var(--font-sans) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  color: var(--text3) !important;
+  padding: 10px 14px !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.15s, border-color 0.15s !important;
+  white-space: nowrap !important;
+}
+
+.ddp-sekme:hover {
+  color: var(--text) !important;
+  background: var(--bg3) !important;
+}
+
+.ddp-sekme.aktif {
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+}
+
 /* ── PRINT ────────────────────────────────────────────────── */
 @media print {
   #sidebar, #topbar, .btn { display: none !important; }
