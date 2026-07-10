@@ -1471,6 +1471,104 @@ td a:hover {
   font-family: var(--font-sans) !important;
 }
 
+/* ── FAZ 10: SİDEBAR FOOTER & MİSC ───────────────────────── */
+
+/* User avatar → violet */
+#sidebar-user-avatar {
+  background: var(--accent-dim) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+/* User info card */
+#sidebar-user-info {
+  background: var(--bg3) !important;
+  border-color: var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* Footer privacy note */
+.sidebar-footer > br,
+.sidebar-footer > text {
+  display: none;
+}
+.sidebar-footer {
+  font-size: 10.5px !important;
+  color: var(--text4) !important;
+  line-height: 1.5 !important;
+}
+
+/* Footer action buttons */
+.sidebar-footer .btn-outline {
+  font-size: 11px !important;
+  padding: 6px 10px !important;
+  justify-content: center !important;
+  font-family: var(--font-sans) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.sidebar-footer .btn-ghost {
+  font-size: 11px !important;
+  padding: 6px 10px !important;
+  justify-content: center !important;
+  font-family: var(--font-sans) !important;
+  color: var(--text3) !important;
+}
+
+.sidebar-footer .btn-ghost:hover {
+  color: var(--red) !important;
+  background: rgba(192,83,58,0.06) !important;
+}
+
+/* Ayarlar/Settings button at sidebar bottom */
+.sidebar-ayarlar-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  padding: 10px 16px !important;
+  background: transparent !important;
+  border: none !important;
+  border-top: 1px solid var(--border) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  color: var(--text3) !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+}
+
+.sidebar-ayarlar-btn:hover {
+  background: var(--accent-dim) !important;
+  color: var(--accent) !important;
+}
+
+/* Online status bar */
+#online-users-bar {
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+}
+
+/* Dava/İcra cover card — ensure violet gradient */
+.dava-cover-card, .icra-cover-card, [id*="cover-card"] {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden !important;
+}
+
+/* Task item row hover */
+.task-item, [class*="task-satir"], .gorev-satir {
+  transition: background 0.12s, transform 0.1s !important;
+}
+.task-item:hover, .gorev-satir:hover {
+  background: var(--bg3) !important;
+  transform: translateX(2px) !important;
+}
+
+/* Finans table rows */
+#finans-table tr:hover td,
+#islem-tbody tr:hover td {
+  background: var(--accent-dim) !important;
+}
+
 /* ── PRINT ────────────────────────────────────────────────── */
 @media print {
   #sidebar, #topbar, .btn { display: none !important; }
