@@ -2774,7 +2774,7 @@ function renderFinans() {
 
   const summary = document.getElementById('finance-summary');
   if (summary) {
-    summary.style.cssText = 'display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px';
+    summary.style.cssText = '';
     summary.innerHTML = [
       {l:'Tahsil Edilen',    v:'₺'+fmt(topTah),          c:'var(--green)', icon:'↗', sub:'Müvekkillerden alınan toplam ödeme'},
       {l:'Tahsil Edilemeyen', v:'₺'+fmt(tahsilEdilemyen),  c:tahsilEdilemyen>0?'var(--red)':'var(--green)', icon:'⏳', sub:'Anlaşılan − Tahsil Edilen'},

@@ -848,6 +848,186 @@ tbody tr:hover td {
   box-shadow: 0 2px 8px rgba(124,58,237,0.3) !important;
 }
 
+/* ══════════════════════════════════════════════════════════
+   FAZ 6-8: MODAL, FORM, NOT, TAB, MÜVEKKİL, SEKME
+   ══════════════════════════════════════════════════════════ */
+
+/* ── MODAL ────────────────────────────────────────────────── */
+.modal-overlay {
+  background: rgba(15, 10, 50, 0.45) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+.modal {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(124,58,237,0.06) !important;
+  animation: modalSlideUp 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+
+@keyframes modalSlideUp {
+  from { transform: translateY(16px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.modal-header {
+  padding: 20px 24px 16px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: linear-gradient(135deg, var(--accent-dim) 0%, transparent 100%) !important;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+}
+
+.modal-title {
+  font-family: var(--font-sans) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  letter-spacing: -0.2px !important;
+}
+
+.modal-close {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+
+.modal-close:hover {
+  background: var(--red-dim) !important;
+  color: var(--red) !important;
+}
+
+/* ── FORM INPUTS ──────────────────────────────────────────── */
+input, select, textarea {
+  font-family: var(--font-sans) !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg3) !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px var(--accent-dim) !important;
+  outline: none !important;
+}
+
+label {
+  font-family: var(--font-sans) !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  color: var(--text3) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+}
+
+/* ── NOT KARTLARI ─────────────────────────────────────────── */
+.note-card {
+  background: var(--bg2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  border-left: 3px solid transparent !important;
+  padding: 16px !important;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s !important;
+}
+
+.note-card:hover {
+  border-left-color: var(--accent) !important;
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-1px) !important;
+}
+
+.note-card-title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--text) !important;
+  margin-bottom: 6px !important;
+}
+
+.note-card-preview {
+  font-size: 12.5px !important;
+  color: var(--text3) !important;
+  line-height: 1.6 !important;
+}
+
+.note-card-date {
+  font-size: 10px !important;
+  color: var(--text4) !important;
+  margin-top: 10px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* ── .tabs / .tab (Müvekkil, Kişiler, Finans sekme barı) ─── */
+.tabs {
+  border-bottom: 1px solid var(--border) !important;
+  gap: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+.tab {
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text3) !important;
+  padding: 10px 16px !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 0.15s, border-color 0.15s !important;
+}
+
+.tab:hover {
+  color: var(--text) !important;
+  background: var(--bg3) !important;
+}
+
+.tab.active {
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+
+/* ── FİNANS SEKME BAR ─────────────────────────────────────── */
+.finans-sekme {
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text3) !important;
+  padding: 10px 16px !important;
+  border-bottom: 2px solid transparent !important;
+  background: transparent !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  cursor: pointer !important;
+  transition: color 0.15s, border-color 0.15s, background 0.15s !important;
+  margin-bottom: -1px !important;
+}
+
+.finans-sekme:hover {
+  color: var(--text) !important;
+  background: var(--bg3) !important;
+}
+
+.finans-sekme.aktif {
+  color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── MÜVEKKİL DETAY — tab-type renk ──────────────────────── */
+.tab-item.tab-type-muvekkil { border-left-color: var(--blue) !important; }
+
+/* ── FINANCE-SUMMARY grid (JS inline override) ────────────── */
+#finance-summary {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+
 /* ── DASHBOARD LAYOUT ─────────────────────────────────────── */
 .chart-row-1 {
   display: grid;
