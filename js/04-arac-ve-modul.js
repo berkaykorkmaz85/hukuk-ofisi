@@ -2849,6 +2849,64 @@ function idpBuildReply(reply, all, icraId, isLast) {
     +'</div>';
 }
 
+function renderIcraTepkiBar(post, icraId) {
+  var tepkiler = post.tepkiler || {};
+  var me = (window.currentUser && window.currentUser.username) || 'avukat';
+  var mevcut = Object.entries(tepkiler).map(function(entry) {
+    var emoji = entry[0], users = entry[1];
+    var sayi = (users || []).length;
+    if (sayi === 0) return '';
+    var bende = (users || []).indexOf(me) >= 0;
+    return '<span onclick="icraTepkiVer(\'' + post.id + '\',\'' + icraId + '\',\'' + emoji + '\')"'
+      + ' style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:12px;font-size:12px;cursor:pointer;'
+      + 'background:' + (bende ? 'var(--gold-dim)' : 'var(--bg3)') + ';border:1px solid ' + (bende ? 'var(--gold)' : 'var(--border)') + '">'
+      + emoji + ' ' + sayi + '</span>';
+  }).filter(Boolean).join('');
+  var ekleBtn = '<button onclick="icraTepkiPanelAc(\'' + post.id + '\',\'' + icraId + '\')"'
+    + ' style="background:none;border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:11px;padding:2px 7px;cursor:pointer;line-height:1.4"'
+    + ' title="Tepki ekle">+ 😊</button>';
+  return '<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:5px" id="tepki-bar-' + post.id + '">' + mevcut + ekleBtn + '</div>';
+}
+
+function icraTepkiPanelAc(postId, icraId) {
+  var existing = document.getElementById('tepki-panel-' + postId);
+  if (existing) { existing.remove(); return; }
+  var bar = document.getElementById('tepki-bar-' + postId);
+  if (!bar) return;
+  var panel = document.createElement('div');
+  panel.id = 'tepki-panel-' + postId;
+  panel.style.cssText = 'display:flex;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 10px;margin-top:4px;box-shadow:0 4px 16px rgba(0,0,0,0.4)';
+  panel.innerHTML = ['👍','❤️','😂','😮','😢','👏'].map(function(e) {
+    return '<span onclick="icraTepkiVer(\'' + postId + '\',\'' + icraId + '\',\'' + e + '\');(function(){var p=document.getElementById(\'tepki-panel-' + postId + '\');if(p)p.remove();})()"'
+      + ' style="font-size:20px;cursor:pointer;transition:transform 0.15s" onmouseover="this.style.transform=\'scale(1.3)\'" onmouseout="this.style.transform=\'scale(1)\'">' + e + '</span>';
+  }).join('');
+  bar.insertAdjacentElement('afterend', panel);
+  setTimeout(function() { if (panel.parentNode) panel.remove(); }, 5000);
+}
+
+async function icraTepkiVer(postId, icraId, emoji) {
+  var key = 'icra_chatter_' + icraId;
+  var arr = DB.get(key) || [];
+  var me = (window.currentUser && window.currentUser.username) || 'avukat';
+  var yeniTepkiler = null;
+  arr = arr.map(function(p) {
+    if (p.id !== postId) return p;
+    var tepkiler = Object.assign({}, p.tepkiler || {});
+    var users = (tepkiler[emoji] || []).slice();
+    var idx = users.indexOf(me);
+    if (idx >= 0) users.splice(idx, 1); else users.push(me);
+    tepkiler[emoji] = users;
+    yeniTepkiler = tepkiler;
+    return Object.assign({}, p, { tepkiler: tepkiler });
+  });
+  if (yeniTepkiler) {
+    var res = await _supabaseClient.from('dosya_chatter').update({ tepkiler: yeniTepkiler }).eq('id', postId);
+    if (res.error) { console.error('İcra tepki kaydedilemedi:', res.error); return; }
+  }
+  DB.set(key, arr);
+  _renderIdpChatterFromCache(icraId);
+}
+
 function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
   var y=post.yazar||'Kullanıcı';
   var pid=post.id;
