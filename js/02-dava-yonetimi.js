@@ -1740,15 +1740,15 @@ function renderDashboard() {
     var davalar = (DB.get('davalar')||[]).filter(function(d){ return d.durusma && d.durusma.slice(0,10)===todayStr; }).slice(0,3);
     var html = '';
     davalar.forEach(function(d){
-      html += '<div class="bugun-item" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:6px;border-left:3px solid var(--gold)">' +
-        '<span>⚖️</span><span style="font-size:13px"><strong>'+(d.dosyaNo||d.taraflar||'Dava')+'</strong> — Duruşma bugün</span></div>';
+      html += '<div class="bugun-item bugun-durusma" style="cursor:pointer" onclick="openDavaDetailPage(\''+ d.id +'\')">' +
+        '<span>⚖️</span><span><strong>'+(d.ad||d.no||'Dava')+'</strong> — Duruşma bugün</span></div>';
     });
     tasks.forEach(function(t){
       var gecikti = t.tarih < todayStr;
-      html += '<div class="bugun-item" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:6px;border-left:3px solid '+(gecikti?'#e06060':'var(--gold)') + '">' +
-        '<span>'+(gecikti?'🔴':'📌')+'</span><span style="font-size:13px">'+(t.baslik||'Görev')+(gecikti?' <em style="color:#e06060;font-size:10px">(Gecikti)</em>':'')+'</span></div>';
+      html += '<div class="bugun-item '+(gecikti?'bugun-gecikme':'bugun-gorev')+'">' +
+        '<span>'+(gecikti?'🔴':'📌')+'</span><span>'+(t.baslik||'Görev')+(gecikti?'<em class="gecikme-label">(Gecikti)</em>':'')+'</span></div>';
     });
-    if (!html) html = '<div style="color:var(--text3);font-size:13px;padding:8px">✅ Bugün için planlanmış görev veya duruşma yok.</div>';
+    if (!html) html = '<div class="bugun-item bugun-bos">✅ Bugün için planlanmış görev veya duruşma yok.</div>';
     grid.innerHTML = html;
   })();
 
@@ -1860,7 +1860,7 @@ function renderDashboard() {
   const urgentTasks = tasks.filter(t=>!t.done).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih)).slice(0,5);
   document.getElementById('urgent-count').textContent = `${urgentTasks.length} görev bekliyor`;
   document.getElementById('upcoming-tasks').innerHTML = urgentTasks.length ? urgentTasks.map(t=>`
-    <div class="task-item" style="cursor:pointer" onclick="showPage('tasks')" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+    <div class="task-item" style="cursor:pointer" onclick="showPage('tasks')">
       <div class="task-check ${t.done?'done':''}" onclick="event.stopPropagation();toggleTask('${t.id}', renderDashboard)"></div>
       <div class="task-content">
         <div class="task-title">${t.baslik}</div>

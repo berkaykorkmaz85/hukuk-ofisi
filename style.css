@@ -848,6 +848,125 @@ tbody tr:hover td {
   box-shadow: 0 2px 8px rgba(124,58,237,0.3) !important;
 }
 
+/* ── DASHBOARD LAYOUT ─────────────────────────────────────── */
+.chart-row-1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chart-row-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ── BUGÜN WİDGET ─────────────────────────────────────────── */
+.bugun-header {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.2px;
+}
+
+.bugun-tarih {
+  font-size: 12px;
+  color: var(--text3);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.bugun-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  margin-bottom: 6px;
+  font-size: 13px;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.bugun-item:hover { background: var(--bg4); }
+
+.bugun-item.bugun-durusma {
+  border-left-color: var(--accent);
+  background: var(--accent-dim);
+}
+.bugun-item.bugun-durusma:hover { background: rgba(124,58,237,0.12); }
+
+.bugun-item.bugun-gorev  { border-left-color: var(--amber); }
+.bugun-item.bugun-gecikme { border-left-color: var(--red); background: var(--red-dim); }
+.bugun-item.bugun-gecikme:hover { background: rgba(220,38,38,0.12); }
+.bugun-item.bugun-bos { color: var(--text3); }
+
+.gecikme-label {
+  color: var(--red);
+  font-size: 10px;
+  font-style: italic;
+  margin-left: 4px;
+}
+
+/* ── TASK LIST HOVER (CSS instead of inline JS) ───────────── */
+.task-item { transition: background 0.15s; }
+.task-item:hover { background: var(--bg2) !important; }
+
+/* ── SEARCH BAR ───────────────────────────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  margin-bottom: 14px;
+  box-shadow: var(--shadow-xs);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-bar:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.search-bar input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.search-bar input::placeholder { color: var(--text4); }
+
+.search-bar select {
+  border: 1px solid var(--border) !important;
+  background: var(--bg3) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text) !important;
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  font-family: var(--font-sans) !important;
+  max-width: 120px;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .chart-row-1 { grid-template-columns: 1fr; }
+  .chart-row-2 { grid-template-columns: 1fr; }
+}
+
 /* ── PRINT ────────────────────────────────────────────────── */
 @media print {
   #sidebar, #topbar, .btn { display: none !important; }
