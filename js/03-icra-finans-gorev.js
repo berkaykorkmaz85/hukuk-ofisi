@@ -1557,7 +1557,6 @@ function saveIcra() { withSaveLock('saveIcra', _saveIcraInner); }
 async function _saveIcraInner() {
   let no = document.getElementById('i-no').value.trim();
   const borclu = document.getElementById('i-borclu').value.trim();
-  if (!borclu) return notify('Borçlu adı zorunludur!');
   if (!no) {
     const nums = DB.get('icralar').map(x=>{const m=(x.no||'').match(/BK[İI](\d+)/);return m?parseInt(m[1]):0;});
     no = 'BKİ' + String((nums.length?Math.max(...nums):0)+1).padStart(3,'0');
