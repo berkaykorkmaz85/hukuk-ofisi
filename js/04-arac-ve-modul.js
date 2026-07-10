@@ -2708,6 +2708,44 @@ function closeIcraDetailPage() {
   // (icra detay bir overlay olduğu için altta zaten icralar sayfası var)
 }
 
+function _renderIdpChatterFromCache(icraId) {
+  var feed = document.getElementById('idp-chatter-feed');
+  var countEl = document.getElementById('idp-post-count');
+  if (!feed) return;
+  var key = 'icra_chatter_' + icraId;
+  var raw = DB.get(key) || [];
+  var all = raw.slice().sort(function(a,b){return new Date(a.tarih||a.time)-new Date(b.tarih||b.time);});
+  all = all.map(function(p){
+    return {id:p.id, yazar:p.yazar||p.author||'Kullanıcı', metin:p.metin||p.text||'',
+      tarih:p.tarih||p.time||new Date().toISOString(), parentId:p.parentId||null,
+      parentYazar:p.parentYazar||null, parentMetin:p.parentMetin||null,
+      tepkiler:p.tepkiler||{}, rol:p.rol||null, duzenlemeTarih:p.duzenlemeTarih||null,
+      ekler:p.ekler||null};
+  });
+  if (countEl) countEl.textContent = all.length + ' mesaj';
+  if (!all.length) {
+    feed.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text3)"><div style="font-size:28px;margin-bottom:8px">&#x1f4ac;</div><div style="font-size:13px">Henüz mesaj yok</div></div>';
+    return;
+  }
+  var anaPosts = all.filter(function(p){
+    if(!p.parentId) return true;
+    return !all.find(function(x){return x.id===p.parentId;});
+  });
+  var rootReplies={};
+  all.forEach(function(p){
+    if(anaPosts.find(function(a){return a.id===p.id;})) return;
+    var root=chGetRoot(p,all);
+    if(!rootReplies[root.id]) rootReplies[root.id]=[];
+    rootReplies[root.id].push(p);
+  });
+  var lastId = all[all.length-1].id;
+  feed.innerHTML = anaPosts.map(function(post){
+    var replies=rootReplies[post.id]||[];
+    return idpBuildPost(post, all, icraId, post.id===lastId, replies);
+  }).join('');
+  feed.scrollTop = feed.scrollHeight;
+}
+
 async function renderIdpChatter(icraId) {
   var feed = document.getElementById('idp-chatter-feed');
   var countEl = document.getElementById('idp-post-count');
@@ -2869,15 +2907,21 @@ async function sendIdpPost() {
     parentYazar: parentYazar,
     parentMetin: parentMetin
   };
-  var { error } = await _supabaseClient.from('dosya_chatter').insert(_sbPostToChatterRow(yeniPost, 'icra', currentIcraId));
-  if (error) { console.error('Mesaj gönderilemedi:', error); notify('❌ Mesaj gönderilemedi: ' + (error.message||'bilinmeyen hata')); return; }
+  // Önce yerel cache'e ekle ve hemen göster (Supabase'i bekleme)
   posts.push(yeniPost);
   DB.set(key, posts);
   input.value = '';
   chatterDosyaTemizle('icra');
   idpReplyToId = null;
   document.getElementById('idp-reply-banner').style.display = 'none';
-  renderIdpChatter(currentIcraId);
+  _renderIdpChatterFromCache(currentIcraId);
+
+  // Arka planda Supabase'e yaz
+  var icraIdSnapshot = currentIcraId;
+  _supabaseClient.from('dosya_chatter').insert(_sbPostToChatterRow(yeniPost, 'icra', icraIdSnapshot))
+    .then(function(res) {
+      if (res.error) { console.error('Chatter Supabase yazma hatası:', res.error); notify('⚠️ Mesaj kaydedildi ama sunucuya gönderilemedi: ' + (res.error.message||'')); }
+    });
 }
 
 function idpReply(postId) {
