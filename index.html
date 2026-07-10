@@ -4084,64 +4084,17 @@
             <span class="collapse-arrow" style="color:var(--text3);font-size:14px;transition:transform 0.2s">▶</span>
           </div>
           <div style="display:none;padding:0 14px 14px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div></div>
-          </div>
-          <div class="form-grid-3" style="gap:10px">
+          <select id="d-istinaf-il" style="display:none"><option value=""></option></select>
+          <select id="d-istinaf-daire" style="display:none"><option value=""></option></select>
+          <div class="form-grid" style="gap:10px">
             <div class="form-group">
-              <label>Bölge Adliye İli</label>
-              <select id="d-istinaf-il" onchange="buildIstinafAdi()">
-                <option value="">İl seçin...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Daire</label>
-              <select id="d-istinaf-daire" onchange="buildIstinafAdi()">
-                <option value="">Seçin...</option>
-                <optgroup label="── Hukuk Daireleri">
-                  <option value="1. Hukuk Dairesi">1. Hukuk Dairesi</option>
-                  <option value="2. Hukuk Dairesi">2. Hukuk Dairesi</option>
-                  <option value="3. Hukuk Dairesi">3. Hukuk Dairesi</option>
-                  <option value="4. Hukuk Dairesi">4. Hukuk Dairesi</option>
-                  <option value="5. Hukuk Dairesi">5. Hukuk Dairesi</option>
-                  <option value="6. Hukuk Dairesi">6. Hukuk Dairesi</option>
-                  <option value="7. Hukuk Dairesi">7. Hukuk Dairesi</option>
-                  <option value="8. Hukuk Dairesi">8. Hukuk Dairesi</option>
-                  <option value="9. Hukuk Dairesi">9. Hukuk Dairesi</option>
-                  <option value="10. Hukuk Dairesi">10. Hukuk Dairesi</option>
-                  <option value="11. Hukuk Dairesi">11. Hukuk Dairesi</option>
-                  <option value="12. Hukuk Dairesi">12. Hukuk Dairesi</option>
-                  <option value="13. Hukuk Dairesi">13. Hukuk Dairesi</option>
-                  <option value="14. Hukuk Dairesi">14. Hukuk Dairesi</option>
-                  <option value="15. Hukuk Dairesi">15. Hukuk Dairesi</option>
-                  <option value="16. Hukuk Dairesi">16. Hukuk Dairesi</option>
-                  <option value="17. Hukuk Dairesi">17. Hukuk Dairesi</option>
-                  <option value="18. Hukuk Dairesi">18. Hukuk Dairesi</option>
-                  <option value="19. Hukuk Dairesi">19. Hukuk Dairesi</option>
-                  <option value="20. Hukuk Dairesi">20. Hukuk Dairesi</option>
-                </optgroup>
-                <optgroup label="── Ceza Daireleri">
-                  <option value="1. Ceza Dairesi">1. Ceza Dairesi</option>
-                  <option value="2. Ceza Dairesi">2. Ceza Dairesi</option>
-                  <option value="3. Ceza Dairesi">3. Ceza Dairesi</option>
-                  <option value="4. Ceza Dairesi">4. Ceza Dairesi</option>
-                  <option value="5. Ceza Dairesi">5. Ceza Dairesi</option>
-                  <option value="6. Ceza Dairesi">6. Ceza Dairesi</option>
-                  <option value="7. Ceza Dairesi">7. Ceza Dairesi</option>
-                  <option value="8. Ceza Dairesi">8. Ceza Dairesi</option>
-                  <option value="9. Ceza Dairesi">9. Ceza Dairesi</option>
-                  <option value="10. Ceza Dairesi">10. Ceza Dairesi</option>
-                </optgroup>
-              </select>
+              <label>İstinaf Mahkemesi</label>
+              <input id="d-istinaf-mahkeme" placeholder="Örn: İstanbul Bölge Adliye Mahkemesi 5. Hukuk Dairesi" style="color:#7ab5d4">
             </div>
             <div class="form-group">
               <label>İstinaf Esas No</label>
               <input id="d-istinaf-esas" placeholder="2024/1234">
             </div>
-          </div>
-          <div class="form-group" style="margin-top:10px">
-            <label>İstinaf Mahkeme Adı <span style="color:var(--text3);font-weight:400;text-transform:none">(otomatik dolar)</span></label>
-            <input id="d-istinaf-mahkeme" placeholder="Örn: Ankara Bölge Adliye Mahkemesi 5. Hukuk Dairesi" style="color:#7ab5d4">
           </div>
           </div><!-- /collapse body -->
         </div>
@@ -4154,30 +4107,17 @@
             <span class="collapse-arrow" style="color:var(--text3);font-size:14px;transition:transform 0.2s">▶</span>
           </div>
           <div style="display:none;padding:0 14px 14px">
-          <div class="form-grid-3" style="gap:10px">
+          <select id="d-temyiz-merci" style="display:none"><option value=""></option></select>
+          <select id="d-temyiz-daire" style="display:none"><option value=""></option></select>
+          <div class="form-grid" style="gap:10px">
             <div class="form-group">
-              <label>Temyiz Mercii</label>
-              <select id="d-temyiz-merci" onchange="onTemyizMerciChange()">
-                <option value="">Seçin...</option>
-                <option value="Yargıtay">Yargıtay</option>
-                <option value="Danıştay">Danıştay</option>
-                <option value="Anayasa Mahkemesi">Anayasa Mahkemesi (Bireysel Başvuru)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Daire</label>
-              <select id="d-temyiz-daire" onchange="buildTemyizAdi()" disabled>
-                <option value="">Önce mercii seçin</option>
-              </select>
+              <label>Temyiz Mahkemesi</label>
+              <input id="d-temyiz-mahkeme" placeholder="Örn: Yargıtay 8. Hukuk Dairesi" style="color:#c4a8e0">
             </div>
             <div class="form-group">
               <label>Temyiz Esas No</label>
               <input id="d-temyiz-esas" placeholder="2024/1234">
             </div>
-          </div>
-          <div class="form-group" style="margin-top:10px">
-            <label>Temyiz Mahkeme Adı <span style="color:var(--text3);font-weight:400;text-transform:none">(otomatik dolar)</span></label>
-            <input id="d-temyiz-mahkeme" placeholder="Örn: Yargıtay 8. Hukuk Dairesi" style="color:#c4a8e0">
           </div>
           </div><!-- /collapse body -->
         </div>
