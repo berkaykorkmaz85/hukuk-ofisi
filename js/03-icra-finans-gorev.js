@@ -561,7 +561,7 @@ function renderIcralar() {
       <td data-label="Borçlu">${escHtml(i.borclu)}</td>
       <td data-label="Alacaklı"><span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(i.muvekkil)}</span></td>
       <td data-label="Asıl Alacak" class="mono">₺${fmt(i.alacak)}</td>
-      <td data-label="Faiz">%${i.faiz}</td>
+      <td data-label="Takip Türü"><span class="tag" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${escHtml(i.tur||'—')}</span></td>
       <td data-label="Durum"><span class="tag tag-${i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali'}">${i.durum}</span></td>
       <td onclick="event.stopPropagation()">
         <button class="btn btn-ghost" onclick="editIcra('${i.id}')">✏</button>
