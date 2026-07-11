@@ -2716,11 +2716,72 @@ function renderAvansKasa() {
     +'<div style="background:var(--bg2);border:1px solid '+(topAlinan-topHarcanan<0?'rgba(192,83,58,0.3)':'var(--border)')+';border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Kalan Avans</div><div style="font-size:18px;font-weight:800;color:'+(topAlinan-topHarcanan>=0?'var(--green)':'var(--red)')+';font-family:monospace">₺'+fmt(topAlinan-topHarcanan)+'</div></div>'
     +'</div>'
     +(mvBakiyeler.length===0 ? '<div style="text-align:center;padding:40px;color:var(--text3)">Avans kaydı yok</div>'
-      : '<div class="card"><div class="table-wrap"><table class="table-card-mobile"><thead><tr><th>Müvekkil</th><th style="text-align:right">Avans Alınan</th><th style="text-align:right">Harcanan</th><th style="text-align:right">Bakiye</th></tr></thead><tbody>'
+      : '<div class="card"><div style="padding:8px 16px 0;font-size:11px;color:var(--text3)">💡 Kayıtları görmek ve silmek için müvekkil satırına tıklayın</div><div class="table-wrap"><table class="table-card-mobile"><thead><tr><th>Müvekkil</th><th style="text-align:right">Avans Alınan</th><th style="text-align:right">Harcanan</th><th style="text-align:right">Bakiye</th></tr></thead><tbody>'
         +mvBakiyeler.map(function(m){
-          return '<tr><td data-label="Müvekkil" style="font-weight:600">'+escHtml(m.ad)+'</td><td data-label="Avans Alınan" style="text-align:right;font-family:monospace;color:#7ab5d4">₺'+fmt(m.alinan)+'</td><td data-label="Harcanan" style="text-align:right;font-family:monospace;color:var(--red)">₺'+fmt(m.harcanan)+'</td><td data-label="Bakiye" style="text-align:right;font-family:monospace;font-weight:700;color:'+(m.bakiye>=0?'var(--green)':'var(--red)')+'">₺'+fmt(m.bakiye)+'</td></tr>';
+          var acik = _avansKasaAcikMv === m.ad;
+          var satir = '<tr style="cursor:pointer" onclick="_avansKasaGenislet(\''+escAttr(m.ad)+'\')"><td data-label="Müvekkil" style="font-weight:600">'+(acik?'▼ ':'▶ ')+escHtml(m.ad)+'</td><td data-label="Avans Alınan" style="text-align:right;font-family:monospace;color:#7ab5d4">₺'+fmt(m.alinan)+'</td><td data-label="Harcanan" style="text-align:right;font-family:monospace;color:var(--red)">₺'+fmt(m.harcanan)+'</td><td data-label="Bakiye" style="text-align:right;font-family:monospace;font-weight:700;color:'+(m.bakiye>=0?'var(--green)':'var(--red)')+'">₺'+fmt(m.bakiye)+'</td></tr>';
+          if (acik) {
+            satir += '<tr><td colspan="4" style="background:var(--bg3);padding:10px 16px">'+_avansKasaDetayHTML(m.ad)+'</td></tr>';
+          }
+          return satir;
         }).join('')
         +'</tbody></table></div></div>');
+}
+
+var _avansKasaAcikMv = null;
+function _avansKasaGenislet(mvAd) {
+  _avansKasaAcikMv = (_avansKasaAcikMv === mvAd) ? null : mvAd;
+  renderAvansKasa();
+}
+
+function _avansKasaDetayHTML(mvAd) {
+  var finans = DB.get('finans')||[];
+  var alinanKayitlar = finans.filter(function(f){return f.muvekkil===mvAd && f.tur==='Masraf Ödemesi';});
+  var harcananFinans = finans.filter(function(f){return f.muvekkil===mvAd && ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);});
+  var harcananDava = (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===mvAd;});
+  var harcananIcra = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mvAd;});
+
+  function satir(tarih, aciklama, tutar, pozitif, silOnclick) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px">'
+      + '<span style="color:var(--text3);font-family:monospace;width:80px;flex-shrink:0">'+fmtDate(tarih)+'</span>'
+      + '<span style="flex:1;color:var(--text2)">'+escHtml(aciklama||'—')+'</span>'
+      + '<span style="font-family:monospace;font-weight:700;color:'+(pozitif?'#7ab5d4':'var(--red)')+'">'+(pozitif?'+':'−')+'₺'+fmt(tutar)+'</span>'
+      + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="event.stopPropagation();'+silOnclick+'">🗑</button>'
+      + '</div>';
+  }
+
+  var mvAdAttr = escAttr(mvAd).replace(/'/g,"\\'");
+  var rows = '';
+  alinanKayitlar.forEach(function(f){ rows += satir(f.tarih, 'Avans Alındı'+(f.aciklama?' — '+f.aciklama:''), f.tutar, true, "_avansKasaSilFinans('"+f.id+"','"+mvAdAttr+"')"); });
+  harcananFinans.forEach(function(f){ rows += satir(f.tarih, escHtml(f.tur)+(f.aciklama?' — '+f.aciklama:''), f.tutar, false, "_avansKasaSilFinans('"+f.id+"','"+mvAdAttr+"')"); });
+  harcananDava.forEach(function(m){ rows += satir(m.tarih, 'Dava Masrafı: '+escHtml(m.tur||'')+(m.aciklama?' — '+m.aciklama:''), m.tutar, false, "_avansKasaSilDavaMasraf('"+m.id+"','"+mvAdAttr+"')"); });
+  harcananIcra.forEach(function(m){ rows += satir(m.tarih, 'İcra Masrafı: '+escHtml(m.tur||'')+(m.aciklama?' — '+m.aciklama:''), m.tutar, false, "_avansKasaSilIcraMasraf('"+m.id+"','"+mvAdAttr+"')"); });
+
+  return rows || '<div style="color:var(--text3);font-size:12px;padding:6px 0">Kayıt yok</div>';
+}
+
+function _avansKasaSilFinans(finansId, mvAd) {
+  showConfirmModal('Bu kaydı silmek istediğinizden emin misiniz?', function() {
+    DB.set('finans', (DB.get('finans')||[]).filter(function(f){return f.id!==finansId;}));
+    renderAvansKasa();
+    notify('Kayıt silindi');
+  });
+}
+
+function _avansKasaSilDavaMasraf(masrafId, mvAd) {
+  showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
+    DB.set('dava_masraflar', (DB.get('dava_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
+    renderAvansKasa();
+    notify('Masraf silindi');
+  });
+}
+
+function _avansKasaSilIcraMasraf(masrafId, mvAd) {
+  showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
+    DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
+    renderAvansKasa();
+    notify('Masraf silindi');
+  });
 }
 
 function renderOfisGider() {
