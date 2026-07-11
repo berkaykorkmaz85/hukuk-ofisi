@@ -3595,6 +3595,130 @@ var _loginQuotes = [
   { text: "Adalet, bir devletin esası olduğuna göre, mahkemelerin gerçekten tarafsızlığını temin her işin başında gelmelidir.", src: "— Mustafa Kemal Atatürk" },
   { text: "Özgürlüğün de, eşitliğin de, adaletin de kaynağı ulusal egemenliktir.", src: "— Mustafa Kemal Atatürk" },
 ];
+// ══ GÖREVLER KANBAN GÖRÜNÜMÜ (dava + icra detay sayfaları ortak) ══
+function _gorevKanbanDurum(t) {
+  if (t.done) return 'tamam';
+  if (t.kanbanDurum === 'devam') return 'devam';
+  return 'bekleyen';
+}
+
+function _gorevKanbanRerender(ctxType, id) {
+  if (ctxType === 'dava') renderDavaTab(id, 'gorev');
+  else renderIcraTab(id, 'gorev');
+}
+
+function _gorevKanbanSetDurum(taskId, durum, ctxType, id) {
+  var arr = DB.get('tasks').map(function(t) {
+    if (t.id !== taskId) return t;
+    var upd = Object.assign({}, t, { kanbanDurum: durum });
+    upd.done = durum === 'tamam';
+    return upd;
+  });
+  DB.set('tasks', arr);
+  _gorevKanbanRerender(ctxType, id);
+}
+
+function _gorevKanbanToggleSubtask(taskId, stIdx, ctxType, id) {
+  var arr = DB.get('tasks');
+  arr = arr.map(function(t) {
+    if (t.id === taskId && t.subtasks && t.subtasks[stIdx] !== undefined) {
+      t.subtasks[stIdx].done = !t.subtasks[stIdx].done;
+    }
+    return t;
+  });
+  DB.set('tasks', arr);
+  _gorevKanbanRerender(ctxType, id);
+}
+
+function _gorevKanbanAddSubtask(taskId, inputId, ctxType, id) {
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var text = input.value.trim();
+  if (!text) return;
+  var arr = DB.get('tasks');
+  arr = arr.map(function(t) {
+    if (t.id === taskId) {
+      if (!t.subtasks) t.subtasks = [];
+      t.subtasks.push({ text: text, done: false });
+    }
+    return t;
+  });
+  DB.set('tasks', arr);
+  _gorevKanbanRerender(ctxType, id);
+}
+
+function _gorevKanbanCard(t, ctxType, id) {
+  var today2 = new Date(); today2.setHours(0, 0, 0, 0);
+  var diff = t.tarih ? Math.ceil((new Date(t.tarih.slice(0, 10)) - today2) / 86400000) : null;
+  var gecikti = diff !== null && diff < 0 && !t.done;
+  var oclr = t.oncelik === 'Acil' ? 'var(--red)' : t.oncelik === 'Yüksek' ? 'var(--gold)' : 'var(--text3)';
+  var durum = _gorevKanbanDurum(t);
+  var subtasks = t.subtasks || [];
+  var stDone = subtasks.filter(function(s) { return s.done; }).length;
+  var stTotal = subtasks.length;
+  var deleteFn = ctxType === 'dava' ? '_ddpDeleteTask' : '_idpDeleteTask';
+
+  var moveButtons = '';
+  if (durum !== 'bekleyen') moveButtons += '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px" title="Bekleyen\'e taşı" onclick="_gorevKanbanSetDurum(\'' + t.id + '\',\'bekleyen\',\'' + ctxType + '\',\'' + id + '\')">◀</button>';
+  if (durum !== 'devam') moveButtons += '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px" title="Devam Ediyor\'a taşı" onclick="_gorevKanbanSetDurum(\'' + t.id + '\',\'devam\',\'' + ctxType + '\',\'' + id + '\')">🔄</button>';
+  if (durum !== 'tamam') moveButtons += '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px" title="Tamamlandı\'ya taşı" onclick="_gorevKanbanSetDurum(\'' + t.id + '\',\'tamam\',\'' + ctxType + '\',\'' + id + '\')">▶</button>';
+
+  var inputId = 'kb-st-input-' + t.id;
+  var subtaskHtml = '<div style="margin-top:6px">';
+  subtasks.forEach(function(st, si) {
+    subtaskHtml += '<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px">'
+      + '<span style="cursor:pointer;color:' + (st.done ? 'var(--green)' : 'var(--text3)') + '" onclick="_gorevKanbanToggleSubtask(\'' + t.id + '\',' + si + ',\'' + ctxType + '\',\'' + id + '\')">' + (st.done ? '☑' : '☐') + '</span>'
+      + '<span style="color:' + (st.done ? 'var(--text3)' : 'var(--text2)') + (st.done ? ';text-decoration:line-through' : '') + '">' + escHtml(st.text) + '</span>'
+      + '</div>';
+  });
+  if (durum !== 'tamam') {
+    subtaskHtml += '<div style="display:flex;gap:4px;margin-top:4px">'
+      + '<input id="' + inputId + '" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px;padding:3px 6px;font-family:inherit;outline:none" placeholder="Alt görev ekle..." onkeydown="if(event.key===\'Enter\')_gorevKanbanAddSubtask(\'' + t.id + '\',\'' + inputId + '\',\'' + ctxType + '\',\'' + id + '\')">'
+      + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px;color:var(--gold)" onclick="_gorevKanbanAddSubtask(\'' + t.id + '\',\'' + inputId + '\',\'' + ctxType + '\',\'' + id + '\')">+</button>'
+      + '</div>';
+  }
+  if (stTotal > 0) subtaskHtml += '<div style="font-size:9px;color:var(--text3);margin-top:3px">' + stDone + '/' + stTotal + ' tamamlandı</div>';
+  subtaskHtml += '</div>';
+
+  return '<div class="kanban-card' + (gecikti ? ' kanban-card-overdue' : '') + '">'
+    + '<div style="display:flex;align-items:start;gap:8px">'
+    + '<div class="ddp-checkbox ' + (t.done ? 'done' : 'undone') + '" style="flex-shrink:0;margin-top:2px" onclick="toggleTask(\'' + t.id + '\',function(){_gorevKanbanRerender(\'' + ctxType + '\',\'' + id + '\')})">' + (t.done ? '<span style="color:#fff;font-size:11px">✓</span>' : '') + '</div>'
+    + '<div style="flex:1;min-width:0">'
+    + '<div style="font-size:13px;font-weight:600;color:' + (t.done ? 'var(--text3)' : 'var(--text)') + (t.done ? ';text-decoration:line-through' : '') + '">' + escHtml(t.baslik || t.text || '') + '</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:5px">'
+    + (t.tarih ? '<span style="font-size:10px;color:' + (gecikti ? 'var(--red)' : diff === 0 ? 'var(--gold)' : 'var(--text3)') + '">📅 ' + fmtDate(t.tarih.slice(0, 10)) + (gecikti ? ' ⚠' : '') + '</span>' : '')
+    + '<span style="font-size:10px;font-weight:700;color:' + oclr + ';background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px">' + escHtml(t.oncelik || 'Normal') + '</span>'
+    + '</div>'
+    + subtaskHtml
+    + '</div></div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:6px;border-top:1px solid var(--border)">'
+    + '<div style="display:flex;gap:2px">' + moveButtons + '</div>'
+    + '<div style="display:flex;gap:2px">'
+    + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px" onclick="editTask(\'' + t.id + '\')">✏</button>'
+    + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px;color:var(--red)" onclick="event.stopPropagation();' + deleteFn + '(\'' + t.id + '\',\'' + id + '\')">🗑</button>'
+    + '</div></div>'
+    + '</div>';
+}
+
+function _gorevKanbanColumn(icon, baslik, renk, tasks, ctxType, id) {
+  return '<div class="kanban-col">'
+    + '<div class="kanban-col-header" style="color:' + renk + '"><span>' + icon + ' ' + baslik + '</span><span class="kanban-col-count" style="background:' + renk + '22;color:' + renk + '">' + tasks.length + '</span></div>'
+    + '<div class="kanban-col-body">'
+    + (tasks.length ? tasks.map(function(t) { return _gorevKanbanCard(t, ctxType, id); }).join('') : '<div style="text-align:center;color:var(--text3);font-size:12px;padding:20px 10px">Görev yok</div>')
+    + '</div></div>';
+}
+
+function _gorevKanbanBoard(tasks, ctxType, id) {
+  var bekleyen = tasks.filter(function(t) { return _gorevKanbanDurum(t) === 'bekleyen'; });
+  var devam = tasks.filter(function(t) { return _gorevKanbanDurum(t) === 'devam'; });
+  var tamam = tasks.filter(function(t) { return _gorevKanbanDurum(t) === 'tamam'; });
+  return '<div class="kanban-board">'
+    + _gorevKanbanColumn('📍', 'Bekleyen', 'var(--gold)', bekleyen, ctxType, id)
+    + _gorevKanbanColumn('🔄', 'Devam Ediyor', '#7ab5d4', devam, ctxType, id)
+    + _gorevKanbanColumn('✅', 'Tamamlandı', 'var(--green)', tamam, ctxType, id)
+    + '</div>';
+}
+
 var _lqIdx = Math.floor(Math.random() * _loginQuotes.length);
 function _loginQuoteRotate() {
   var q = _loginQuotes[_lqIdx % _loginQuotes.length];

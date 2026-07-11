@@ -2114,37 +2114,6 @@ function _ddpQuickAddTask(davaNo) {
 }
 
 // Ö2: Subtask toggle
-function _ddpToggleSubtask(taskId, stIdx) {
-  var arr = DB.get('tasks');
-  arr = arr.map(function(t){
-    if(t.id===taskId && t.subtasks && t.subtasks[stIdx]!==undefined) {
-      t.subtasks[stIdx].done = !t.subtasks[stIdx].done;
-    }
-    return t;
-  });
-  DB.set('tasks', arr);
-  renderDavaTab(currentDavaId, 'gorev');
-}
-
-// Ö2: Add subtask
-function _ddpAddSubtask(taskId) {
-  var input = document.getElementById('ddp-st-input-'+taskId);
-  if(!input) return;
-  var text = input.value.trim();
-  if(!text) return;
-  var arr = DB.get('tasks');
-  arr = arr.map(function(t){
-    if(t.id===taskId) {
-      if(!t.subtasks) t.subtasks=[];
-      t.subtasks.push({text:text, done:false});
-    }
-    return t;
-  });
-  DB.set('tasks', arr);
-  input.value = '';
-  renderDavaTab(currentDavaId, 'gorev');
-}
-
 // G2: Quick status change
 function _ddpChangeStatus(davaId, newStatus) {
   var arr = DB.get('davalar');
@@ -2683,67 +2652,9 @@ function renderDavaTab(id, sekme) {
   } else if (sekme === 'gorev') {
     const today2 = new Date(); today2.setHours(0,0,0,0);
     const allTasks = tasks;
-    const gecikmisTasks = allTasks.filter(t=>!t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0).sort((a,b)=>new Date(a.tarih)-new Date(b.tarih));
-    const bekleyenTasks = allTasks.filter(t=>!t.done&&(!t.tarih||Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)>=0)).sort((a,b)=>new Date(a.tarih||'9999')-new Date(b.tarih||'9999'));
+    const gecikmisTasks = allTasks.filter(t=>!t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0);
+    const bekleyenTasks = allTasks.filter(t=>!t.done&&(!t.tarih||Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)>=0));
     const tamamTasks   = allTasks.filter(t=>t.done);
-    // Ö5: show/hide completed toggle
-    var showTamamlanan = window._ddpShowTamamlanan !== false;
-
-    function gorevSatiri(t, isDone) {
-      const diff=t.tarih?Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000):null;
-      const gecikti=diff!==null&&diff<0&&!isDone;
-      const tipIcon=t.tip==='randevu'?'📞':t.tip==='durusma'?'⚖️':'✅';
-      const oclr=t.oncelik==='Acil'?'var(--red)':t.oncelik==='Yüksek'?'var(--gold)':'var(--text3)';
-      // T14: overdue bg, T15: checkbox, T16: priority
-      var prioClass = t.oncelik==='Acil'?'ddp-prio-acil':t.oncelik==='Yüksek'?'ddp-prio-yuksek':'';
-      // Ö3: assigned person
-      var assignedHtml = t.atanan ? '<span style="font-size:10px;color:var(--text3);background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px">👤 '+escHtml(t.atanan)+'</span>' : '';
-      // Ö2: Subtasks
-      var subtasks = t.subtasks || [];
-      var stDone = subtasks.filter(function(s){return s.done;}).length;
-      var stTotal = subtasks.length;
-      var subtaskHtml = '';
-      if(stTotal>0 || !isDone) {
-        subtaskHtml = '<div style="margin-top:6px;padding-left:4px">';
-        subtasks.forEach(function(st, si){
-          subtaskHtml += '<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:11px">'
-            +'<span style="cursor:pointer;color:'+(st.done?'var(--green)':'var(--text3)')+'" onclick="_ddpToggleSubtask(\''+t.id+'\','+si+')">'+(st.done?'☑':'☐')+'</span>'
-            +'<span style="color:'+(st.done?'var(--text3)':'var(--text2)')+(st.done?';text-decoration:line-through':'')+'">'+escHtml(st.text)+'</span>'
-            +'</div>';
-        });
-        if(!isDone) {
-          subtaskHtml += '<div style="display:flex;gap:4px;margin-top:4px">'
-            +'<input id="ddp-st-input-'+t.id+'" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:10px;padding:3px 6px;font-family:inherit;outline:none" placeholder="Alt görev ekle..." onkeydown="if(event.key===\'Enter\')_ddpAddSubtask(\''+t.id+'\')">'
-            +'<button class="btn btn-ghost" style="font-size:10px;padding:2px 6px;color:var(--gold)" onclick="_ddpAddSubtask(\''+t.id+'\')">+</button>'
-            +'</div>';
-        }
-        if(stTotal>0) subtaskHtml += '<div style="font-size:9px;color:var(--text3);margin-top:3px">'+stDone+'/'+stTotal+' tamamlandı</div>';
-        subtaskHtml += '</div>';
-      }
-      return `<div style="display:flex;align-items:start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04)${isDone?';opacity:0.6':''}${gecikti?' ' :''};" class="${gecikti?'ddp-task-overdue':''}">
-        <div class="ddp-checkbox ${isDone?'done':'undone'}" onclick="toggleTask('${t.id}',()=>renderDavaTab('${id}','gorev'));this.style.animation='ddpCheckPop 0.3s'">
-          ${isDone?'<span style="color:#fff;font-size:11px">✓</span>':''}
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:${isDone?'var(--text3)':'var(--text)'}${isDone?';text-decoration:line-through':''}"> ${tipIcon} ${escHtml(t.baslik||t.text||'')}</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:3px">
-            ${t.tarih?`<span style="font-size:11px;color:${gecikti?'var(--red)':diff===0?'var(--gold)':'var(--text3)'}">📅 ${fmtDate(t.tarih.slice(0,10))}${gecikti?' ⚠ Gecikmiş':diff===0?' (Bugün)':''}</span>`:''}
-            <span style="font-size:10px;font-weight:700;color:${oclr};background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px${prioClass?';' :''}" class="${prioClass}">${t.oncelik||'Normal'}</span>
-            ${assignedHtml}
-          </div>
-          ${subtaskHtml}
-        </div>
-        <button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;flex-shrink:0" onclick="editTask('${t.id}')">✏</button>
-        <button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;flex-shrink:0;color:var(--red)" onclick="event.stopPropagation();_ddpDeleteTask('${t.id}','${id}')">🗑</button>
-      </div>`;
-    }
-
-    function grupBaslik(icon, baslik, sayi, renk) {
-      return `<div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:11px;font-weight:700;color:${renk||'var(--text3)'};text-transform:uppercase;letter-spacing:0.07em">${icon} ${baslik}</span>
-        <span style="background:rgba(255,255,255,0.08);border-radius:10px;padding:1px 8px;font-size:11px;color:${renk||'var(--text3)'}">${sayi}</span>
-      </div>`;
-    }
 
     el.innerHTML = `<div style="padding:0">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px">
@@ -2761,22 +2672,7 @@ function renderDavaTab(id, sekme) {
         <input id="ddp-quick-task-input" placeholder="Hızlı görev ekle... (Enter)" onkeydown="if(event.key==='Enter')_ddpQuickAddTask('${escHtml(d.no)}')">
         <button class="btn btn-gold" style="font-size:11px;padding:5px 10px" onclick="_ddpQuickAddTask('${escHtml(d.no)}')">+</button>
       </div>
-      ${allTasks.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>':''}
-
-      ${gecikmisTasks.length?grupBaslik('⚠','Gecikmiş',gecikmisTasks.length,'var(--red)')
-        +gecikmisTasks.map(t=>gorevSatiri(t,false)).join(''):''}
-
-      ${bekleyenTasks.length?grupBaslik('📍','Bekleyen',bekleyenTasks.length,'var(--gold)')
-        +bekleyenTasks.map(t=>gorevSatiri(t,false)).join(''):''}
-
-      ${tamamTasks.length?`<div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="window._ddpShowTamamlanan=!window._ddpShowTamamlanan;renderDavaTab('${id}','gorev')">
-        <span style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.07em">✅ Tamamlananlar</span>
-        <span style="display:flex;align-items:center;gap:6px">
-          <span style="background:rgba(255,255,255,0.08);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--green)">${tamamTasks.length}</span>
-          <span style="font-size:10px;color:var(--text3)">${showTamamlanan?'▼ Gizle':'▶ Göster'}</span>
-        </span>
-      </div>`
-        +(showTamamlanan?tamamTasks.map(t=>gorevSatiri(t,true)).join(''):''):''}
+      ${allTasks.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>':_gorevKanbanBoard(allTasks,'dava',id)}
     </div>`;
   }
 }

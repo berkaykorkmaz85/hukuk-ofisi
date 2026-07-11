@@ -1279,23 +1279,10 @@ function renderIcraTab(id, sekme) {
       + '</div>';
 
   } else if (sekme === 'gorev') {
-    // Ö4: Görevler sekmesi
+    // Ö4: Görevler sekmesi (kanban görünümü)
     var gecikmisTasks = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0;});
     var bekleyenTasks = tasks.filter(function(t){return !t.done&&(!t.tarih||Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)>=0);});
     var tamamTasks = tasks.filter(function(t){return t.done;});
-
-    function gorevSatiri(t, isDone) {
-      var diff=t.tarih?Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000):null;
-      var gecikti=diff!==null&&diff<0&&!isDone;
-      return '<div style="display:flex;align-items:start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.04)'+(isDone?';opacity:0.6':'')+'" class="'+(gecikti?'ddp-task-overdue':'')+'">'
-        + '<div class="ddp-checkbox '+(isDone?'done':'undone')+'" onclick="toggleTask(\''+t.id+'\',function(){renderIcraTab(\''+id+'\',\'gorev\')});this.style.animation=\'ddpCheckPop 0.3s\'">'+(isDone?'<span style="color:#fff;font-size:11px">✓</span>':'')+'</div>'
-        + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:'+(isDone?'var(--text3)':'var(--text)')+''+(isDone?';text-decoration:line-through':'')+'">'+escHtml(t.baslik||t.text||'')+'</div>'
-        + (t.tarih?'<span style="font-size:11px;color:'+(gecikti?'var(--red)':'var(--text3)')+'">📅 '+fmtDate(t.tarih.slice(0,10))+(gecikti?' ⚠ Gecikmiş':'')+'</span>':'')
-        + '</div>'
-        + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;flex-shrink:0" onclick="editTask(\''+t.id+'\')">✏</button>'
-        + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;flex-shrink:0;color:var(--red)" onclick="_idpDeleteTask(\''+t.id+'\',\''+id+'\')">🗑</button>'
-        + '</div>';
-    }
 
     el.innerHTML = '<div style="padding:0">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px">'
@@ -1306,10 +1293,7 @@ function renderIcraTab(id, sekme) {
       + '<div class="ddp-task-summary"><span style="color:var(--red)"><span class="cnt">'+gecikmisTasks.length+'</span> gecikmiş</span><span style="color:var(--gold)"><span class="cnt">'+bekleyenTasks.length+'</span> bekleyen</span><span style="color:var(--green)"><span class="cnt">'+tamamTasks.length+'</span> tamamlandı</span></div>'
       // Quick task
       + '<div class="ddp-quick-task"><input id="idp-quick-task-input" placeholder="Hızlı görev ekle... (Enter)" onkeydown="if(event.key===\'Enter\')_idpQuickAddTask(\''+escHtml(i.no)+'\',\''+id+'\')"><button class="btn btn-gold" style="font-size:11px;padding:5px 10px" onclick="_idpQuickAddTask(\''+escHtml(i.no)+'\',\''+id+'\')">+</button></div>'
-      + (tasks.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>':'')
-      + (gecikmisTasks.length?'<div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase">⚠ Gecikmiş ('+gecikmisTasks.length+')</div>'+gecikmisTasks.map(function(t){return gorevSatiri(t,false);}).join(''):'')
-      + (bekleyenTasks.length?'<div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase">📍 Bekleyen ('+bekleyenTasks.length+')</div>'+bekleyenTasks.map(function(t){return gorevSatiri(t,false);}).join(''):'')
-      + (tamamTasks.length?'<div style="padding:10px 14px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase">✅ Tamamlanan ('+tamamTasks.length+')</div>'+tamamTasks.map(function(t){return gorevSatiri(t,true);}).join(''):'')
+      + (tasks.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>':_gorevKanbanBoard(tasks,'icra',id))
       + '</div>';
   }
 }

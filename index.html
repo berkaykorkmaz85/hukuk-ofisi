@@ -2636,6 +2636,16 @@
   .ddp-quick-task input:focus { border-color:var(--gold); }
   .ddp-quick-task input::placeholder { color:var(--text3); }
 
+  /* Görevler kanban görünümü */
+  .kanban-board { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px 14px; }
+  @media (max-width:800px) { .kanban-board { grid-template-columns:1fr; } }
+  .kanban-col { background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-height:80px; }
+  .kanban-col-header { display:flex;align-items:center;justify-content:space-between;padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border); }
+  .kanban-col-count { border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700; }
+  .kanban-col-body { padding:10px;display:flex;flex-direction:column;gap:8px; }
+  .kanban-card { background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px; }
+  .kanban-card-overdue { border-color:rgba(192,83,58,0.4); }
+
   /* B1: Belge filter */
   .ddp-belge-filter { display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap; }
   .ddp-belge-filter input { flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 10px;font-family:'DM Sans',sans-serif;outline:none; }
@@ -5127,10 +5137,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260708b"></script>
-<script src="js/02-dava-yonetimi.js?v=20260708b"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260708b"></script>
-<script src="js/04-arac-ve-modul.js?v=20260708b"></script>
+<script src="js/01-cekirdek-veri.js?v=20260711a"></script>
+<script src="js/02-dava-yonetimi.js?v=20260711a"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260711a"></script>
+<script src="js/04-arac-ve-modul.js?v=20260711a"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">
