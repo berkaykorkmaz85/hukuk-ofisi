@@ -2767,7 +2767,10 @@ function renderFinans() {
   const tahsilEdilemyen = Math.max(0, topAnlasilan - topTah);
 
   // 3. Masraf Bakiyesi — toplam masraf (bağımsız, tahsilatla karıştırılmaz)
-  const topMas = allFinans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  // Avans Kasası ile tutarlı olması için hem finans tablosundaki hem de ayrı dava_masraflar tablosundaki kayıtlar toplanır
+  const topMasFinans = allFinans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topMasDava = (DB.get('dava_masraflar')||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const topMas = topMasFinans + topMasDava;
 
   // Ofis giderleri (grafik için korunuyor)
   const topOfis = allFinans.filter(f=>OFIS_GID.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
