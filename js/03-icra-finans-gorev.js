@@ -1684,6 +1684,13 @@ function hizliAnlasmaDuzenle(mvId) {
   showMuvekkilDetail(mvId);
 }
 
+function saveMuvekkilNotlar(id, val) {
+  var arr = DB.get('muvekkiller').map(function(m) { return m.id === id ? Object.assign({}, m, { notlar: val }) : m; });
+  DB.set('muvekkiller', arr);
+  _sbTekKayitYaz('muvekkiller', arr.find(function(m) { return m.id === id; }));
+  notify('Not kaydedildi ✓');
+}
+
 function showMuvekkilDetail(id) {
   const mv = DB.get('muvekkiller').find(x => x.id === id);
   if (!mv) return;
@@ -1811,10 +1818,10 @@ function showMuvekkilDetail(id) {
     </div>
 
     <!-- Notlar -->
-    ${mv.notlar?`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
-      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Notlar</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.5;white-space:pre-wrap">${escHtml(mv.notlar)}</div>
-    </div>`:''}
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">📝 Müvekkil Notları</div>
+      <textarea onchange="saveMuvekkilNotlar('${id}',this.value)" style="width:100%;min-height:80px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;padding:10px 12px;resize:vertical;outline:none;font-family:inherit;line-height:1.5" placeholder="Müvekkil hakkında serbest notlar...">${escHtml(mv.notlar||'')}</textarea>
+    </div>
 
   </div>
 
