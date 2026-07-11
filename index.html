@@ -4087,7 +4087,9 @@
     <button type="button" onclick="bkOtomatikVer()" class="btn btn-outline" style="white-space:nowrap;font-size:12px;padding:6px 10px">⚡ Otomatik</button>
   </div>
 </div>
-        <div class="form-group"><label>Müvekkil</label><select id="d-muvekkil"><option value="">Seçin...</option></select></div>
+        <div class="form-group"><label>Davacı</label><input id="d-davaci" list="taraf-list-dl" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
+        <div class="form-group"><label>Davalı</label><input id="d-davali" list="taraf-list-dl" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
+        <div class="form-group"><label>Müvekkilimiz</label><select id="d-taraf"><option value="davaci">Davacı</option><option value="davali">Davalı</option></select></div>
         <input id="d-ad" type="hidden">
         <div class="form-group full"><label>Dava Konusu <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">(isteğe bağlı)</span></label><input id="d-konu" maxlength="300" placeholder="Kira alacağı davası, boşanma davası..."></div>
 
@@ -4146,7 +4148,6 @@
         </div>
 
         <div class="form-group"><label>Esas No</label><input id="d-esas" maxlength="30" placeholder="2024/5678"></div>
-        <div class="form-group"><label>Karşı Taraf</label><input id="d-karsi" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
         <div class="form-group" style="display:none"><label>Son Duruşma</label><input id="d-durusma" type="date" min="1900-01-01" max="2100-12-31"></div>
         <div class="form-group" style="display:none"><label>Sonraki Duruşma</label><input id="d-sonraki" type="date" min="1900-01-01" max="2100-12-31"></div>
         <div class="form-group"><label>Durum</label>
@@ -4259,6 +4260,7 @@
           </div>
         </div>
         <datalist id="kisiler-list-dl"></datalist>
+        <datalist id="taraf-list-dl"></datalist>
 
         <div class="form-group full"><label>Notlar</label><textarea id="d-notlar" placeholder="Dava hakkında notlar..."></textarea></div>
       </div>
@@ -4289,8 +4291,9 @@
           <label>Dosya Konusu / Adı</label>
           <input id="i-dosya-adi" placeholder="Ör: Kira Alacağı, Senet Takibi...">
         </div>
-        <div class="form-group"><label>Müvekkil (Alacaklı)</label><select id="i-muvekkil"><option value="">Seçin...</option></select></div>
-        <div class="form-group"><label>Borçlu</label><input id="i-borclu" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
+        <div class="form-group"><label>Alacaklı</label><input id="i-alacakli" list="taraf-list-dl" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
+        <div class="form-group"><label>Borçlu</label><input id="i-borclu" list="taraf-list-dl" maxlength="200" placeholder="Ad Soyad / Unvan"></div>
+        <div class="form-group"><label>Müvekkilimiz</label><select id="i-taraf"><option value="alacakli">Alacaklı</option><option value="borclu">Borçlu</option></select></div>
 
         <!-- İCRA MÜDÜRLÜĞİ -->
         <select id="i-il" style="display:none"><option value=""></option></select>
@@ -5137,10 +5140,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260711a"></script>
-<script src="js/02-dava-yonetimi.js?v=20260711a"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260711a"></script>
-<script src="js/04-arac-ve-modul.js?v=20260711a"></script>
+<script src="js/01-cekirdek-veri.js?v=20260711b"></script>
+<script src="js/02-dava-yonetimi.js?v=20260711b"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260711b"></script>
+<script src="js/04-arac-ve-modul.js?v=20260711b"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">

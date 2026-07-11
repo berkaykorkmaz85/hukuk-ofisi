@@ -216,11 +216,14 @@ function editDava(id) {
   if (!d) return;
   editingId = id;
   populateMuvekkilSelects();
-  ['no','ad','konu','mahkeme','esas','karsi','durusma','sonraki','notlar'].forEach(f => {
+  ['no','ad','konu','mahkeme','esas','durusma','sonraki','notlar'].forEach(f => {
     const el = document.getElementById('d-'+f);
     if (el) el.value = d[f]||'';
   });
-  document.getElementById('d-muvekkil').value = d.muvekkil;
+  const _taraf = _davaTarafPair(d);
+  document.getElementById('d-davaci').value = _taraf.davaci;
+  document.getElementById('d-davali').value = _taraf.davali;
+  document.getElementById('d-taraf').value = d.taraf || 'davaci';
   document.getElementById('d-durum').value = d.durum;
   const turEl = document.getElementById('d-tur');
   turEl.value = d.tur||'Asliye Hukuk';
@@ -289,9 +292,13 @@ function bkOtomatikVer() {
 
 function saveDava() { withSaveLock('saveDava', _saveDavaInner); }
 async function _saveDavaInner() {
-  // Zorunlu alan kontrolü: müvekkil seçilmeden dava kaydedilemez
-  const muvekkil = document.getElementById('d-muvekkil').value;
-  if (!muvekkil) return notify('⚠️ Müvekkil seçimi zorunludur!');
+  // Zorunlu alan kontrolü: taraf ismi olmadan dava kaydedilemez
+  const davaci = document.getElementById('d-davaci').value.trim();
+  const davali = document.getElementById('d-davali').value.trim();
+  const taraf = document.getElementById('d-taraf').value || 'davaci';
+  const muvekkil = taraf === 'davali' ? davali : davaci;
+  const karsi = taraf === 'davali' ? davaci : davali;
+  if (!muvekkil) return notify('⚠️ Müvekkilimiz olan tarafın adı zorunludur (' + (taraf==='davali'?'Davalı':'Davacı') + ')!');
   const konu = document.getElementById('d-konu').value.trim();
   if (!konu) return notify('⚠️ Dava konusu zorunludur!');
   let no = document.getElementById('d-no').value.trim();
@@ -310,8 +317,6 @@ async function _saveDavaInner() {
     id: editingId || DB.genId(),
     no, konu, cesit,
     ad: (function(){
-      const muv = document.getElementById('d-muvekkil').value || '';
-      const karsi = document.getElementById('d-karsi').value || '';
       const mahkeme = document.getElementById('d-mahkeme').value || '';
       const esas = document.getElementById('d-esas').value || '';
       const kisaltma = mahkeme
@@ -323,17 +328,18 @@ async function _saveDavaInner() {
         .replace('Vergi Mahkemesi','VM').replace('Kadastro Mahkemesi','KM')
         .replace('Çocuk Mahkemesi','ÇM').replace('Fikri ve Sınai Haklar Mahkemesi','FSHM')
         .replace('Mahkemesi','Mah.');
+      // Dosya adı her zaman "Davacı vs Davalı" sırasıyla oluşur — hangi tarafın
+      // müvekkilimiz olduğuna bakılmaksızın
       const parts = [];
-      if(muv) parts.push(muv);
-      if(karsi) parts.push('vs '+karsi);
+      if(davaci) parts.push(davaci);
+      if(davali) parts.push('vs '+davali);
       if(kisaltma) parts.push(kisaltma);
       if(esas) parts.push(esas);
       return parts.join(' – ');
     })(),
-    muvekkil: document.getElementById('d-muvekkil').value,
+    muvekkil, karsi, davaci, davali, taraf,
     mahkeme: document.getElementById('d-mahkeme').value,
     esas: document.getElementById('d-esas').value,
-    karsi: document.getElementById('d-karsi').value,
     durusma: document.getElementById('d-durusma').value,
     sonraki: document.getElementById('d-sonraki').value,
     durum: document.getElementById('d-durum').value,
@@ -555,11 +561,19 @@ function deleteDava(id) {
 function renderIcralar() {
   const icralar = DB.get('icralar');
   populateMuvekkilSelects();
-  document.getElementById('icra-tbody').innerHTML = icralar.length ? icralar.map(i=>`
+  document.getElementById('icra-tbody').innerHTML = icralar.length ? icralar.map(i=>{
+    const tp = _icraTarafPair(i);
+    const borcluCell = i.taraf==='borclu'
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.borclu)}</span>`
+      : escHtml(tp.borclu);
+    const alacakliCell = i.taraf!=='borclu'
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.alacakli)}</span>`
+      : escHtml(tp.alacakli);
+    return `
     <tr oncontextmenu="itemContextMenu(event,'icra','${i.id}','${escHtml(i.borclu||i.no)}')" style="cursor:pointer" onclick="showIcraDetail('${i.id}')">
       <td data-label="Dosya No"><span class="mono text-gold">${escHtml(i.no)}</span></td>
-      <td data-label="Borçlu">${escHtml(i.borclu)}</td>
-      <td data-label="Alacaklı"><span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(i.muvekkil)}</span></td>
+      <td data-label="Borçlu">${borcluCell}</td>
+      <td data-label="Alacaklı">${alacakliCell}</td>
       <td data-label="Asıl Alacak" class="mono">₺${fmt(i.alacak)}</td>
       <td data-label="Takip Türü"><span class="tag" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${escHtml(i.tur||'—')}</span></td>
       <td data-label="Durum"><span class="tag tag-${i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali'}">${i.durum}</span></td>
@@ -568,7 +582,8 @@ function renderIcralar() {
         <button class="btn btn-ghost" style="color:var(--red)" onclick="deleteIcra('${i.id}')">🗑</button>
       </td>
     </tr>
-  `).join('') : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
+  `;
+  }).join('') : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
 }
 
 function hesaplaIcraAaüt(alacak) {
@@ -962,6 +977,10 @@ function renderIcraTab(id, sekme) {
     var muvekkilLink = escHtml(i.muvekkil||'—');
     var mvk = (DB.get('muvekkiller')||[]).find(function(m){return m.ad===i.muvekkil;});
     if(mvk) muvekkilLink = '<a href="#" onclick="showMuvekkilDetail(\''+mvk.id+'\');event.preventDefault()" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--text3)">'+escHtml(i.muvekkil)+'</a>';
+    // Alacaklı/Borçlu sırası — müvekkilimiz olan taraf tıklanabilir link olarak kalır
+    var _itp = _icraTarafPair(i);
+    var alacakliDisplay = (i.taraf!=='borclu' && i.muvekkil) ? muvekkilLink : escHtml(_itp.alacakli||'—');
+    var borcluDisplay = (i.taraf==='borclu' && i.muvekkil) ? muvekkilLink : escHtml(_itp.borclu||'—');
 
     el.innerHTML = '<div style="padding:16px">'
       // Cover Card
@@ -974,8 +993,9 @@ function renderIcraTab(id, sekme) {
       + '<span class="ddp-durum-badge ddp-durum-'+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'" onclick="_idpCycleStatus(\''+id+'\')" title="Tıklayarak durum değiştir" style="cursor:pointer"><span class="ddp-durum-dot '+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'"></span> '+escHtml(i.durum||'Aktif')+'</span>'
       + '</div></div>'
       + (i.tur ? '<div style="padding:0 20px;margin-top:-2px"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(122,181,212,0.15);color:#7ab5d4;padding:4px 12px;border-radius:20px;border:1px solid rgba(122,181,212,0.3)">📋 '+escHtml(i.tur)+'</span></div>':'')
-      + '<div style="padding:12px 20px 0;font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
-      + muvekkilLink+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+escHtml(i.borclu||'—')
+      + '<div style="padding:8px 20px 0"><span style="font-size:10px;font-weight:700;background:rgba(125,196,149,0.15);color:var(--green);padding:2px 9px;border-radius:10px">👤 Müvekkilimiz: '+(i.taraf==='borclu'?'Borçlu':'Alacaklı')+'</span></div>'
+      + '<div style="padding:6px 20px 0;font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
+      + alacakliDisplay+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+borcluDisplay
       + '</div></div>'
       // Finansal vurgu satırı — Asıl Alacak + Faiz öne çıkarılmış
       + '<div style="display:grid;grid-template-columns:2fr 1fr;gap:1px;background:var(--border)">'
@@ -1507,7 +1527,9 @@ function editIcra(id) {
     const el = document.getElementById('i-'+f);
     if (el) el.value = i[f]||'';
   });
-  document.getElementById('i-muvekkil').value = i.muvekkil;
+  const _taraf = _icraTarafPair(i);
+  document.getElementById('i-alacakli').value = _taraf.alacakli;
+  document.getElementById('i-taraf').value = i.taraf || 'alacakli';
   document.getElementById('i-durum').value = i.durum;
   if (i.tur) document.getElementById('i-tur').value = i.tur;
   // Finans
@@ -1544,6 +1566,10 @@ function saveIcra() { withSaveLock('saveIcra', _saveIcraInner); }
 async function _saveIcraInner() {
   let no = document.getElementById('i-no').value.trim();
   const borclu = document.getElementById('i-borclu').value.trim();
+  const alacakli = document.getElementById('i-alacakli').value.trim();
+  const itaraf = document.getElementById('i-taraf').value || 'alacakli';
+  const imuvekkil = itaraf === 'borclu' ? borclu : alacakli;
+  if (!imuvekkil) return notify('⚠️ Müvekkilimiz olan tarafın adı zorunludur (' + (itaraf==='borclu'?'Borçlu':'Alacaklı') + ')!');
   if (!no) {
     const nums = DB.get('icralar').map(x=>{const m=(x.no||'').match(/BK[İI](\d+)/);return m?parseInt(m[1]):0;});
     no = 'BKİ' + String((nums.length?Math.max(...nums):0)+1).padStart(3,'0');
@@ -1552,9 +1578,9 @@ async function _saveIcraInner() {
   const eskiIcra = editingId ? DB.get('icralar').find(x => x.id === editingId) : null;
   const obj = {
     id: editingId || DB.genId(),
-    no, borclu,
+    no, borclu, alacakli, taraf: itaraf,
     dosyaAdi: document.getElementById('i-dosya-adi')?.value||'',
-    muvekkil: document.getElementById('i-muvekkil').value,
+    muvekkil: imuvekkil,
     mudurluk: document.getElementById('i-mudurluk').value,
     il: document.getElementById('i-il')?.value || '',
     adliye: (()=>{ const el=document.getElementById('i-adliye'); const wrap=document.getElementById('i-adliye-wrap'); return (el&&wrap&&wrap.style.display!=='none')?el.value:''; })(),
@@ -1948,7 +1974,7 @@ function showMuvekkilDetail(id) {
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:14px;font-weight:700;color:var(--text)">📁 Dava Dosyaları <span style="font-size:12px;font-weight:400;color:var(--text3)">${davalar.filter(d=>d.durum==='Aktif').length} aktif</span></div>
-        <button class="btn btn-gold" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-dava');document.getElementById('d-muvekkil').value='${escHtml(mv.ad)}'">+ Yeni Dava</button>
+        <button class="btn btn-gold" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-dava');document.getElementById('d-davaci').value='${escHtml(mv.ad)}'">+ Yeni Dava</button>
       </div>
       ${davalar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">Dava dosyası yok</div>'
@@ -1965,7 +1991,7 @@ function showMuvekkilDetail(id) {
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:14px;font-weight:700;color:var(--text)">⚡ İcra Dosyaları <span style="font-size:12px;font-weight:400;color:var(--text3)">${icralar.filter(i=>i.durum==='Aktif').length} aktif</span></div>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-icra');document.getElementById('i-muvekkil').value='${escHtml(mv.ad)}'">+ Yeni İcra</button>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-icra');document.getElementById('i-alacakli').value='${escHtml(mv.ad)}'">+ Yeni İcra</button>
       </div>
       ${icralar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">İcra dosyası yok</div>'
@@ -3804,7 +3830,7 @@ function _uyapAcYeniDava(rowIdx) {
 
   document.getElementById('d-esas').value = r.esasNo || '';
   document.getElementById('d-mahkeme').value = r.mahkeme || '';
-  document.getElementById('d-karsi').value = karsiTaraf;
+  document.getElementById('d-davali').value = karsiTaraf;
   if (r.islem) document.getElementById('d-konu').value = r.islem + (r.sonuc ? ' — ' + r.sonuc : '');
   notify('Form UYAP verisiyle ön-dolduruldu — kontrol edip kaydedin.');
 }

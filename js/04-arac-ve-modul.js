@@ -1010,7 +1010,7 @@ function filterByType(tableId, val) {
 
 function populateMuvekkilSelects() {
   const mv = DB.get('muvekkiller');
-  const ids = ['d-muvekkil','i-muvekkil','f-muvekkil'];
+  const ids = ['f-muvekkil'];
   ids.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1018,6 +1018,7 @@ function populateMuvekkilSelects() {
     sel.innerHTML = '<option value="">Seçin...</option>' + mv.map(m=>`<option value="${escAttr(m.ad)}">${escHtml(m.ad)}</option>`).join('');
     sel.value = cur;
   });
+  if (typeof updateTarafDatalist === 'function') updateTarafDatalist();
 }
 
 function populateDavaSelect(curVal) {
@@ -1325,7 +1326,7 @@ function openModal(id) {
         const icralar = DB.get('icralar') || [];
         sel.innerHTML = '<option value="">— Genel görev (dosya bağlantısı yok) —</option>'
           + '<optgroup label="📁 Dava Dosyaları">'
-          + davalar.map(d => `<option value="${d.no}"${d.no===curVal?' selected':''}>${d.no} — ${escHtml(d.muvekkil||'')}${d.karsi?' vs '+escHtml(d.karsi):''} (${d.durum})</option>`).join('')
+          + davalar.map(d => { var tp = _davaTarafPair(d); return `<option value="${d.no}"${d.no===curVal?' selected':''}>${d.no} — ${escHtml(tp.davaci||'')}${tp.davali?' vs '+escHtml(tp.davali):''} (${d.durum})</option>`; }).join('')
           + '</optgroup>'
           + '<optgroup label="⚡ İcra Dosyaları">'
           + icralar.map(i => `<option value="${i.bki||i.no}"${(i.bki||i.no)===curVal?' selected':''}>${i.bki||i.no} — ${escHtml(i.borclu||'')} (${i.durum})</option>`).join('')
@@ -1366,8 +1367,9 @@ function closeModal(id) {
     setTaskTip('gorev');
   }
   if (id === 'modal-dava') {
-    var davaFields = ['d-no','d-esas','d-karsi','d-hakim','d-savci','d-karsi-avukat','d-bilirkisi','d-istinaf-esas','d-temyiz-esas','d-akdi-ucret','d-tahsil-edilen','d-masraf'];
+    var davaFields = ['d-no','d-esas','d-davaci','d-davali','d-hakim','d-savci','d-karsi-avukat','d-bilirkisi','d-istinaf-esas','d-temyiz-esas','d-akdi-ucret','d-tahsil-edilen','d-masraf'];
     davaFields.forEach(function(f){ var el=document.getElementById(f); if(el) el.value=''; });
+    var tarafEl = document.getElementById('d-taraf'); if(tarafEl) tarafEl.value='davaci';
   }
   if (id === 'modal-finans') {
     var fFields = ['f-tutar','f-aciklama'];
@@ -1830,7 +1832,7 @@ function _tabFullLabel(t) {
   if (!t.subpage) return (pageTitles && pageTitles[t.page]) || t.label;
   if (t.subpage === 'dava-detail' && t.itemId) {
     var d = DB.get('davalar').find(function(x){return x.id===t.itemId;});
-    if (d) return d.no + ' — ' + (d.muvekkil||'') + (d.karsi?' vs '+d.karsi:'') + (d.mahkeme?' — '+d.mahkeme:'');
+    if (d) { var tp = _davaTarafPair(d); return d.no + ' — ' + (tp.davaci||'') + (tp.davali?' vs '+tp.davali:'') + (d.mahkeme?' — '+d.mahkeme:''); }
   }
   return t.label;
 }
@@ -2226,7 +2228,7 @@ function finansModalMvDegisti() {
   var icralar = (DB.get('icralar') || []).filter(function(i){ return i.muvekkil === mv; });
   karsiDosya.innerHTML = '<option value="">— Dosya seçin —</option>'
     + (davalar.length ? '<optgroup label="📁 Dava Dosyaları">'
-      + davalar.map(function(d){ return '<option value="'+escAttr(d.no)+'">'+escHtml(d.no)+' — '+escHtml(d.muvekkil)+(d.karsi?' vs '+escHtml(d.karsi):'')+'</option>'; }).join('')
+      + davalar.map(function(d){ var tp = _davaTarafPair(d); return '<option value="'+escAttr(d.no)+'">'+escHtml(d.no)+' — '+escHtml(tp.davaci)+(tp.davali?' vs '+escHtml(tp.davali):'')+'</option>'; }).join('')
       + '</optgroup>' : '')
     + (icralar.length ? '<optgroup label="⚡ İcra Dosyaları">'
       + icralar.map(function(i){ return '<option value="'+escAttr(i.bki||i.no)+'">'+escHtml(i.bki||i.no)+' — '+escHtml(i.borclu)+'</option>'; }).join('')

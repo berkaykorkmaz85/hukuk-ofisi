@@ -384,9 +384,10 @@ function renderDavaDash() {
   if(!davalar.length) dB.appendChild(bos('Dava dosyası yok'));
   else davalar.slice().sort(function(a,b){return a.durum==='Aktif'?-1:1;}).forEach(function(d){
     var mhK=(d.mahkeme||'').replace('Mahkemesi','Mhk.').replace('Asliye Hukuk','AHM').replace('Asliye Ticaret','ATM').replace('Sulh Hukuk','SHM');
-    var karsiStr=d.karsi?'<span style="color:var(--text3)"> vs </span>'+escHtml(d.karsi):'';
+    var tp=_davaTarafPair(d);
+    var karsiStr=tp.davali?'<span style="color:var(--text3)"> vs </span>'+escHtml(tp.davali):'';
     var sag=tag(d.durum,d.durum==='Aktif'?'aktif':d.durum==='Bekliyor'?'bekliyor':'kapali');
-    dB.appendChild(dosyaSatir(d.no,escHtml(d.muvekkil)+karsiStr,escHtml(mhK),sag,function(dd){return function(){openDavaDetailPage(dd.id);};}(d)));
+    dB.appendChild(dosyaSatir(d.no,escHtml(tp.davaci)+karsiStr,escHtml(mhK),sag,function(dd){return function(){openDavaDetailPage(dd.id);};}(d)));
   });
   satir1.appendChild(dW);
 
@@ -2356,6 +2357,10 @@ function renderDavaTab(id, sekme) {
       var mvk = (DB.get('muvekkiller')||[]).find(function(m){return m.ad===d.muvekkil;});
       muvekkilLink = mvk ? '<a href="#" onclick="showMuvekkilDetail(\''+mvk.id+'\');event.preventDefault()" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--text3)">'+escHtml(d.muvekkil)+'</a>' : escHtml(d.muvekkil||'—');
     } else { muvekkilLink = '—'; }
+    // Davacı/Davalı sırası — müvekkilimiz olan taraf tıklanabilir link olarak kalır
+    var _tp = _davaTarafPair(d);
+    var davaciDisplay = (d.taraf!=='davali' && d.muvekkil) ? muvekkilLink : escHtml(_tp.davaci||'—');
+    var davaliDisplay = (d.taraf==='davali' && d.muvekkil) ? muvekkilLink : escHtml(_tp.davali||'');
 
     el.innerHTML = `
     <div style="padding:16px">
@@ -2374,8 +2379,9 @@ function renderDavaTab(id, sekme) {
             </div>
           </div>
           <!-- Plaintiff vs Defendant -->
+          <div style="margin-bottom:4px"><span style="font-size:10px;font-weight:700;background:rgba(201,168,76,0.15);color:var(--gold);padding:2px 9px;border-radius:10px">👤 Müvekkilimiz: ${d.taraf==='davali'?'Davalı':'Davacı'}</span></div>
           <div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">
-            ${muvekkilLink}${d.karsi?' <span style="color:var(--gold);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+escHtml(d.karsi):''}
+            ${davaciDisplay}${davaliDisplay?' <span style="color:var(--gold);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+davaliDisplay:''}
           </div>
         </div>
         <!-- Info row -->

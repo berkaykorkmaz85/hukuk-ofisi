@@ -277,6 +277,25 @@ function _sbIcraToRow(obj) {
     detaylar: rest, user_id: window._currentUserId
   };
 }
+// Davacı/Davalı isimlerini üretir. Yeni kayıtlarda d.davaci/d.davali doğrudan
+// kullanılır; eski kayıtlarda (bu alanlar yokken) d.muvekkil her zaman davacı
+// tarafı temsil ediyordu, bu yüzden geriye dönük varsayılan taraf 'davaci'dir.
+function _davaTarafPair(d) {
+  var taraf = d.taraf || 'davaci';
+  var davaci = d.davaci !== undefined ? d.davaci : ((taraf === 'davali' ? d.karsi : d.muvekkil) || '');
+  var davali = d.davali !== undefined ? d.davali : ((taraf === 'davali' ? d.muvekkil : d.karsi) || '');
+  return { davaci: davaci, davali: davali };
+}
+
+// Alacaklı/Borçlu isimlerini üretir. Eski icra kayıtlarında i.muvekkil her
+// zaman alacaklı tarafı temsil ediyordu (form her zaman öyle çalışıyordu),
+// bu yüzden geriye dönük varsayılan taraf 'alacakli'dir.
+function _icraTarafPair(i) {
+  var taraf = i.taraf || 'alacakli';
+  var alacakli = i.alacakli !== undefined ? i.alacakli : ((taraf === 'borclu' ? i.borclu : i.muvekkil) || '');
+  return { alacakli: alacakli, borclu: i.borclu || '' };
+}
+
 function _sbMuvekkilToRow(obj) {
   const { id, ad, tur, tc, vergi, tel, email, ...rest } = obj;
   return {
@@ -3077,6 +3096,19 @@ function updateKisilerDatalist() {
   if (!dl) return;
   const kisiler = DB.get('kisiler');
   dl.innerHTML = kisiler.map(k => `<option value="${escAttr(k.ad)}">${escHtml(k.ad)} (${escHtml(k.rol)})</option>`).join('');
+}
+
+// Davacı/Davalı/Alacaklı/Borçlu alanları için: kayıtlı müvekkiller, kişiler
+// ve contactlardan isim önerileri üretir. Hangi kayıt türünden geldiği option
+// etiketinde görünür; alan yine de serbest metindir (herhangi bir isim yazılabilir).
+function updateTarafDatalist() {
+  const dl = document.getElementById('taraf-list-dl');
+  if (!dl) return;
+  const isimler = [];
+  (DB.get('muvekkiller')||[]).forEach(m => { if (m.ad) isimler.push({ad: m.ad, etiket: 'Müvekkil'}); });
+  (DB.get('kisiler')||[]).forEach(k => { if (k.ad) isimler.push({ad: k.ad, etiket: k.rol||'Kişi'}); });
+  (DB.get('contacts')||[]).forEach(c => { if (c.ad) isimler.push({ad: c.ad, etiket: 'Contact'}); });
+  dl.innerHTML = isimler.map(x => `<option value="${escAttr(x.ad)}">${escHtml(x.ad)} (${escHtml(x.etiket)})</option>`).join('');
 }
 
 async function saveKisi() {
