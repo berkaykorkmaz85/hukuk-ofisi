@@ -945,6 +945,7 @@ function renderTasksByPerson() {
 
   let tasks = DB.get('tasks') || [];
   const davalar = DB.get('davalar') || [];
+  const icralar = DB.get('icralar') || [];
 
   const dosyaFilter = document.getElementById('task-dosya-filter')?.value || '';
   if (dosyaFilter) tasks = tasks.filter(t => t.ilgili === dosyaFilter);
@@ -976,17 +977,19 @@ function renderTasksByPerson() {
   el.innerHTML = sirali.map(key => {
     const grup = gruplar[key];
     const dava = davalar.find(d => d.ad === key || d.no === key);
+    const icra = !dava ? icralar.find(i => i.no === key || i.bki === key) : null;
     const baslik = key === '__genel__' ? '📋 Genel Görevler'
       : dava ? `📁 ${dava.ad || dava.no} <span style="font-size:12px;color:var(--text3);font-weight:400">${dava.muvekkil ? '· ' + dava.muvekkil : ''}</span>`
+      : icra ? `⚡ ${icra.no}${icra.borclu ? ' — ' + icra.borclu : ''} <span style="font-size:12px;color:var(--text3);font-weight:400">${icra.muvekkil ? '· ' + icra.muvekkil : ''}</span>`
       : `📁 ${key}`;
 
     const aktif = grup.filter(t => !t.done).length;
     const tamam = grup.filter(t => t.done).length;
 
-    return `<div class="card" style="margin-bottom:12px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+    return `<div class="card" style="margin-bottom:0;display:flex;flex-direction:column">
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
         <div style="font-size:14px;font-weight:600;color:var(--text)">${baslik}</div>
-        <div style="display:flex;gap:6px;align-items:center">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           ${aktif > 0 ? `<span style="background:rgba(201,168,76,0.15);color:var(--gold2);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${aktif} bekleyen</span>` : ''}
           ${tamam > 0 ? `<span style="background:rgba(74,140,92,0.1);color:#7dc495;font-size:11px;padding:2px 8px;border-radius:10px">${tamam} tamamlanan</span>` : ''}
           ${dava ? `<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="openTaskForDava('${dava.id}')">+ Görev</button>` : ''}

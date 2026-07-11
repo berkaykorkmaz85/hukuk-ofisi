@@ -2760,10 +2760,17 @@ function _avansKasaDetayHTML(mvAd) {
   return rows || '<div style="color:var(--text3);font-size:12px;padding:6px 0">Kayıt yok</div>';
 }
 
+// Silme sonrası hem Avans Kasası hem de üstteki genel Finans özet kartları
+// (Masraf Bakiyesi vb.) güncellensin diye renderFinans() de çağrılır.
+function _avansKasaSonrasiYenile() {
+  renderAvansKasa();
+  if (typeof renderFinans === 'function') renderFinans();
+}
+
 function _avansKasaSilFinans(finansId, mvAd) {
   showConfirmModal('Bu kaydı silmek istediğinizden emin misiniz?', function() {
     DB.set('finans', (DB.get('finans')||[]).filter(function(f){return f.id!==finansId;}));
-    renderAvansKasa();
+    _avansKasaSonrasiYenile();
     notify('Kayıt silindi');
   });
 }
@@ -2771,7 +2778,7 @@ function _avansKasaSilFinans(finansId, mvAd) {
 function _avansKasaSilDavaMasraf(masrafId, mvAd) {
   showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
     DB.set('dava_masraflar', (DB.get('dava_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
-    renderAvansKasa();
+    _avansKasaSonrasiYenile();
     notify('Masraf silindi');
   });
 }
@@ -2779,7 +2786,7 @@ function _avansKasaSilDavaMasraf(masrafId, mvAd) {
 function _avansKasaSilIcraMasraf(masrafId, mvAd) {
   showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
     DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
-    renderAvansKasa();
+    _avansKasaSonrasiYenile();
     notify('Masraf silindi');
   });
 }
