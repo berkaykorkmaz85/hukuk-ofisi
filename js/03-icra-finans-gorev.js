@@ -2220,7 +2220,7 @@ function deleteMuvekkil(id) {
 
 // ========== FİNANS ==========
 function finansSekme(sekme, btn) {
-  ['islemler','odeme-plani','karsi-vekalet','avans-kasa','ofis-gider'].forEach(function(s){
+  ['islemler','odeme-plani','karsi-vekalet','avans-kasa','harclar','ofis-gider'].forEach(function(s){
     var el = document.getElementById('finans-tab-'+s);
     if(el) el.style.display = s===sekme ? '' : 'none';
   });
@@ -2229,6 +2229,7 @@ function finansSekme(sekme, btn) {
   if(sekme==='odeme-plani') renderOdemePlanlari();
   else if(sekme==='karsi-vekalet') renderKarsiVekalet();
   else if(sekme==='avans-kasa') renderAvansKasa();
+  else if(sekme==='harclar') renderHarclar();
   else if(sekme==='ofis-gider') renderOfisGider();
 }
 
@@ -2661,6 +2662,32 @@ function renderAvansKasa() {
       : '<div class="card"><div class="table-wrap"><table class="table-card-mobile"><thead><tr><th>Müvekkil</th><th style="text-align:right">Avans Alınan</th><th style="text-align:right">Harcanan</th><th style="text-align:right">Bakiye</th></tr></thead><tbody>'
         +mvBakiyeler.map(function(m){
           return '<tr><td data-label="Müvekkil" style="font-weight:600">'+escHtml(m.ad)+'</td><td data-label="Avans Alınan" style="text-align:right;font-family:monospace;color:#7ab5d4">₺'+fmt(m.alinan)+'</td><td data-label="Harcanan" style="text-align:right;font-family:monospace;color:var(--red)">₺'+fmt(m.harcanan)+'</td><td data-label="Bakiye" style="text-align:right;font-family:monospace;font-weight:700;color:'+(m.bakiye>=0?'var(--green)':'var(--red)')+'">₺'+fmt(m.bakiye)+'</td></tr>';
+        }).join('')
+        +'</tbody></table></div></div>');
+}
+
+function renderHarclar() {
+  var el = document.getElementById('harclar-list');
+  if(!el) return;
+  var finans = DB.get('finans')||[];
+  var harclar = finans.filter(function(f){return f.tur==='Harç';}).sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
+  var toplam = harclar.reduce(function(a,b){return a+Number(b.tutar);},0);
+
+  var aylar = {};
+  harclar.forEach(function(f){
+    var ay = (f.tarih||'').slice(0,7);
+    if(!aylar[ay]) aylar[ay]=0;
+    aylar[ay]+=Number(f.tutar);
+  });
+
+  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Toplam Harç</div><div style="font-size:18px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplam)+'</div></div>'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Bu Ay</div><div style="font-size:18px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(aylar[new Date().toISOString().slice(0,7)]||0)+'</div></div>'
+    +'</div>'
+    +(harclar.length===0 ? '<div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">🧾</div><div>Harç kaydı yok</div></div>'
+      : '<div class="card"><div class="table-wrap"><table class="table-card-mobile"><thead><tr><th>Tarih</th><th>Müvekkil</th><th>Dosya</th><th>Açıklama</th><th style="text-align:right">Tutar</th><th></th></tr></thead><tbody>'
+        +harclar.map(function(f){
+          return '<tr><td data-label="Tarih" style="font-family:monospace;font-size:12px;color:var(--text3)">'+fmtDate(f.tarih)+'</td><td data-label="Müvekkil" style="font-size:12px">'+escHtml(f.muvekkil||'—')+'</td><td data-label="Dosya" style="font-size:12px;color:var(--text3)">'+escHtml(f.ilgili||'—')+'</td><td data-label="Açıklama" style="font-size:12px;color:var(--text3)">'+escHtml(f.aciklama||'')+'</td><td data-label="Tutar" style="text-align:right;font-family:monospace;font-weight:700;color:var(--red)">₺'+fmt(f.tutar)+'</td><td><button class="btn btn-ghost" style="font-size:11px" data-edit-finans="'+f.id+'">✏</button><button class="btn btn-ghost" style="font-size:11px;color:var(--red)" data-delete-finans="'+f.id+'">🗑</button></td></tr>';
         }).join('')
         +'</tbody></table></div></div>');
 }

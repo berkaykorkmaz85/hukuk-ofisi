@@ -3097,6 +3097,7 @@
         <button class="finans-sekme" onclick="finansSekme('odeme-plani',this)">📅 Ödeme Planları</button>
         <button class="finans-sekme" onclick="finansSekme('karsi-vekalet',this)">⚖️ Karşı Vekalet</button>
         <button class="finans-sekme" onclick="finansSekme('avans-kasa',this)">💼 Avans Kasası</button>
+        <button class="finans-sekme" onclick="finansSekme('harclar',this)">🧾 Harçlar</button>
         <button class="finans-sekme" onclick="finansSekme('ofis-gider',this)">🏢 Ofis Giderleri</button>
       </div>
 
@@ -3192,6 +3193,18 @@
           <button class="btn btn-gold" onclick="openModal('modal-finans');document.getElementById('f-tur').value='Masraf Ödemesi';finansTurDegisti()">+ Avans Al</button>
         </div>
         <div id="avans-kasa-list"></div>
+      </div>
+
+      <!-- Harçlar Sekmesi -->
+      <div id="finans-tab-harclar" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">🧾 Harçlar</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:3px">Tüm dosyalardaki harç kayıtları</div>
+          </div>
+          <button class="btn btn-gold" onclick="openModal('modal-finans');document.getElementById('f-tur').value='Harç';finansTurDegisti()">+ Harç Ekle</button>
+        </div>
+        <div id="harclar-list"></div>
       </div>
 
       <!-- Ofis Giderleri Sekmesi -->
