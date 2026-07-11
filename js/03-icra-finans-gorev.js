@@ -866,17 +866,6 @@ function _idpFileAge(i) {
   return Math.floor(days/365) + ' yıl ' + Math.floor((days%365)/30) + ' ay';
 }
 
-// Ö1: Faiz hesaplayıcı
-function _idpHesaplaFaiz(alacak, faizOrani, baslangicTarihi) {
-  if(!alacak || !faizOrani || !baslangicTarihi) return {gun:0,faiz:0,toplam:alacak||0,gunluk:0};
-  var start = new Date(baslangicTarihi);
-  var now = new Date();
-  var gun = Math.max(0, Math.floor((now - start) / 86400000));
-  var yillikFaiz = alacak * (faizOrani / 100);
-  var faiz = Math.round(yillikFaiz * gun / 365);
-  return {gun:gun, faiz:faiz, toplam:alacak+faiz, gunluk:Math.round(yillikFaiz/365)};
-}
-
 // İcra belge silme
 function deleteIcraBelge(belgeId, icraId) {
   showConfirmModal('Bu belgeyi silmek istediğinizden emin misiniz?', function() {
@@ -1106,7 +1095,6 @@ function renderIcraTab(id, sekme) {
   } else if (sekme === 'finans') {
     // T3: KPI kartları + Ö1 faiz + Ö2 progress + Ö6 masraf
     var netKazanc = (Number(i.tahsilEdilen)||0) - toplamMasraf;
-    var faizSonuc = _idpHesaplaFaiz(Number(i.alacak)||0, Number(i.faiz)||0, i.tarih || i.created);
     var tahsilatPct = (Number(i.alacak)||0) > 0 ? Math.min(Math.round((Number(i.tahsilEdilen)||0) / Number(i.alacak) * 100), 100) : 0;
 
     el.innerHTML = '<div style="padding:16px">'
@@ -1126,17 +1114,6 @@ function renderIcraTab(id, sekme) {
       // Ö2: Tahsilat progress
       + '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px"><span>Tahsilat İlerlemesi</span><span style="font-weight:700;color:var(--gold)">'+tahsilatPct+'%</span></div>'
       + '<div class="ddp-progress-wrap" style="margin-bottom:16px"><div class="ddp-progress-seg" style="width:'+tahsilatPct+'%;background:var(--gold)"></div></div>'
-      // Ö1: Faiz hesaplayıcı
-      + '<div style="background:var(--bg3);border:1px solid rgba(201,168,76,0.25);border-radius:12px;padding:14px;margin-bottom:16px">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">📊 Canlı Faiz Hesaplayıcı</div>'
-      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">'
-      + '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">İşlemiş Gün</div><div style="font-size:16px;font-weight:800;color:var(--text);font-family:monospace">'+faizSonuc.gun+'</div></div>'
-      + '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">İşlemiş Faiz</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(faizSonuc.faiz)+'</div></div>'
-      + '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">Faizli Toplam</div><div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(faizSonuc.toplam)+'</div></div>'
-      + '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:9px;color:var(--text3);margin-bottom:3px">Günlük Faiz</div><div style="font-size:16px;font-weight:800;color:var(--text2);font-family:monospace">₺'+fmt(faizSonuc.gunluk)+'</div></div>'
-      + '</div>'
-      + '<div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center">%'+(i.faiz||0)+' faiz oranı · Başlangıç: '+fmtDate(i.tarih||i.created||'')+'</div>'
-      + '</div>'
       // Finansal Notlar
       + '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
       + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">📝 Finansal Notlar</div>'
