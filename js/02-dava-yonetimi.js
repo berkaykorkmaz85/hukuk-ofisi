@@ -2326,11 +2326,18 @@ function renderDavaTab(id, sekme) {
   const el = document.getElementById('ddp-info');
   if (!el) return;
 
-  const ei = (field, label, value, type='text') => `
+  // Tarih alanları hâlâ satır-içi (inline) düzenleniyor (takvim input'u gerekiyor);
+  // düz metin alanları sonDurum/sonrakiAdim ile aynı modal deseniyle düzenleniyor.
+  const ei = (field, label, value, type='text') => type==='date' ? `
     <div class="info-item" id="ei-${field}" style="cursor:pointer" onclick="startInlineEdit('${id}','${field}','${type}')">
       <label>${label}</label>
       <span class="ei-val">${value||'—'}</span>
       <button class="info-edit-btn" onclick="event.stopPropagation();startInlineEdit('${id}','${field}','${type}')">✏</button>
+    </div>` : `
+    <div class="info-item" id="ei-${field}" style="cursor:pointer" onclick="editDavaNotKartInline('${id}','${field}')">
+      <label>${label}</label>
+      <span class="ei-val">${value||'—'}</span>
+      <button class="info-edit-btn" onclick="event.stopPropagation();editDavaNotKartInline('${id}','${field}')">✏</button>
     </div>`;
 
   const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
@@ -2678,7 +2685,7 @@ function renderDavaTab(id, sekme) {
         <input id="ddp-quick-task-input" placeholder="Hızlı görev ekle... (Enter)" onkeydown="if(event.key==='Enter')_ddpQuickAddTask('${escHtml(d.no)}')">
         <button class="btn btn-gold" style="font-size:11px;padding:5px 10px" onclick="_ddpQuickAddTask('${escHtml(d.no)}')">+</button>
       </div>
-      ${allTasks.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>':_gorevKanbanBoard(allTasks,'dava',id)}
+      ${_gorevRowListHTML(allTasks,'dava',id)}
     </div>`;
   }
 }
@@ -2786,7 +2793,9 @@ function editDavaNotKartInline(davaId, key) {
   if (!d) return;
   const labels = {
     sonDurum:'📌 Son Durum', sonrakiAdim:'➡️ Sonraki Adım',
-    strateji:'⚖️ Strateji', arabuluculuk:'🤝 Arabuluculuk', notlar:'📝 Genel Notlar'
+    strateji:'⚖️ Strateji', arabuluculuk:'🤝 Arabuluculuk', notlar:'📝 Genel Notlar',
+    karsi:'⚖️ Karşı Taraf', hakim:'👨‍⚖️ Hâkim', savci:'🧑‍⚖️ Savcı',
+    karsiAvukat:'🎓 Karşı Avukat', bilirkisi:'🔬 Bilirkişi'
   };
 
   // Mini modal oluştur
@@ -2807,7 +2816,9 @@ function editDavaNotKartInline(davaId, key) {
       </div>
     </div>`;
   document.body.appendChild(modal);
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  // Not: modal arka planına (backdrop) tıklayınca kapanma davranışı KASITLI olarak
+  // kaldırıldı — kullanıcı not yazarken yanlışlıkla dışarı tıklayınca içerik
+  // kaybolmasın diye. Kapatmak için İptal butonu veya Kaydet kullanılmalı.
   setTimeout(() => document.getElementById('dnk-modal-ta')?.focus(), 50);
 }
 

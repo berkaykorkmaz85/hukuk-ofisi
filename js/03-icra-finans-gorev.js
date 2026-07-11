@@ -503,6 +503,13 @@ function davaOdemePlaniOlustur(dava) {
 // tasks/belgeler/finans/odeme_planlari/icra_belgeler/icra_masraflar diff-sync'li
 // olduğundan DB.set ile yerelden çıkarmak Supabase'den de siler; dosya günlüğü
 // (chatter) satırları ve Storage'daki ekler ayrıca temizlenir.
+// KRİTİK: dava_id/icra_id yabancı anahtar kısıtlamaları olan tablolardaki
+// (icra_masraflar, dava_masraflar, icra_belgeler, belgeler, finans) satırlar
+// dosya satırı silinmeden ÖNCE, doğrudan ve beklenerek (awaited) Supabase'den
+// silinmelidir. DB.set() bu tabloları arka planda/gecikmeli senkronladığı için
+// (fire-and-forget kuyruk), dosya satırının silinmesiyle yarışabilir ve
+// "update or delete on table violates foreign key constraint" hatasına yol
+// açar — İcra/Dava dosyaları masraf kaydı varken silinemiyordu, kök neden buydu.
 async function _dosyaIliskiliVerileriSil(tip, id, dosyaNo) {
   try {
     const posts = await _sbYukleChatter(tip, id);
@@ -516,9 +523,22 @@ async function _dosyaIliskiliVerileriSil(tip, id, dosyaNo) {
   if (tip === 'dava') {
     const belgeler = DB.get('belgeler') || [];
     for (const b of belgeler) { if (b.davaId === id && b.yol) await chatterSupabaseSil(b.yol); }
+    try { await _supabaseClient.from('belgeler').delete().eq('dava_id', id); } catch(e) { console.warn('Belgeler silinemedi:', e); }
+    try { await _supabaseClient.from('dava_masraflar').delete().eq('dava_id', id); } catch(e) { console.warn('Dava masrafları silinemedi:', e); }
+    try {
+      const q = _supabaseClient.from('finans').delete();
+      await (dosyaNo ? q.or('dava_id.eq.'+id+',ilgili.eq.'+dosyaNo) : q.eq('dava_id', id));
+    } catch(e) { console.warn('Finans kayıtları silinemedi:', e); }
     DB.set('belgeler', belgeler.filter(b => b.davaId !== id));
+    DB.set('dava_masraflar', (DB.get('dava_masraflar')||[]).filter(m => m.davaId !== id));
     DB.set('finans', (DB.get('finans')||[]).filter(f => !(f.davaId === id || (dosyaNo && f.ilgili === dosyaNo))));
   } else {
+    try { await _supabaseClient.from('icra_belgeler').delete().eq('icra_id', id); } catch(e) { console.warn('İcra belgeleri silinemedi:', e); }
+    try { await _supabaseClient.from('icra_masraflar').delete().eq('icra_id', id); } catch(e) { console.warn('İcra masrafları silinemedi:', e); }
+    try {
+      const q = _supabaseClient.from('finans').delete();
+      await (dosyaNo ? q.or('icra_id.eq.'+id+',ilgili.eq.'+dosyaNo) : q.eq('icra_id', id));
+    } catch(e) { console.warn('Finans kayıtları silinemedi:', e); }
     DB.set('icra_belgeler', (DB.get('icra_belgeler')||[]).filter(b => b.icraId !== id));
     DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(m => m.icraId !== id));
     DB.set('finans', (DB.get('finans')||[]).filter(f => !(f.icraId === id || (dosyaNo && f.ilgili === dosyaNo))));
@@ -537,13 +557,15 @@ async function _dosyaIliskiliVerileriSil(tip, id, dosyaNo) {
 function deleteDava(id) {
   showConfirmModal('Bu dava dosyası ve ona bağlı görevler, belgeler, finans kayıtları ile dosya günlüğü kalıcı olarak silinecek. Emin misiniz?', async function() {
     const d = DB.get('davalar').find(x => x.id === id);
+    // Yabancı anahtarlı bağlı kayıtlar (masraflar, belgeler, finans) dosya
+    // satırından ÖNCE silinmeli — aksi halde FK ihlali yüzünden silme başarısız olur
+    await _dosyaIliskiliVerileriSil('dava', id, d ? d.no : '');
     const { error } = await _supabaseClient.from('davalar').delete().eq('id', id);
     if (error) {
       console.error('Dava silinemedi:', error);
       return notify('❌ Dava silinemedi: ' + (error.message || 'bilinmeyen hata'));
     }
     DB.set('davalar', DB.get('davalar').filter(x=>x.id!==id));
-    await _dosyaIliskiliVerileriSil('dava', id, d ? d.no : '');
     var ddp = document.getElementById('dava-detail-page');
     if (ddp && ddp.classList.contains('open')) {
       ddp.classList.remove('open');
@@ -569,9 +591,13 @@ function renderIcralar() {
     const alacakliCell = i.taraf!=='borclu'
       ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.alacakli)}</span>`
       : escHtml(tp.alacakli);
+    const vsAdi = (tp.alacakli||tp.borclu) ? (tp.alacakli||'—')+' vs '+(tp.borclu||'—') : '';
     return `
     <tr oncontextmenu="itemContextMenu(event,'icra','${i.id}','${escHtml(i.borclu||i.no)}')" style="cursor:pointer" onclick="showIcraDetail('${i.id}')">
-      <td data-label="Dosya No"><span class="mono text-gold">${escHtml(i.no)}</span></td>
+      <td data-label="Dosya No">
+        <span class="mono text-gold" style="cursor:pointer">${escHtml(i.no)}</span>
+        ${vsAdi ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escAttr(vsAdi)}">📌 ${escHtml(vsAdi)}</div>` : ''}
+      </td>
       <td data-label="Borçlu">${borcluCell}</td>
       <td data-label="Alacaklı">${alacakliCell}</td>
       <td data-label="Asıl Alacak" class="mono">₺${fmt(i.alacak)}</td>
@@ -903,8 +929,10 @@ function _idpAddMasraf(icraId) {
   if(!tutarEl || !tutarEl.value.trim()) return notify('Tutar giriniz!');
   var tutar = Number(tutarEl.value.replace(/[^0-9.,]/g,'').replace(',','.'));
   if(!tutar || tutar <= 0) return notify('Geçersiz tutar!');
+  var icra = DB.get('icralar').find(function(x){return x.id===icraId;});
   var obj = {
     id: DB.genId(), icraId: icraId,
+    muvekkilAd: icra ? (icra.muvekkil||'') : '',
     tur: turEl ? turEl.value : 'Harç',
     tutar: tutar,
     tarih: tarihEl ? tarihEl.value : new Date().toISOString().slice(0,10),
@@ -916,7 +944,7 @@ function _idpAddMasraf(icraId) {
   DB.set('icra_masraflar', arr);
   if(tutarEl) tutarEl.value = '';
   if(aciklamaEl) aciklamaEl.value = '';
-  renderIcraTab(icraId, 'finans');
+  renderIcraTab(icraId, 'masraf');
   notify('Masraf kaydedildi ✓');
 }
 
@@ -932,9 +960,65 @@ function _idpSaveFinansalNot(icraId) {
 function _idpDeleteMasraf(masrafId, icraId) {
   showConfirmModal('Bu masraf kaydını silmek istediğinizden emin misiniz?', function() {
     DB.set('icra_masraflar', (DB.get('icra_masraflar')||[]).filter(function(m){return m.id!==masrafId;}));
-    renderIcraTab(icraId, 'finans');
+    renderIcraTab(icraId, 'masraf');
     notify('Masraf silindi');
   });
+}
+
+// İcra Masraflar sekmesi — dava dosyalarındaki Masraflar sekmesiyle aynı desen
+function _idpRenderMasraflar(id, i, masraflar) {
+  var toplam = masraflar.reduce(function(a,b){return a+Number(b.tutar||0);},0);
+
+  var finans = DB.get('finans')||[];
+  var tumMasraflar = DB.get('icra_masraflar')||[];
+  var muvekkilAd = i.muvekkil||'';
+  var avansAlinan = finans.filter(function(f){return f.muvekkil===muvekkilAd&&f.tur==='Masraf Ödemesi';})
+    .reduce(function(a,b){return a+Number(b.tutar);},0);
+  var tumHarcanan = tumMasraflar.filter(function(m){return m.muvekkilAd===muvekkilAd;})
+    .reduce(function(a,b){return a+Number(b.tutar||0);},0)
+    + (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===muvekkilAd;})
+    .reduce(function(a,b){return a+Number(b.tutar||0);},0)
+    + finans.filter(function(f){return f.muvekkil===muvekkilAd&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);})
+    .reduce(function(a,b){return a+Number(b.tutar);},0);
+  var bakiye = avansAlinan - tumHarcanan;
+
+  var el = document.getElementById('idp-info');
+  if (!el) return;
+  el.innerHTML = '<div style="padding:16px">'
+    // KPI satırı
+    + '<div class="kpi-3col" style="gap:8px;margin-bottom:16px">'
+    + '<div style="background:var(--bg3);border:1px solid rgba(192,83,58,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Bu İcra Masrafı</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplam)+'</div></div>'
+    + '<div style="background:var(--bg3);border:1px solid rgba(58,107,140,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Müvekkil Toplam Avans</div><div style="font-size:16px;font-weight:800;color:#7ab5d4;font-family:monospace">₺'+fmt(avansAlinan)+'</div></div>'
+    + '<div style="background:var(--bg3);border:1px solid '+(bakiye>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.5)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Avans Bakiyesi</div><div style="font-size:16px;font-weight:800;color:'+(bakiye>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(bakiye>=0?'+':'')+'₺'+fmt(Math.abs(bakiye))+'</div></div>'
+    + '</div>'
+    // Masraf ekleme formu
+    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
+    + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:10px">+ Masraf Ekle</div>'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+    + '<select id="idp-masraf-tur" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px">'
+    + '<option value="Harç">Harç</option><option value="Bilirkişi Ücreti">Bilirkişi Ücreti</option><option value="Posta Gideri">Posta Gideri</option><option value="Satış Avansı">Satış Avansı</option><option value="Diğer">Diğer</option></select>'
+    + '<input id="idp-masraf-tutar" placeholder="Tutar (₺)" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px">'
+    + '<input id="idp-masraf-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px;color-scheme:dark">'
+    + '<input id="idp-masraf-aciklama" placeholder="Açıklama..." style="flex:1;min-width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px">'
+    + '<button class="btn btn-gold" style="font-size:11px;padding:6px 12px" onclick="_idpAddMasraf(\''+id+'\')">+ Ekle</button>'
+    + '</div></div>'
+    // Liste başlığı
+    + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Masraf Geçmişi</div>'
+    + (masraflar.length === 0
+      ? '<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Henüz masraf kaydı yok</div>'
+      : masraflar.slice().sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);}).map(function(m){
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
+            + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(192,83,58,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🧾</div>'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:13px;font-weight:600;color:var(--text2)">'+escHtml(m.tur||'Masraf')+'</div>'
+            + '<div style="font-size:11px;color:var(--text3)">'+fmtDate(m.tarih)+(m.aciklama?' · '+escHtml(m.aciklama):'')+'</div>'
+            + '</div>'
+            + '<span style="font-size:13px;font-weight:700;color:var(--red);font-family:monospace;flex-shrink:0">−₺'+fmt(Number(m.tutar||0))+'</span>'
+            + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 5px;color:var(--red)" onclick="_idpDeleteMasraf(\''+m.id+'\',\''+id+'\')">🗑</button>'
+            + '</div>';
+        }).join('')
+    )
+    + '</div>';
 }
 
 function showIcraDetail(id) {
@@ -997,11 +1081,8 @@ function renderIcraTab(id, sekme) {
       + '<div style="padding:6px 20px 0;font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
       + alacakliDisplay+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+borcluDisplay
       + '</div></div>'
-      // Finansal vurgu satırı — Asıl Alacak + Faiz öne çıkarılmış
-      + '<div style="display:grid;grid-template-columns:2fr 1fr;gap:1px;background:var(--border)">'
-      + '<div style="padding:12px 20px;background:rgba(201,168,76,0.06)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
-      + '<div style="padding:12px 20px;background:rgba(201,168,76,0.06)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Faiz Oranı</div><div style="font-size:19px;color:var(--text);font-weight:800;font-family:monospace">%'+(i.faiz||0)+'</div></div>'
-      + '</div>'
+      // Finansal vurgu satırı — Asıl Alacak öne çıkarılmış
+      + '<div style="background:rgba(201,168,76,0.06);border-top:1px solid var(--border)"><div style="padding:12px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div></div>'
       // İdari bilgi satırı — ikincil, sade
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)">'
       + '<div style="padding:8px 20px;border-right:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">İcra Müdürlüğü</div><div style="font-size:12px;color:var(--text2);font-weight:500">'+escHtml(i.mudurluk||'—')+'</div></div>'
@@ -1056,32 +1137,15 @@ function renderIcraTab(id, sekme) {
       + '</div>'
       + '<div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center">%'+(i.faiz||0)+' faiz oranı · Başlangıç: '+fmtDate(i.tarih||i.created||'')+'</div>'
       + '</div>'
-      // Ö6: Masraf listesi
-      + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">🧾 Masraf Geçmişi</div>'
-      + (masraflar.length === 0 ? '<div style="text-align:center;color:var(--text3);padding:12px;font-size:12px">Masraf kaydı yok</div>' :
-        masraflar.sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);}).map(function(m){
-          return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)">'
-            + '<div style="width:30px;height:30px;border-radius:7px;background:rgba(192,83,58,0.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">↘</div>'
-            + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text2)">'+escHtml(m.tur)+'</div><div style="font-size:11px;color:var(--text3)">'+fmtDate(m.tarih)+(m.aciklama?' · '+escHtml(m.aciklama):'')+'</div></div>'
-            + '<span style="font-size:12px;font-weight:700;color:var(--red);font-family:monospace;flex-shrink:0">−₺'+fmt(m.tutar)+'</span>'
-            + '<button class="btn btn-ghost" style="font-size:10px;padding:2px 5px;color:var(--red);flex-shrink:0" onclick="_idpDeleteMasraf(\''+m.id+'\',\''+id+'\')">🗑</button>'
-            + '</div>';
-        }).join(''))
-      // Masraf ekleme formu
-      + '<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center">'
-      + '<select id="idp-masraf-tur" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:5px 8px">'
-      + '<option value="Harç">Harç</option><option value="Bilirkişi Ücreti">Bilirkişi Ücreti</option><option value="Posta Gideri">Posta Gideri</option><option value="Satış Avansı">Satış Avansı</option><option value="Diğer">Diğer</option></select>'
-      + '<input id="idp-masraf-tutar" placeholder="Tutar (₺)" style="width:100px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:5px 8px">'
-      + '<input id="idp-masraf-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:5px 8px">'
-      + '<input id="idp-masraf-aciklama" placeholder="Açıklama..." style="flex:1;min-width:80px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:5px 8px">'
-      + '<button class="btn btn-gold" style="font-size:11px;padding:5px 10px" onclick="_idpAddMasraf(\''+id+'\')">+ Ekle</button>'
-      + '</div>'
       // Finansal Notlar
       + '<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">'
       + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">📝 Finansal Notlar</div>'
       + '<textarea id="idp-finansal-not" rows="4" placeholder="Bu dosyayla ilgili finansal notlarınızı buraya yazın…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px 12px;font-family:inherit;resize:vertical;outline:none;box-sizing:border-box">'+escHtml(i.finansalNot||'')+'</textarea>'
       + '<button class="btn btn-outline" style="margin-top:6px;font-size:12px" onclick="_idpSaveFinansalNot(\''+id+'\')">Kaydet</button>'
       + '</div></div>';
+
+  } else if (sekme === 'masraf') {
+    _idpRenderMasraflar(id, i, masraflar);
 
   } else if (sekme === 'haciz') {
     // Keep existing haciz template but with Ö5 summary dashboard at top
@@ -1313,7 +1377,7 @@ function renderIcraTab(id, sekme) {
       + '<div class="ddp-task-summary"><span style="color:var(--red)"><span class="cnt">'+gecikmisTasks.length+'</span> gecikmiş</span><span style="color:var(--gold)"><span class="cnt">'+bekleyenTasks.length+'</span> bekleyen</span><span style="color:var(--green)"><span class="cnt">'+tamamTasks.length+'</span> tamamlandı</span></div>'
       // Quick task
       + '<div class="ddp-quick-task"><input id="idp-quick-task-input" placeholder="Hızlı görev ekle... (Enter)" onkeydown="if(event.key===\'Enter\')_idpQuickAddTask(\''+escHtml(i.no)+'\',\''+id+'\')"><button class="btn btn-gold" style="font-size:11px;padding:5px 10px" onclick="_idpQuickAddTask(\''+escHtml(i.no)+'\',\''+id+'\')">+</button></div>'
-      + (tasks.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>':_gorevKanbanBoard(tasks,'icra',id))
+      + _gorevRowListHTML(tasks,'icra',id)
       + '</div>';
   }
 }
@@ -1626,13 +1690,15 @@ async function _saveIcraInner() {
 function deleteIcra(id) {
   showConfirmModal('Bu icra dosyası ve ona bağlı görevler, belgeler, masraflar, haciz bilgileri ile dosya günlüğü kalıcı olarak silinecek. Emin misiniz?', async function() {
     const i = DB.get('icralar').find(x => x.id === id);
+    // Yabancı anahtarlı bağlı kayıtlar (masraflar, belgeler, finans) dosya
+    // satırından ÖNCE silinmeli — aksi halde FK ihlali yüzünden silme başarısız olur
+    await _dosyaIliskiliVerileriSil('icra', id, i ? (i.bki || i.no) : '');
     const { error } = await _supabaseClient.from('icralar').delete().eq('id', id);
     if (error) {
       console.error('İcra silinemedi:', error);
       return notify('❌ İcra silinemedi: ' + (error.message || 'bilinmeyen hata'));
     }
     DB.set('icralar', DB.get('icralar').filter(x=>x.id!==id));
-    await _dosyaIliskiliVerileriSil('icra', id, i ? (i.bki || i.no) : '');
     var idp = document.getElementById('icra-detail-page');
     if (idp && idp.classList.contains('open')) { idp.classList.remove('open'); currentIcraId = null; }
     showPage('icralar');
@@ -1745,7 +1811,8 @@ function showMuvekkilDetail(id) {
   const kvBekleyenToplam = kvBekleyen.reduce((a,b)=>a+Number(b.tutar),0);
   const topMasFinans = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const topMasDava   = (DB.get('dava_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
-  const topMas  = topMasFinans + topMasDava;
+  const topMasIcra   = (DB.get('icra_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const topMas  = topMasFinans + topMasDava + topMasIcra;
   const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
 
   // Anlaşılan: ucretAnlasmalari VEYA dava+icra dosyalarındaki akdiUcret toplamı
@@ -2233,7 +2300,7 @@ function deleteMuvekkil(id) {
 
 // ========== FİNANS ==========
 function finansSekme(sekme, btn) {
-  ['islemler','odeme-plani','karsi-vekalet','avans-kasa','harclar','ofis-gider'].forEach(function(s){
+  ['islemler','odeme-plani','karsi-vekalet','avans-kasa','ofis-gider'].forEach(function(s){
     var el = document.getElementById('finans-tab-'+s);
     if(el) el.style.display = s===sekme ? '' : 'none';
   });
@@ -2242,7 +2309,6 @@ function finansSekme(sekme, btn) {
   if(sekme==='odeme-plani') renderOdemePlanlari();
   else if(sekme==='karsi-vekalet') renderKarsiVekalet();
   else if(sekme==='avans-kasa') renderAvansKasa();
-  else if(sekme==='harclar') renderHarclar();
   else if(sekme==='ofis-gider') renderOfisGider();
 }
 
@@ -2659,7 +2725,8 @@ function renderAvansKasa() {
     var alinan = finans.filter(function(f){return f.muvekkil===mv.ad&&f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+Number(b.tutar);},0);
     var harcananFinans = finans.filter(function(f){return f.muvekkil===mv.ad&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
     var harcananDavaMasraf = (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
-    var harcanan = harcananFinans + harcananDavaMasraf;
+    var harcananIcraMasraf = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
+    var harcanan = harcananFinans + harcananDavaMasraf + harcananIcraMasraf;
     return {ad:mv.ad, alinan:alinan, harcanan:harcanan, bakiye:alinan-harcanan};
   }).filter(function(m){return m.alinan>0||m.harcanan>0;});
 
@@ -2675,32 +2742,6 @@ function renderAvansKasa() {
       : '<div class="card"><div class="table-wrap"><table class="table-card-mobile"><thead><tr><th>Müvekkil</th><th style="text-align:right">Avans Alınan</th><th style="text-align:right">Harcanan</th><th style="text-align:right">Bakiye</th></tr></thead><tbody>'
         +mvBakiyeler.map(function(m){
           return '<tr><td data-label="Müvekkil" style="font-weight:600">'+escHtml(m.ad)+'</td><td data-label="Avans Alınan" style="text-align:right;font-family:monospace;color:#7ab5d4">₺'+fmt(m.alinan)+'</td><td data-label="Harcanan" style="text-align:right;font-family:monospace;color:var(--red)">₺'+fmt(m.harcanan)+'</td><td data-label="Bakiye" style="text-align:right;font-family:monospace;font-weight:700;color:'+(m.bakiye>=0?'var(--green)':'var(--red)')+'">₺'+fmt(m.bakiye)+'</td></tr>';
-        }).join('')
-        +'</tbody></table></div></div>');
-}
-
-function renderHarclar() {
-  var el = document.getElementById('harclar-list');
-  if(!el) return;
-  var finans = DB.get('finans')||[];
-  var harclar = finans.filter(function(f){return f.tur==='Harç';}).sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
-  var toplam = harclar.reduce(function(a,b){return a+Number(b.tutar);},0);
-
-  var aylar = {};
-  harclar.forEach(function(f){
-    var ay = (f.tarih||'').slice(0,7);
-    if(!aylar[ay]) aylar[ay]=0;
-    aylar[ay]+=Number(f.tutar);
-  });
-
-  el.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">'
-    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Toplam Harç</div><div style="font-size:18px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplam)+'</div></div>'
-    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Bu Ay</div><div style="font-size:18px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(aylar[new Date().toISOString().slice(0,7)]||0)+'</div></div>'
-    +'</div>'
-    +(harclar.length===0 ? '<div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:12px">🧾</div><div>Harç kaydı yok</div></div>'
-      : '<div class="card"><div class="table-wrap"><table class="table-card-mobile"><thead><tr><th>Tarih</th><th>Müvekkil</th><th>Dosya</th><th>Açıklama</th><th style="text-align:right">Tutar</th><th></th></tr></thead><tbody>'
-        +harclar.map(function(f){
-          return '<tr><td data-label="Tarih" style="font-family:monospace;font-size:12px;color:var(--text3)">'+fmtDate(f.tarih)+'</td><td data-label="Müvekkil" style="font-size:12px">'+escHtml(f.muvekkil||'—')+'</td><td data-label="Dosya" style="font-size:12px;color:var(--text3)">'+escHtml(f.ilgili||'—')+'</td><td data-label="Açıklama" style="font-size:12px;color:var(--text3)">'+escHtml(f.aciklama||'')+'</td><td data-label="Tutar" style="text-align:right;font-family:monospace;font-weight:700;color:var(--red)">₺'+fmt(f.tutar)+'</td><td><button class="btn btn-ghost" style="font-size:11px" data-edit-finans="'+f.id+'">✏</button><button class="btn btn-ghost" style="font-size:11px;color:var(--red)" data-delete-finans="'+f.id+'">🗑</button></td></tr>';
         }).join('')
         +'</tbody></table></div></div>');
 }
@@ -2813,11 +2854,16 @@ function renderFinans() {
   // 2. Tahsil Edilemeyen — anlaşılan - tahsil edilen
   const tahsilEdilemyen = Math.max(0, topAnlasilan - topTah);
 
-  // 3. Masraf Bakiyesi — toplam masraf (bağımsız, tahsilatla karıştırılmaz)
-  // Avans Kasası ile tutarlı olması için hem finans tablosundaki hem de ayrı dava_masraflar tablosundaki kayıtlar toplanır
+  // 3. Masraf Bakiyesi — NET ofis bakiyesi (avans olarak alınan − harcanan masraf).
+  // Avans Kasası'ndaki "Kalan Avans" ile birebir aynı mantık: müvekkilden alınan avans,
+  // o müvekkil adına yapılan masraflarla (finans + dava_masraflar + icra_masraflar) düşülür.
+  // Örn: A müvekkili -400, B müvekkili -300, C müvekkili +1000 avans → net bakiye +300.
   const topMasFinans = allFinans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
   const topMasDava = (DB.get('dava_masraflar')||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
-  const topMas = topMasFinans + topMasDava;
+  const topMasIcra = (DB.get('icra_masraflar')||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const topMasHarcanan = topMasFinans + topMasDava + topMasIcra;
+  const topAvansAlinan = allFinans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
+  const topMas = topAvansAlinan - topMasHarcanan;
 
   // Ofis giderleri (grafik için korunuyor)
   const topOfis = allFinans.filter(f=>OFIS_GID.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
@@ -2828,7 +2874,7 @@ function renderFinans() {
     summary.innerHTML = [
       {l:'Tahsil Edilen',     v:'₺'+fmt(topTah),           c:'var(--green)', icon:'↗', sub:'Müvekkillerden alınan toplam ödeme'},
       {l:'Tahsil Edilemeyen',  v:'₺'+fmt(tahsilEdilemyen),   c:tahsilEdilemyen>0?'var(--red)':'var(--green)', icon:'⏳', sub:'Anlaşılan − Tahsil Edilen'},
-      {l:'Masraf Bakiyesi',    v:'₺'+fmt(topMas),            c:'var(--red)', icon:'🧾', sub:'Tüm dosyalardaki toplam masraf'},
+      {l:'Masraf Bakiyesi',    v:(topMas>=0?'+':'−')+'₺'+fmt(Math.abs(topMas)), c:topMas>=0?'var(--green)':'var(--red)', icon:'🧾', sub:'Avans alınan − harcanan masraf (net)'},
       {l:'Toplam Anlaşılan',   v:'₺'+fmt(topAnlasilan),      c:'var(--gold)', icon:'📋', sub:'Tüm dosyalardaki anlaşılan ücret toplamı'},
     ].map(x=>`
       <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px">

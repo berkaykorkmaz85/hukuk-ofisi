@@ -2636,16 +2636,6 @@
   .ddp-quick-task input:focus { border-color:var(--gold); }
   .ddp-quick-task input::placeholder { color:var(--text3); }
 
-  /* Görevler kanban görünümü */
-  .kanban-board { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:12px 14px; }
-  @media (max-width:800px) { .kanban-board { grid-template-columns:1fr; } }
-  .kanban-col { background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-height:80px; }
-  .kanban-col-header { display:flex;align-items:center;justify-content:space-between;padding:10px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--border); }
-  .kanban-col-count { border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700; }
-  .kanban-col-body { padding:10px;display:flex;flex-direction:column;gap:8px; }
-  .kanban-card { background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:10px 12px; }
-  .kanban-card-overdue { border-color:rgba(192,83,58,0.4); }
-
   /* B1: Belge filter */
   .ddp-belge-filter { display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap; }
   .ddp-belge-filter input { flex:1;min-width:120px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:6px 10px;font-family:'DM Sans',sans-serif;outline:none; }
@@ -3107,7 +3097,6 @@
         <button class="finans-sekme" onclick="finansSekme('odeme-plani',this)">📅 Ödeme Planları</button>
         <button class="finans-sekme" onclick="finansSekme('karsi-vekalet',this)">⚖️ Karşı Vekalet</button>
         <button class="finans-sekme" onclick="finansSekme('avans-kasa',this)">💼 Avans Kasası</button>
-        <button class="finans-sekme" onclick="finansSekme('harclar',this)">🧾 Harçlar</button>
         <button class="finans-sekme" onclick="finansSekme('ofis-gider',this)">🏢 Ofis Giderleri</button>
       </div>
 
@@ -3203,18 +3192,6 @@
           <button class="btn btn-gold" onclick="openModal('modal-finans');document.getElementById('f-tur').value='Masraf Ödemesi';finansTurDegisti()">+ Avans Al</button>
         </div>
         <div id="avans-kasa-list"></div>
-      </div>
-
-      <!-- Harçlar Sekmesi -->
-      <div id="finans-tab-harclar" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div>
-            <div style="font-size:14px;font-weight:700;color:var(--text)">🧾 Harçlar</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:3px">Tüm dosyalardaki harç kayıtları</div>
-          </div>
-          <button class="btn btn-gold" onclick="openModal('modal-finans');document.getElementById('f-tur').value='Harç';finansTurDegisti()">+ Harç Ekle</button>
-        </div>
-        <div id="harclar-list"></div>
       </div>
 
       <!-- Ofis Giderleri Sekmesi -->
@@ -3940,6 +3917,7 @@
       <div style="display:flex;gap:0;border-bottom:1px solid var(--border);overflow-x:auto;flex-shrink:0" id="idp-sekme-bar">
         <button class="ddp-sekme aktif" data-sekme="genel" onclick="idpSekme('genel',this)">📋 Genel</button>
         <button class="ddp-sekme" data-sekme="finans" onclick="idpSekme('finans',this)">💰 Finansal <span class="ddp-sekme-badge normal" id="idp-badge-finans"></span></button>
+        <button class="ddp-sekme" data-sekme="masraf" onclick="idpSekme('masraf',this)">🧾 Masraflar <span class="ddp-sekme-badge normal" id="idp-badge-masraf"></span></button>
         <button class="ddp-sekme" data-sekme="haciz" onclick="idpSekme('haciz',this)">⚖️ Haciz & Takip</button>
         <button class="ddp-sekme" data-sekme="belge" onclick="idpSekme('belge',this)">📎 Belgeler <span class="ddp-sekme-badge normal" id="idp-badge-belge"></span></button>
         <button class="ddp-sekme" data-sekme="kapak" onclick="idpSekme('kapak',this)">🧮 Kapak Hesabı</button>
@@ -5140,10 +5118,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260711b"></script>
-<script src="js/02-dava-yonetimi.js?v=20260711b"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260711b"></script>
-<script src="js/04-arac-ve-modul.js?v=20260711b"></script>
+<script src="js/01-cekirdek-veri.js?v=20260711c"></script>
+<script src="js/02-dava-yonetimi.js?v=20260711c"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260711c"></script>
+<script src="js/04-arac-ve-modul.js?v=20260711c"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">
