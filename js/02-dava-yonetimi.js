@@ -2357,10 +2357,10 @@ function renderDavaTab(id, sekme) {
   if (!el) return;
 
   const ei = (field, label, value, type='text') => `
-    <div class="info-item" id="ei-${field}">
+    <div class="info-item" id="ei-${field}" style="cursor:pointer" onclick="startInlineEdit('${id}','${field}','${type}')">
       <label>${label}</label>
       <span class="ei-val">${value||'—'}</span>
-      <button class="info-edit-btn" onclick="startInlineEdit('${id}','${field}','${type}')">✏</button>
+      <button class="info-edit-btn" onclick="event.stopPropagation();startInlineEdit('${id}','${field}','${type}')">✏</button>
     </div>`;
 
   const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
@@ -3022,6 +3022,7 @@ function startInlineEdit(davaId, field, type = 'text') {
 
   const container = document.getElementById('ei-' + field);
   if (!container) return;
+  container.onclick = null; // Düzenleme modundayken kart tıklamasının tekrar tetiklenmesini engelle
 
   const currentVal = d[field] || '';
   const isDate = type === 'date';
