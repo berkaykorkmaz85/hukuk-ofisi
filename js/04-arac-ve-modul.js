@@ -23,10 +23,23 @@ function showGcalPrompt(task) {
   notifTimer = setTimeout(() => el.style.display = 'none', 8000);
 }
 
+// Görevler sayfasında Liste/Dosya/Takvim görünümlerinden hangisi aktifse
+// onu yeniler — aksi halde örn. Dosya görünümündeyken silinen/düzenlenen
+// bir görev başka bir sekmeye geçilene kadar ekrandan kaybolmuyordu.
+function _gorevAktifGorunumuYenile() {
+  var personEl = document.getElementById('task-view-person');
+  if (personEl && personEl.style.display !== 'none') {
+    if (typeof renderTasksByPerson === 'function') renderTasksByPerson();
+    return;
+  }
+  if (isCalendarVisible()) { renderCalendar(); return; }
+  renderTasks();
+}
+
 function deleteTask(id) {
   showConfirmModal('Bu görevi silmek istediğinizden emin misiniz?', function() {
     DB.set('tasks', DB.get('tasks').filter(x=>x.id!==id));
-    renderTasks();
+    _gorevAktifGorunumuYenile();
     if (isCalendarVisible()) renderCalendar();
     notify('Görev silindi');
   });

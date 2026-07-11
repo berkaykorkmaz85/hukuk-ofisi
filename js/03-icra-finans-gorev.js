@@ -3652,7 +3652,8 @@ function _saveTaskFinalize(obj, tip) {
     const sekme = aktifSekme ? aktifSekme.dataset.sekme : 'gorev';
     if (sekme === 'durusma' || sekme === 'gorev') renderDavaTab(currentDavaId, sekme);
   }
-  renderTasks();
+  if (typeof _gorevAktifGorunumuYenile === 'function') _gorevAktifGorunumuYenile();
+  else renderTasks();
   renderCalendar();
   if (typeof renderDurusmaTakvim === 'function' && currentPage === 'durusmatakvim') renderDurusmaTakvim();
   if (obj.tarih) {
