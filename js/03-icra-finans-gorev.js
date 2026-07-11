@@ -972,17 +972,20 @@ function renderIcraTab(id, sekme) {
       + '<div style="display:flex;align-items:center;gap:6px">'
       + (ageStr?'<span style="font-size:10px;color:var(--text3)">📅 '+ageStr+'</span>':'')
       + '<span class="ddp-durum-badge ddp-durum-'+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'" onclick="_idpCycleStatus(\''+id+'\')" title="Tıklayarak durum değiştir" style="cursor:pointer"><span class="ddp-durum-dot '+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'"></span> '+escHtml(i.durum||'Aktif')+'</span>'
-      + (i.tur ? '<span style="font-size:10px;background:rgba(122,181,212,0.15);color:#7ab5d4;padding:2px 8px;border-radius:10px">'+escHtml(i.tur)+'</span>':'')
       + '</div></div>'
-      + '<div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
+      + (i.tur ? '<div style="padding:0 20px;margin-top:-2px"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(122,181,212,0.15);color:#7ab5d4;padding:4px 12px;border-radius:20px;border:1px solid rgba(122,181,212,0.3)">📋 '+escHtml(i.tur)+'</span></div>':'')
+      + '<div style="padding:12px 20px 0;font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
       + muvekkilLink+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+escHtml(i.borclu||'—')
       + '</div></div>'
-      // Info row 2x2
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">'
-      + '<div style="padding:10px 20px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">İcra Müdürlüğü</div><div style="font-size:13px;color:var(--text);font-weight:500">'+escHtml(i.mudurluk||'—')+'</div></div>'
-      + '<div style="padding:10px 20px;border-bottom:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Esas No</div><div style="font-size:13px;color:var(--text);font-weight:500;font-family:monospace">'+escHtml(i.esas||'—')+'</div></div>'
-      + '<div style="padding:10px 20px;border-right:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:13px;color:var(--gold);font-weight:700;font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
-      + '<div style="padding:10px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Faiz Oranı</div><div style="font-size:13px;color:var(--text);font-weight:500;font-family:monospace">%'+(i.faiz||0)+'</div></div>'
+      // Finansal vurgu satırı — Asıl Alacak + Faiz öne çıkarılmış
+      + '<div style="display:grid;grid-template-columns:2fr 1fr;gap:1px;background:var(--border)">'
+      + '<div style="padding:12px 20px;background:rgba(201,168,76,0.06)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
+      + '<div style="padding:12px 20px;background:rgba(201,168,76,0.06)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Faiz Oranı</div><div style="font-size:19px;color:var(--text);font-weight:800;font-family:monospace">%'+(i.faiz||0)+'</div></div>'
+      + '</div>'
+      // İdari bilgi satırı — ikincil, sade
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)">'
+      + '<div style="padding:8px 20px;border-right:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">İcra Müdürlüğü</div><div style="font-size:12px;color:var(--text2);font-weight:500">'+escHtml(i.mudurluk||'—')+'</div></div>'
+      + '<div style="padding:8px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">Esas No</div><div style="font-size:12px;color:var(--text2);font-weight:500;font-family:monospace">'+escHtml(i.esas||'—')+'</div></div>'
       + '</div></div>'
       // T6: Dosya kişileri
       + ((i.mudur||i.borcluAvukat||i.bilirkisi)?
