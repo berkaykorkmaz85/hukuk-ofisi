@@ -1825,17 +1825,17 @@ function renderDashboard() {
   setTimeout(() => {
     const dDurum = ['Aktif','Bekliyor','Kapalı'].map(s=>davalar.filter(d=>d.durum===s).length);
     makeDonut('chart-dava-durum', ['Aktif','Bekliyor','Kapalı'], dDurum,
-      ['#4a8c5c','#b0863c','#cbc6bd'], 'chart-dava-legend');
+      ['#4a8c5c','#c1892e','#b3a89a'], 'chart-dava-legend');
 
     // --- DONUT: İcra Durumları ---
     const iDurum = ['Aktif','Bekliyor','Kapalı'].map(s=>icralar.filter(i=>i.durum===s).length);
     makeDonut('chart-icra-durum', ['Aktif','Bekliyor','Kapalı'], iDurum,
-      ['#3a6b8c','#b0863c','#cbc6bd'], 'chart-icra-legend');
+      ['#3a6b8c','#c1892e','#b3a89a'], 'chart-icra-legend');
 
     // --- DONUT: Görev Öncelikleri ---
     const tPri = ['Acil','Yüksek','Normal'].map(p=>tasks.filter(t=>!t.done&&t.oncelik===p).length);
     makeDonut('chart-task-oncelik', ['Acil','Yüksek','Normal'], tPri,
-      ['#c0533a','#b0863c','#a8a29a'], 'chart-task-legend');
+      ['#c0533a','#c1892e','#b3a89a'], 'chart-task-legend');
 
     // --- BAR: Aylık finans (son 6 ay) ---
     const months = [];
