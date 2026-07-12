@@ -115,7 +115,7 @@ function _uetsSureSec(gun) {
   document.querySelectorAll('.uets-sure-btn').forEach(function(btn) {
     const btnGun = parseInt(btn.textContent);
     const secili = btnGun === gun;
-    btn.style.background = secili ? 'rgba(201,168,76,0.15)' : 'var(--bg3)';
+    btn.style.background = secili ? 'rgba(28,26,23,0.15)' : 'var(--bg3)';
     btn.style.borderColor = secili ? 'var(--gold)' : 'var(--border)';
     btn.style.color = secili ? 'var(--gold)' : 'var(--text2)';
     btn.style.fontWeight = secili ? '600' : '400';
@@ -175,7 +175,7 @@ function _uetsRender() {
   if (ozet) {
     ozet.innerHTML =
       '<div style="background:var(--bg2);border:1px solid rgba(192,83,58,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Okunmadı</div><div style="font-size:22px;font-weight:800;color:var(--red)">' + okunmadi + '</div></div>' +
-      '<div style="background:var(--bg2);border:1px solid rgba(201,168,76,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Süresi Doldu</div><div style="font-size:22px;font-weight:800;color:var(--gold)">' + sureDoldu + '</div></div>' +
+      '<div style="background:var(--bg2);border:1px solid rgba(28,26,23,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Süresi Doldu</div><div style="font-size:22px;font-weight:800;color:var(--gold)">' + sureDoldu + '</div></div>' +
       '<div style="background:var(--bg2);border:1px solid rgba(74,140,92,0.4);border-radius:10px;padding:12px 14px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Okundu</div><div style="font-size:22px;font-weight:800;color:var(--green)">' + okundu + '</div></div>';
   }
 
@@ -394,7 +394,7 @@ function _smmTurSec(tur) {
   window._smmTur = tur;
   document.querySelectorAll('.smm-tur-btn').forEach(function(btn) {
     const secili = btn.dataset.tur === tur;
-    btn.style.background = secili ? 'rgba(201,168,76,0.12)' : 'var(--bg3)';
+    btn.style.background = secili ? 'rgba(28,26,23,0.12)' : 'var(--bg3)';
     btn.style.borderColor = secili ? 'var(--gold)' : 'var(--border)';
     btn.style.color = secili ? 'var(--gold)' : 'var(--text2)';
   });
@@ -1431,8 +1431,8 @@ function notify(msg, kalici) {
   const hata = m.indexOf('❌') >= 0;
   const uyari = kalici || (!hata && m.indexOf('⚠') >= 0);
   const basari = !hata && !uyari && (m.indexOf('✅') >= 0 || m.indexOf('✓') >= 0);
-  el.style.borderColor = hata ? 'rgba(192,83,58,0.6)' : uyari ? 'rgba(201,168,76,0.6)' : basari ? 'rgba(74,140,92,0.6)' : '';
-  el.style.boxShadow = hata ? '0 8px 28px rgba(192,83,58,0.25)' : uyari ? '0 8px 28px rgba(201,168,76,0.2)' : '';
+  el.style.borderColor = hata ? 'rgba(192,83,58,0.6)' : uyari ? 'rgba(28,26,23,0.6)' : basari ? 'rgba(74,140,92,0.6)' : '';
+  el.style.boxShadow = hata ? '0 8px 28px rgba(192,83,58,0.25)' : uyari ? '0 8px 28px rgba(28,26,23,0.2)' : '';
   el.style.display = 'block';
   clearTimeout(notifTimer);
   notifTimer = setTimeout(() => el.style.display = 'none', (hata || uyari) ? 5000 : 2800);
@@ -1567,7 +1567,7 @@ function fhHesapla() {
 
   sonucEl.innerHTML =
     '<div style="display:flex;flex-direction:column;gap:12px">'
-    + '<div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:20px;text-align:center">'
+    + '<div style="background:rgba(28,26,23,0.1);border:1px solid rgba(28,26,23,0.3);border-radius:12px;padding:20px;text-align:center">'
     +   '<div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Faiz Tutarı</div>'
     +   '<div style="font-size:32px;font-weight:900;color:var(--gold);font-family:monospace">₺' + fmt(faizTutari) + '</div>'
     +   (gun > 0 ? '<div style="font-size:12px;color:var(--text3);margin-top:4px">' + sureTxt + ' · ' + yontem + ' faiz</div>' : '')
@@ -1711,7 +1711,7 @@ function fhDonemHesapla() {
 
   sonucEl.style.display = '';
   sonucEl.innerHTML =
-    '<div style="background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px">'
+    '<div style="background:rgba(28,26,23,0.1);border:1px solid rgba(28,26,23,0.3);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px">'
     + '<div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Toplam Donemsel Faiz (' + (LABELS[tur]||tur) + ')</div>'
     + '<div style="font-size:28px;font-weight:900;color:var(--gold);font-family:monospace">' + fmt(toplamFaiz) + ' TL</div>'
     + '<div style="font-size:12px;color:var(--text3);margin-top:4px">' + donemler.length + ' donem \u00b7 ' + toplamGun + ' gun</div>'
@@ -2511,7 +2511,7 @@ function mvHizliTahsilat(mvId, mvAd) {
     btnRow.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:14px';
     anls.forEach(function(a, i) {
       const btn = document.createElement('button');
-      btn.style.cssText = 'background:var(--bg3);border:1px solid rgba(201,168,76,0.3);border-radius:8px;padding:8px 12px;color:var(--text2);font-size:12px;cursor:pointer;text-align:left';
+      btn.style.cssText = 'background:var(--bg3);border:1px solid rgba(28,26,23,0.3);border-radius:8px;padding:8px 12px;color:var(--text2);font-size:12px;cursor:pointer;text-align:left';
       const turLabel = TURLER[a.tur]||a.tur;
       const tutarTxt = a.tutar > 0 ? '  ₺'+fmt(a.tutar)+(a.periyot==='aylik'?'/ay':a.periyot==='yillik'?'/yıl':'') : '';
       btn.innerHTML = '<span style="font-weight:600;color:var(--text)">' + escHtml(turLabel) + '</span>'
@@ -3179,7 +3179,7 @@ function gorevDetayAc(id) {
     +(t.done
       ? '<button data-chtid2="'+t.id+'" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:8px 14px;cursor:pointer;font-size:13px">↩ Yeniden Aç</button>'
       : '<button data-chtid2="'+t.id+'" style="background:rgba(74,140,92,0.15);border:1px solid rgba(74,140,92,0.3);border-radius:8px;color:var(--green);padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">✓ Tamamla</button>')
-    +'<button data-geid="'+t.id+'" style="background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);border-radius:8px;color:var(--gold);padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">✏ Düzenle / Ertele</button>'
+    +'<button data-geid="'+t.id+'" style="background:var(--gold-dim);border:1px solid rgba(28,26,23,0.3);border-radius:8px;color:var(--gold);padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600">✏ Düzenle / Ertele</button>'
     +'</div>';
 
   box.id = 'gorev-detay-modal';

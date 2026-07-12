@@ -736,7 +736,7 @@ function vuHesapla() {
     + '<div style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text3);font-size:11px">'
     + 'AAÜT ' + tarife.yil + ' · ' + baslik + ' · ' + _vuFmt(tutar) + ',00 TL için VEKALET ÜCRETİ Hesap Tablosu</div>'
     + '<table style="width:100%;border-collapse:collapse">'
-    + '<thead><tr style="background:rgba(108,71,255,0.07)">'
+    + '<thead><tr style="background:rgba(28,26,23,0.07)">'
     + '<th style="text-align:left;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Dilim</th>'
     + '<th style="text-align:center;padding:7px 8px;font-size:11px;color:var(--text3);font-weight:600">Oran</th>'
     + '<th style="text-align:right;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Tutar</th>'
@@ -750,7 +750,7 @@ function vuHesapla() {
       + '</tr>';
   });
 
-  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(108,71,255,0.1)">'
+  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(28,26,23,0.1)">'
     + '<td colspan="2" style="padding:10px 12px;font-size:13px;font-weight:700;color:var(--gold)">' + _vuFmt(tutar) + ',00 TL için TOPLAM</td>'
     + '<td style="padding:10px 12px;text-align:right;font-size:15px;font-family:monospace;font-weight:900;color:var(--gold)">' + _vuFmt(toplamGosterilen) + ',00 TL</td>'
     + '</tr></tfoot></table>';
@@ -1071,7 +1071,7 @@ function renderIcraTab(id, sekme) {
       + alacakliDisplay+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+borcluDisplay
       + '</div></div>'
       // Finansal vurgu satırı — Asıl Alacak öne çıkarılmış
-      + '<div style="background:rgba(201,168,76,0.06);border-top:1px solid var(--border)"><div style="padding:12px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div></div>'
+      + '<div style="background:rgba(28,26,23,0.06);border-top:1px solid var(--border)"><div style="padding:12px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div></div>'
       // İdari bilgi satırı — ikincil, sade
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)">'
       + '<div style="padding:8px 20px;border-right:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">İcra Müdürlüğü</div><div style="font-size:12px;color:var(--text2);font-weight:500">'+escHtml(i.mudurluk||'—')+'</div></div>'
@@ -1101,7 +1101,7 @@ function renderIcraTab(id, sekme) {
       + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">💰 Finansal Durum</div>'
       // T3: 4 KPI cards with colored borders
       + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
-      + '<div style="background:var(--bg3);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asıl Alacak</div><div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
+      + '<div style="background:var(--bg3);border:1px solid rgba(28,26,23,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asıl Alacak</div><div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid rgba(74,140,92,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tahsil Edilen</div><div style="font-size:16px;font-weight:800;color:var(--green);font-family:monospace">₺'+fmt(i.tahsilEdilen||0)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid rgba(192,83,58,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Toplam Masraf</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplamMasraf)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid '+(netKazanc>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.3)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Net Kazanç</div><div style="font-size:16px;font-weight:800;color:'+(netKazanc>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(netKazanc>=0?'+':'')+'₺'+fmt(Math.abs(netKazanc))+'</div></div>'
@@ -1135,13 +1135,13 @@ function renderIcraTab(id, sekme) {
       var isSet = !!val;
       var inputId = 'th-' + id + '-' + key;
       var displayVal = val ? val.split('-').reverse().join('.') : '';
-      return '<div style="background:var(--bg3);border:1px solid '+(isSet?'rgba(201,168,76,0.35)':'var(--border)')+';border-radius:8px;padding:10px">'
+      return '<div style="background:var(--bg3);border:1px solid '+(isSet?'rgba(28,26,23,0.35)':'var(--border)')+';border-radius:8px;padding:10px">'
         + '<div style="font-size:10px;color:'+(isSet?'var(--gold)':'var(--text3)')+';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:7px;font-weight:600">'+escHtml(label)+'</div>'
         + '<div style="display:flex;gap:4px;margin-bottom:6px">'
         + '<input id="'+inputId+'" type="text" inputmode="numeric" placeholder="GG.AA.YYYY" value="'+displayVal+'" oninput="hacizTarihFormat(this)" onblur="hacizTarihKaydet(this,\''+id+'\',\''+key+'\')" onkeydown="if(event.key===\'Enter\'){this.blur()}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:15px;padding:8px 10px;outline:none;cursor:text;font-family:monospace;letter-spacing:0.05em">'
         + '<input type="date" style="width:36px;padding:0;background:none;border:none;color:transparent;cursor:pointer;position:relative;margin-left:-40px;opacity:0.01" onchange="var v=this.value;if(v){var d=v.split(\'-\').reverse().join(\'.\');this.previousElementSibling.value=d;hacizTarihKaydet(this.previousElementSibling,\''+id+'\',\''+key+'\')}">'
         + '</div>'
-        + '<button onclick="var t=new Date().toISOString().slice(0,10);var d=t.split(\'-\').reverse().join(\'.\');document.getElementById(\''+inputId+'\').value=d;saveIcraHaciz(\''+id+'\',\''+key+'\',t);renderIcraTab(\''+id+'\',\'haciz\')" style="width:100%;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:6px;color:var(--gold);font-size:11px;padding:5px 8px;cursor:pointer;text-align:center">📅 Bugün</button>'
+        + '<button onclick="var t=new Date().toISOString().slice(0,10);var d=t.split(\'-\').reverse().join(\'.\');document.getElementById(\''+inputId+'\').value=d;saveIcraHaciz(\''+id+'\',\''+key+'\',t);renderIcraTab(\''+id+'\',\'haciz\')" style="width:100%;background:rgba(28,26,23,0.1);border:1px solid rgba(28,26,23,0.3);border-radius:6px;color:var(--gold);font-size:11px;padding:5px 8px;cursor:pointer;text-align:center">📅 Bugün</button>'
         + '</div>';
     };
 
@@ -1160,7 +1160,7 @@ function renderIcraTab(id, sekme) {
       + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">⚖️ Haciz & Takip</div>'
       // Ö5: Dashboard özet
       + '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">'
-      + '<span style="font-size:11px;background:rgba(201,168,76,0.1);color:var(--gold);padding:4px 10px;border-radius:6px;font-weight:600">🏦 '+seciliBanka+' banka</span>'
+      + '<span style="font-size:11px;background:rgba(28,26,23,0.1);color:var(--gold);padding:4px 10px;border-radius:6px;font-weight:600">🏦 '+seciliBanka+' banka</span>'
       + '<span style="font-size:11px;background:rgba(125,196,149,0.1);color:var(--green);padding:4px 10px;border-radius:6px;font-weight:600">🏘 '+tasinmazlar.length+' taşınmaz</span>'
       + '<span style="font-size:11px;background:rgba(122,181,212,0.1);color:#7ab5d4;padding:4px 10px;border-radius:6px;font-weight:600">🚗 '+araclar.length+' araç</span>'
       + (hacizData.maasHaczi?'<span style="font-size:11px;background:rgba(74,140,92,0.15);color:var(--green);padding:4px 10px;border-radius:6px;font-weight:600">💼 Maaş haczi aktif</span>':'')
@@ -1177,7 +1177,7 @@ function renderIcraTab(id, sekme) {
         var lineOpacity = idx < tlItems.length-1 ? '1' : '0';
         return '<div style="display:flex;gap:12px;align-items:flex-start;position:relative">'
           + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px">'
-          + '<div style="width:10px;height:10px;border-radius:50%;background:'+dotColor+';margin-top:5px'+(isSet?'':';box-shadow:0 0 0 3px rgba(201,168,76,0.2)')+'"></div>'
+          + '<div style="width:10px;height:10px;border-radius:50%;background:'+dotColor+';margin-top:5px'+(isSet?'':';box-shadow:0 0 0 3px rgba(28,26,23,0.2)')+'"></div>'
           + '<div style="width:1px;flex:1;background:var(--border);margin-top:2px;opacity:'+lineOpacity+'"></div>'
           + '</div>'
           + '<div style="flex:1;padding-bottom:12px">'
@@ -1253,7 +1253,7 @@ function renderIcraTab(id, sekme) {
     el.innerHTML = '<div style="padding:16px;max-width:560px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
       + '<div style="font-size:14px;font-weight:700;color:var(--text)">🧮 Kapak Hesabı</div>'
-      + '<button onclick="icraKapakYenile(\''+id+'\')" style="display:flex;align-items:center;gap:6px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer">🔄 Yenile & Hesapla</button>'
+      + '<button onclick="icraKapakYenile(\''+id+'\')" style="display:flex;align-items:center;gap:6px;background:rgba(28,26,23,0.12);border:1px solid rgba(28,26,23,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer">🔄 Yenile & Hesapla</button>'
       + '</div>'
       // Faiz parametreleri kutusu
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">'
@@ -1281,13 +1281,13 @@ function renderIcraTab(id, sekme) {
             + '<span style="font-size:16px;width:22px;text-align:center;flex-shrink:0">'+k.icon+'</span>'
             + '<div style="flex:1;font-size:13px;color:var(--text2)">'+escHtml(k.label)+'</div>'
             + (isReadonly
-              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(201,168,76,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(gosterilecekFaiz))+'</div>'
+              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(28,26,23,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(gosterilecekFaiz))+'</div>'
               : '<input type="text" inputmode="decimal" value="'+displayVal+'" placeholder="0,00" onchange="icraKapakKaydet(\''+id+'\',\''+k.key+'\',this.value)" style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:6px 10px;outline:none;text-align:right;font-family:monospace">')
             + '</div>';
         }).join('')
       + '</div>'
       // Toplam alacak kutusu
-      + '<div style="background:rgba(201,168,76,0.08);border:1.5px solid rgba(201,168,76,0.4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="background:rgba(28,26,23,0.08);border:1.5px solid rgba(28,26,23,0.4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">'
       + '<div style="font-size:14px;font-weight:700;color:var(--gold)">Toplam Alacak</div>'
       + '<div style="font-size:20px;font-weight:800;color:var(--gold);font-family:monospace">'+fmtTL(toplam)+'</div>'
       + '</div>'
@@ -1827,12 +1827,12 @@ function showMuvekkilDetail(id) {
 
     <!-- Profil kartı -->
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center">
-      <div style="width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,0.15);border:2px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">${isKurumsal?'🏢':'👤'}</div>
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(28,26,23,0.15);border:2px solid rgba(28,26,23,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">${isKurumsal?'🏢':'👤'}</div>
       <div style="font-size:18px;font-weight:700;color:var(--text)">${escHtml(mv.ad)}</div>
       ${mv.sektor?`<div style="font-size:12px;color:var(--text3);margin-top:3px">${escHtml(mv.sektor)}</div>`:''}
       <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
         <span style="font-size:11px;background:${isKurumsal?'rgba(58,107,140,0.2)':'rgba(74,140,92,0.15)'};color:${isKurumsal?'#7ab5d4':'var(--green)'};padding:3px 10px;border-radius:10px;font-weight:600">${isKurumsal?'Kurumsal':'Bireysel'}</span>
-        <span style="font-size:11px;background:rgba(201,168,76,0.1);color:var(--gold);padding:3px 10px;border-radius:10px;font-weight:600">${davalar.length} Dava · ${icralar.length} İcra</span>
+        <span style="font-size:11px;background:rgba(28,26,23,0.1);color:var(--gold);padding:3px 10px;border-radius:10px;font-weight:600">${davalar.length} Dava · ${icralar.length} İcra</span>
       </div>
     </div>
 
@@ -1895,7 +1895,7 @@ function showMuvekkilDetail(id) {
       <!-- CARİ 1: Ücret Carisi -->
       <div style="padding:10px 16px;border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">⚖️ Ücret Carisi</div>
-        ${anlaşılan===0?`<div style="padding:8px 12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;font-size:12px;color:var(--text3)">💡 Anlaşılan tutar girilmemiş. Müvekkilin "Düzenle" butonundan veya yukarıdaki butona basarak girebilirsiniz.</div>`
+        ${anlaşılan===0?`<div style="padding:8px 12px;background:rgba(28,26,23,0.08);border:1px solid rgba(28,26,23,0.2);border-radius:8px;font-size:12px;color:var(--text3)">💡 Anlaşılan tutar girilmemiş. Müvekkilin "Düzenle" butonundan veya yukarıdaki butona basarak girebilirsiniz.</div>`
         :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
           ${[
             {l:'Anlaşılan',v:'₺'+fmt(anlaşılan),c:'var(--gold)'},
@@ -1994,7 +1994,7 @@ function showMuvekkilDetail(id) {
         html += '</tr>';
       });
       // Totals row
-      html += '<tr style="border-top:2px solid var(--gold);background:rgba(201,168,76,0.06)">';
+      html += '<tr style="border-top:2px solid var(--gold);background:rgba(28,26,23,0.06)">';
       html += '<td style="padding:10px 12px;font-weight:700;color:var(--gold)">TOPLAM</td>';
       html += '<td style="padding:10px 12px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(gtAnl)+'</td>';
       html += '<td style="padding:10px 12px;font-weight:800;color:var(--green);font-family:monospace">₺'+fmt(gtTah)+'</td>';
@@ -2003,7 +2003,7 @@ function showMuvekkilDetail(id) {
       html += '</tr>';
       html += '</tbody></table></div>';
       // Grand totals in card view
-      html += '<div style="padding:12px 16px;background:rgba(201,168,76,0.06);border-top:2px solid rgba(201,168,76,0.3)">';
+      html += '<div style="padding:12px 16px;background:rgba(28,26,23,0.06);border-top:2px solid rgba(28,26,23,0.3)">';
       html += '<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">GENEL TOPLAM ('+rows.length+' DAVA)</div>';
       html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:6px;overflow:hidden">';
       [{l:'Anlaşılan',v:gtAnl,c:'var(--gold)'},{l:'Tahsil',v:gtTah,c:'var(--green)'},{l:'Masraf',v:gtMas,c:'var(--red)'},{l:'Net Kâr/Zarar',v:gtNet,c:gtNet>=0?'var(--green)':'var(--red)'}].forEach(function(x){
@@ -2989,7 +2989,7 @@ function renderFinans() {
               mode: 'index',
               intersect: false,
               backgroundColor: 'rgba(33,31,27,0.97)',
-              borderColor: '#c9a84c',
+              borderColor: '#1c1a17',
               borderWidth: 1,
               titleColor: '#f0ead8',
               bodyColor: '#a89f8a',
@@ -3255,7 +3255,7 @@ function renderTasks() {
 
     var kpis = [
       {icon:'🔥', label:'Gecikmiş', val:geciken, clr:'var(--red)', bg:'rgba(192,83,58,0.1)', border:'rgba(192,83,58,0.3)'},
-      {icon:'📍', label:'Bugün', val:bugunku, clr:'var(--gold)', bg:'rgba(201,168,76,0.08)', border:'rgba(201,168,76,0.25)'},
+      {icon:'📍', label:'Bugün', val:bugunku, clr:'var(--gold)', bg:'rgba(28,26,23,0.08)', border:'rgba(28,26,23,0.25)'},
       {icon:'📅', label:'Bu Hafta', val:buHaftaki, clr:'#7ab5d4', bg:'rgba(122,181,212,0.08)', border:'rgba(122,181,212,0.25)'},
       {icon:'📋', label:'Toplam Bekleyen', val:totalBekleyen, clr:'var(--text2)', bg:'rgba(255,255,255,0.03)', border:'var(--border)'},
       {icon:'✅', label:'Tamamlanan', val:tamamYuzde+'%', clr:'var(--green)', bg:'rgba(74,140,92,0.08)', border:'rgba(74,140,92,0.25)'},
@@ -3342,13 +3342,13 @@ function renderTasks() {
 
     // Öncelik renkleri
     var prClr = t.oncelik==='Acil'?'var(--red)':t.oncelik==='Yüksek'?'var(--gold)':'rgba(74,140,92,0.6)';
-    var prBg = t.oncelik==='Acil'?'rgba(192,83,58,0.12)':t.oncelik==='Yüksek'?'rgba(201,168,76,0.08)':'rgba(74,140,92,0.06)';
+    var prBg = t.oncelik==='Acil'?'rgba(192,83,58,0.12)':t.oncelik==='Yüksek'?'rgba(28,26,23,0.08)':'rgba(74,140,92,0.06)';
 
     // Kart border sol kenar rengi — öncelik göstergesi
     var borderLeft = t.done ? 'var(--green)' : (gecikti ? 'var(--red)' : prClr);
 
     var card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg2);border:1px solid '+(gecikti?'rgba(192,83,58,0.3)':isToday?'rgba(201,168,76,0.25)':'var(--border)')+';border-left:3px solid '+borderLeft+';border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start'+(t.done?';opacity:0.55':'');
+    card.style.cssText = 'background:var(--bg2);border:1px solid '+(gecikti?'rgba(192,83,58,0.3)':isToday?'rgba(28,26,23,0.25)':'var(--border)')+';border-left:3px solid '+borderLeft+';border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start'+(t.done?';opacity:0.55':'');
     card.style.animationDelay = (idx * 20) + 'ms';
     card.onmouseover = function(){ this.style.background='rgba(255,255,255,0.04)';this.style.transform='translateX(2px)'; };
     card.onmouseout  = function(){ this.style.background='var(--bg2)';this.style.transform=''; };
@@ -3607,7 +3607,7 @@ function _saveTaskInner() {
       showConfirmModal(
         '⚠️ Aynı tarih ve saatte (' + fmtDate(obj.tarih.slice(0,10)) + ' saat ' + obj.tarih.slice(11,16) + ') zaten kayıtlı duruşma(lar) var:<br><br>' + detay + '<br><br>Yine de kaydetmek istiyor musunuz?',
         function() { _saveTaskFinalize(obj, tip); },
-        { okLabel: 'Yine de Kaydet', okBg: 'rgba(201,168,76,0.85)', okBorder: 'rgba(201,168,76,0.4)', icon: '⚖️', iconBg: 'rgba(201,168,76,0.15)', iconBorder: 'rgba(201,168,76,0.3)' }
+        { okLabel: 'Yine de Kaydet', okBg: 'rgba(28,26,23,0.85)', okBorder: 'rgba(28,26,23,0.4)', icon: '⚖️', iconBg: 'rgba(28,26,23,0.15)', iconBorder: 'rgba(28,26,23,0.3)' }
       );
       return;
     }
@@ -3866,7 +3866,7 @@ function _uyapRenderPreview() {
       ? '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(192,83,58,0.12);color:var(--red)">zaten takvimde</span>'
       : r.eslesenId
         ? '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(74,163,110,0.12);color:var(--green)">dosya: ' + escHtml(r.eslesenNo) + '</span>'
-        : '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(201,168,76,0.15);color:var(--gold)">dosya sende yok</span>';
+        : '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(28,26,23,0.15);color:var(--gold)">dosya sende yok</span>';
     var ana = _uyapAnaTaraflar(r.taraflar).map(function(t){ return (t.rol ? t.rol + ' ' : '') + escHtml(t.ad); }).join(', ') || '—';
     var when = r.tarihOk ? escHtml(r.tarihIso) + (r.saat ? ' · ' + escHtml(r.saat) : '') : '<span style="color:var(--red)">okunamadı</span>';
     return '<tr' + (r.zatenVar ? ' style="opacity:.5"' : '') + '>' +

@@ -995,7 +995,7 @@ function renderTasksByPerson() {
       <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
         <div style="font-size:14px;font-weight:600;color:var(--text)">${baslik}</div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-          ${aktif > 0 ? `<span style="background:rgba(201,168,76,0.15);color:var(--gold2);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${aktif} bekleyen</span>` : ''}
+          ${aktif > 0 ? `<span style="background:rgba(28,26,23,0.15);color:var(--gold2);font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600">${aktif} bekleyen</span>` : ''}
           ${tamam > 0 ? `<span style="background:rgba(74,140,92,0.1);color:#7dc495;font-size:11px;padding:2px 8px;border-radius:10px">${tamam} tamamlanan</span>` : ''}
           ${dava ? `<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="openTaskForDava('${dava.id}')">+ Görev</button>` : ''}
         </div>
@@ -1050,7 +1050,7 @@ function openRaporModal(tur) {
         <div class="form-group full"><label>Dahil Edilecek Sütunlar</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px">
             ${['Dosya No','Dosya Adı','Müvekkil','Karşı Taraf','Mahkeme','Esas No','Durum','Son Duruşma','Sonraki Duruşma','Dava Çeşidi','Vekâlet Ücreti','Tahsilat','Kalan','Masraf','Notlar'].map(s=>
-              `<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:400;text-transform:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;color:var(--text2)" onmouseover="this.style.background='rgba(201,168,76,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--text2)'">
+              `<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:400;text-transform:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;color:var(--text2)" onmouseover="this.style.background='rgba(28,26,23,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--text2)'">
                 ${s}<input type="checkbox" checked value="${s}" class="r-col-dava" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer">
               </label>`).join('')}
           </div>
@@ -1067,7 +1067,7 @@ function openRaporModal(tur) {
         <div class="form-group full"><label>Dahil Edilecek Sütunlar</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px">
             ${['Dosya No','Borçlu','Müvekkil','Müdürlük','Esas No','Alacak Tutarı','Durum','Notlar'].map(s=>
-              `<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:400;text-transform:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;color:var(--text2)" onmouseover="this.style.background='rgba(201,168,76,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--text2)'">
+              `<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:400;text-transform:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;color:var(--text2)" onmouseover="this.style.background='rgba(28,26,23,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--text2)'">
                 ${s}<input type="checkbox" checked value="${s}" class="r-col-icra" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer">
               </label>`).join('')}
           </div>
@@ -1081,7 +1081,7 @@ function openRaporModal(tur) {
         <div class="form-group full"><label>Dahil Edilecek Sütunlar</label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin-top:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 10px">
             ${['Ad','Tür','TC/Vergi No','Telefon','E-posta','Adres','Sektör','Toplam Dava','Notlar'].map(s=>
-              `<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:400;text-transform:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;color:var(--text2)" onmouseover="this.style.background='rgba(201,168,76,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--text2)'">
+              `<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:400;text-transform:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;color:var(--text2)" onmouseover="this.style.background='rgba(28,26,23,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='transparent';this.style.color='var(--text2)'">
                 ${s}<input type="checkbox" checked value="${s}" class="r-col-mv" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer">
               </label>`).join('')}
           </div>
@@ -1146,7 +1146,7 @@ function renderRaporlarPage() {
     ${[
       {icon:'📁', l:'Aktif Dava',   v:davalar.filter(d=>d.durum==='Aktif').length,  c:'var(--gold)'},
       {icon:'⚡', l:'Aktif İcra',   v:icralar.filter(i=>i.durum==='Aktif').length,  c:'#7ab5d4'},
-      {icon:'👤', l:'Müvekkil',     v:muvekkiller.length,                            c:'#c4a8e0'},
+      {icon:'👤', l:'Müvekkil',     v:muvekkiller.length,                            c:'#9c968d'},
       {icon:'✅', l:'Bekleyen Görev',v:tasks.filter(t=>!t.done&&t.tip!=='durusma').length,              c:'#7dc495'},
       {icon:'💰', l:'Toplam Tahsilat',v:'₺'+fmt(topTah),                            c:'var(--green)'},
       {icon:'📊', l:'Net Bakiye',   v:'₺'+fmt(topTah-topMas),                       c:'var(--gold2)'},
@@ -1175,7 +1175,7 @@ function renderRaporlarPage() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Dahil Edilecek Sütunlar</span><button onclick="raporSutunToggle(this)" style="font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline">Tümünü Kaldır</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;max-height:220px;overflow-y:auto">
         ${['Dosya No','Müvekkil','Karşı Taraf','Mahkeme','Esas No','Durum','Tür','Çeşit','Hâkim','Karşı Avukat','Sonraki Duruşma','Son Duruşma','Akdi Ücret','Notlar'].map(s=>
-          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-dava" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
+          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(28,26,23,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-dava" style="accent-color:var(--gold);width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -1199,7 +1199,7 @@ function renderRaporlarPage() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Dahil Edilecek Sütunlar</span><button onclick="raporSutunToggle(this)" style="font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline">Tümünü Kaldır</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;max-height:220px;overflow-y:auto">
         ${['Dosya No','BKİ','Alacaklı','Borçlu','Müdürlük','Esas No','Alacak','Durum','Tür','Borçlu Avukat','Notlar'].map(s=>
-          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-icra" style="accent-color:#7ab5d4;width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
+          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(28,26,23,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-icra" style="accent-color:#7ab5d4;width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -1220,7 +1220,7 @@ function renderRaporlarPage() {
             {g:'Ofis Giderleri', items:['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri']},
             {g:'Diğer', items:['Karşı Vekalet Ücreti','Taksit Planı']}
           ].map(grp => grp.items.map(t =>
-            '<label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;color:var(--text2);padding:3px 6px;border-radius:4px" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'"><input type="checkbox" value="'+t+'" class="rft-cb" onchange="raporSayiGuncelle(\'finans\')" style="accent-color:var(--gold);width:13px;height:13px;flex-shrink:0;cursor:pointer">'+t+'</label>'
+            '<label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;color:var(--text2);padding:3px 6px;border-radius:4px" onmouseover="this.style.background=\'rgba(28,26,23,0.08)\'" onmouseout="this.style.background=\'transparent\'"><input type="checkbox" value="'+t+'" class="rft-cb" onchange="raporSayiGuncelle(\'finans\')" style="accent-color:var(--gold);width:13px;height:13px;flex-shrink:0;cursor:pointer">'+t+'</label>'
           ).join('')).join('')}
         </div>
         <div style="display:flex;gap:6px;margin-top:4px"><button onclick="document.querySelectorAll('.rft-cb').forEach(c=>c.checked=true);raporSayiGuncelle('finans')" style="font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline">Tümünü Seç</button><button onclick="document.querySelectorAll('.rft-cb').forEach(c=>c.checked=false);raporSayiGuncelle('finans')" style="font-size:10px;color:var(--text3);background:none;border:none;cursor:pointer;text-decoration:underline">Temizle</button></div>
@@ -1238,7 +1238,7 @@ function renderRaporlarPage() {
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Dahil Edilecek Sütunlar</span><button onclick="raporSutunToggle(this)" style="font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline">Tümünü Kaldır</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;max-height:220px;overflow-y:auto">
         ${['Tarih','Tür','Müvekkil','İlgili Dosya','Tutar','Açıklama','Ödeme Durumu'].map(s=>
-          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-finans" style="accent-color:var(--green);width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
+          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(28,26,23,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-finans" style="accent-color:var(--green);width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -1248,13 +1248,13 @@ function renderRaporlarPage() {
   </div>
 
   <!-- MÜVEKKİL RAPORU -->
-  <div class="card" style="border-top:3px solid #c4a8e0">
+  <div class="card" style="border-top:3px solid #9c968d">
     <div class="card-title" style="font-size:14px;margin-bottom:14px">👤 Müvekkil Raporu</div>
     <div style="margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Dahil Edilecek Sütunlar</span><button onclick="raporSutunToggle(this)" style="font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline">Tümünü Kaldır</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;max-height:220px;overflow-y:auto">
         ${['Ad','Tür','TC/VKN','Telefon','E-posta','Adres','Dava Sayısı','İcra Sayısı'].map(s=>
-          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-mv" style="accent-color:#c4a8e0;width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
+          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(28,26,23,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-mv" style="accent-color:#9c968d;width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -1784,19 +1784,19 @@ function tekrarSorgula(kod) {
           '<div style="font-size:12px;color:var(--text3);margin-bottom:12px">PTT sitesi güvenlik nedeniyle iframe içinde açılmıyor. Aşağıdaki adımları izleyin:</div>' +
           '<div style="display:flex;flex-direction:column;gap:8px">' +
             '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">' +
-              '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">1</div>' +
+              '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(28,26,23,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">1</div>' +
               '<div style="font-size:13px;color:var(--text2)">Yukarıdaki <strong style="color:var(--gold)">PTT\'yi Aç</strong> butonuna tıklayın</div>' +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">' +
-              '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">2</div>' +
+              '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(28,26,23,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">2</div>' +
               '<div style="font-size:13px;color:var(--text2)">PTT sayfasında <strong>Ctrl+V</strong> ile takip numarasını yapıştırın</div>' +
             '</div>' +
             '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">' +
-              '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">3</div>' +
+              '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(28,26,23,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">3</div>' +
               '<div style="font-size:13px;color:var(--text2)">Sorgula butonuna basın, sonuçları görüntüleyin</div>' +
             '</div>' +
           '</div>' +
-          '<div style="margin-top:14px;padding:10px 14px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;display:flex;align-items:center;gap:10px">' +
+          '<div style="margin-top:14px;padding:10px 14px;background:rgba(28,26,23,0.08);border:1px solid rgba(28,26,23,0.2);border-radius:8px;display:flex;align-items:center;gap:10px">' +
             '<span style="font-size:18px">📋</span>' +
             '<div>' +
               '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">Panoya kopyalanan numara</div>' +
@@ -3085,7 +3085,7 @@ function renderKisiler() {
     return `
     <tr>
       <td data-label="Ad Soyad / Unvan"><strong style="color:var(--text)">${escHtml(k.ad)}</strong>${k.kurum ? `<div style="font-size:11px;color:var(--text3)">${escHtml(k.kurum)}</div>` : ''}</td>
-      <td data-label="Rol"><span class="tag" style="background:rgba(201,168,76,0.12);color:var(--gold2)">${escHtml(k.rol)}</span></td>
+      <td data-label="Rol"><span class="tag" style="background:rgba(28,26,23,0.12);color:var(--gold2)">${escHtml(k.rol)}</span></td>
       <td data-label="İlgili Dosya" style="font-size:12px;color:var(--text3)">${escHtml(k.dosya||'—')}</td>
       <td data-label="Telefon" style="font-size:12px">${escHtml(k.tel||'—')}</td>
       <td data-label="E-posta" style="font-size:12px">${escHtml(k.email||'—')}${ctCount > 0 ? `<span class="tag" style="background:rgba(58,107,140,0.15);color:#7ab5d4;margin-left:6px">👥 ${ctCount}</span>` : ''}</td>
@@ -3199,7 +3199,7 @@ function populateDavaDashCesit() {
 
 // Renk paleti dosyalara göre (tutarlı)
 var DOSYA_RENKLER = [
-  '#C9A84C','#7ab5d4','#7dc495','#c4a8e0','#e8a04d',
+  '#1c1a17','#7ab5d4','#7dc495','#9c968d','#e8a04d',
   '#d4756b','#5fa8a0','#b0c45a','#a882c8','#6ba5d4'
 ];
 
