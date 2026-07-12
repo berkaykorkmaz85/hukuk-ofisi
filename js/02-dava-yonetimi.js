@@ -90,8 +90,8 @@ function ortakTakvimTamAc() {
       });
       
       var cell = document.createElement('div');
-      cell.style.cssText = 'min-height:70px;padding:4px;border-radius:8px;border:1px solid '+(isToday?'rgba(28,26,23,0.5)':'rgba(255,255,255,0.05)')+';background:'+(isToday?'rgba(28,26,23,0.06)':evler.length?'rgba(255,255,255,0.02)':'transparent')+(evler.length?';cursor:pointer':'');
-      if(evler.length) { cell.onmouseover=function(){this.style.background='rgba(255,255,255,0.05)';}; cell.onmouseout=function(){this.style.background=evler.length?'rgba(255,255,255,0.02)':'transparent';}; }
+      cell.style.cssText = 'min-height:70px;padding:4px;border-radius:8px;border:1px solid '+(isToday?'rgba(28,26,23,0.5)':'rgba(0,0,0,0.05)')+';background:'+(isToday?'rgba(28,26,23,0.06)':evler.length?'rgba(0,0,0,0.03)':'transparent')+(evler.length?';cursor:pointer':'');
+      if(evler.length) { cell.onmouseover=function(){this.style.background='rgba(0,0,0,0.05)';}; cell.onmouseout=function(){this.style.background=evler.length?'rgba(0,0,0,0.03)':'transparent';}; }
       
       var numEl = document.createElement('div');
       numEl.style.cssText = 'font-size:12px;font-weight:'+(isToday?'800':evler.length?'600':'400')+';color:'+(isToday?'var(--gold)':diff<0?'var(--text3)':'var(--text)')+';text-align:right;margin-bottom:3px';
@@ -160,8 +160,8 @@ function otkGunDetayAc(dateStr) {
     icerik.innerHTML = '';
     evler.forEach(function(ev){
       var row = document.createElement('div');
-      row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.05);'+(ev.click?'cursor:pointer;':'')+(ev.done?'opacity:0.5;':'');
-      if(ev.click){ row.onmouseover=function(){this.style.background='rgba(255,255,255,0.03)';}; row.onmouseout=function(){this.style.background='';}; row.onclick=ev.click; }
+      row.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(0,0,0,0.05);'+(ev.click?'cursor:pointer;':'')+(ev.done?'opacity:0.5;':'');
+      if(ev.click){ row.onmouseover=function(){this.style.background='rgba(0,0,0,0.03)';}; row.onmouseout=function(){this.style.background='';}; row.onclick=ev.click; }
       row.innerHTML = '<div style="width:44px;height:44px;border-radius:12px;background:'+ev.clr.replace('var(--gold)','rgba(28,26,23,0.15)').replace('var(--green)','rgba(74,140,92,0.15)').replace('#7ab5d4','rgba(58,107,140,0.15)')+';display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid '+ev.clr.replace('var(--gold)','rgba(28,26,23,0.3)').replace('var(--green)','rgba(74,140,92,0.3)').replace('#7ab5d4','rgba(58,107,140,0.3)')+'">'
         +ev.icon+'</div>'
         +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:'+(ev.done?'var(--text3)':'var(--text)')+(ev.done?';text-decoration:line-through':'')+'">'+ev.baslik+'</div>'
@@ -361,8 +361,8 @@ function renderDavaDash() {
 
   function dosyaSatir(no, ad, alt, sag, klk) {
     var row=document.createElement('div');
-    row.style.cssText='display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.04)'+(klk?';cursor:pointer':'');
-    if(klk){row.onmouseover=function(){this.style.background='rgba(255,255,255,0.03)';};row.onmouseout=function(){this.style.background='';};row.onclick=klk;}
+    row.style.cssText='display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,0.05)'+(klk?';cursor:pointer':'');
+    if(klk){row.onmouseover=function(){this.style.background='rgba(0,0,0,0.03)';};row.onmouseout=function(){this.style.background='';};row.onclick=klk;}
     var noEl=document.createElement('span');noEl.style.cssText='font-size:12px;color:var(--gold);font-weight:700;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';noEl.textContent=no;
     var midEl=document.createElement('div');midEl.style.cssText='min-width:0';
     midEl.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ad+'</div>'+(alt?'<div style="font-size:11px;color:var(--text3);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+alt+'</div>':'');
@@ -424,20 +424,20 @@ function renderDavaDash() {
   else {
     sureRiski.forEach(function(s){
       var row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s';
-      row.onmouseover=function(){this.style.background='rgba(255,255,255,0.03)';};row.onmouseout=function(){this.style.background='';};
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;transition:background 0.15s';
+      row.onmouseover=function(){this.style.background='rgba(0,0,0,0.03)';};row.onmouseout=function(){this.style.background='';};
       // Tıklama: ilgili dosyayı aç (dava veya icra)
       if(s.davaId) { row.onclick=(function(did){return function(){openDavaDetailPage(did);};})(s.davaId); }
       else if(s.icraId) { row.onclick=(function(iid){return function(){showPage('icralar');setTimeout(function(){showIcraDetail(iid);},100);};})(s.icraId); }
-      row.innerHTML='<div style="flex-shrink:0;min-width:42px;text-align:center;background:rgba(255,255,255,0.05);border-radius:7px;padding:4px"><div style="font-size:13px;font-weight:800;color:'+s.clr+'">'+s.diff+'</div><div style="font-size:9px;color:var(--text3)">gün</div></div>'
+      row.innerHTML='<div style="flex-shrink:0;min-width:42px;text-align:center;background:rgba(0,0,0,0.05);border-radius:7px;padding:4px"><div style="font-size:13px;font-weight:800;color:'+s.clr+'">'+s.diff+'</div><div style="font-size:9px;color:var(--text3)">gün</div></div>'
         +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+s.baslik+'</div><div style="font-size:11px;color:var(--text3)">'+s.dosya+'</div></div>';
       suB.appendChild(row);
     });
     hacizYenilemGerek.forEach(function(i){
       var d3=i.yenilemeUyari?i.yenilemeUyari.diff:0;
       var row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer;transition:background 0.15s';
-      row.onmouseover=function(){this.style.background='rgba(255,255,255,0.03)';};row.onmouseout=function(){this.style.background='';};
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;transition:background 0.15s';
+      row.onmouseover=function(){this.style.background='rgba(0,0,0,0.03)';};row.onmouseout=function(){this.style.background='';};
       row.onclick=(function(iid){return function(){showPage('icralar');setTimeout(function(){showIcraDetail(iid);},100);};})(i.id);
       row.innerHTML='<div style="flex-shrink:0;min-width:42px;text-align:center;background:rgba(192,83,58,0.1);border:1px solid rgba(192,83,58,0.3);border-radius:7px;padding:4px"><div style="font-size:13px;font-weight:800;color:var(--red)">'+d3+'</div><div style="font-size:9px;color:var(--text3)">gün</div></div>'
         +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text)">Haciz yenileme!</div><div style="font-size:11px;color:var(--text3)">'+escHtml(i.borclu)+' — '+escHtml(i.muvekkil)+'</div><div style="font-size:10px;color:var(--text3)">Son: '+fmtDateShort(i.yenilemeUyari?i.yenilemeUyari.t:'')+'</div></div>';
@@ -477,8 +477,8 @@ function renderDavaDash() {
     var bgC=d.diff===0?'var(--red)':d.diff<=3?'rgba(192,83,58,0.3)':'rgba(28,26,23,0.15)';
     var numC=d.diff===0?'#fff':d.diff<=3?'var(--red)':'var(--gold)';
     var row=document.createElement('div');
-    row.style.cssText='display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer';
-    row.onmouseover=function(){this.style.background='rgba(255,255,255,0.03)';};row.onmouseout=function(){this.style.background='';};
+    row.style.cssText='display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer';
+    row.onmouseover=function(){this.style.background='rgba(0,0,0,0.03)';};row.onmouseout=function(){this.style.background='';};
     row.onclick=function(dd){return function(){openDavaDetailPage(dd.id);};}(d);
     row.innerHTML='<div style="background:'+bgC+';border-radius:8px;padding:5px 0;text-align:center"><div style="font-size:16px;font-weight:900;color:'+numC+';line-height:1">'+d.diff+'</div><div style="font-size:9px;color:'+(d.diff===0?'rgba(255,255,255,0.8)':'var(--text3)')+';margin-top:1px">gün</div></div>'
       +'<div><div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(d.no)+' · '+escHtml(d.muvekkil)+'</div><div style="font-size:11px;color:var(--text3)">'+fmtDateShort(d.sonraki)+'</div></div>';
@@ -496,13 +496,13 @@ function renderDavaDash() {
     var oclr=t.oncelik==='Acil'?'var(--red)':t.oncelik==='Yüksek'?'var(--gold)':'var(--text3)';
     var tipIcon=t.tip==='randevu'?'📞':t.tip==='durusma'?'⚖️':'✅';
     var row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 18px;border-bottom:1px solid rgba(255,255,255,0.04)';
-    row.innerHTML='<div style="flex-shrink:0;min-width:50px;text-align:center;background:rgba(255,255,255,0.05);border-radius:6px;padding:3px 5px">'
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 18px;border-bottom:1px solid rgba(0,0,0,0.05)';
+    row.innerHTML='<div style="flex-shrink:0;min-width:50px;text-align:center;background:rgba(0,0,0,0.05);border-radius:6px;padding:3px 5px">'
       +'<div style="font-size:11px;font-weight:700;color:'+(diff2===0?'var(--gold)':'var(--text2)')+'">'+(diff2===0?'Bugün':diff2===1?'Yarın':diff2+' gün')+'</div>'
       +(t.tarih?'<div style="font-size:9px;color:var(--text3)">'+fmtDateShort(t.tarih.slice(0,10))+'</div>':'')
       +'</div>'
       +'<span style="font-size:12px">'+tipIcon+'</span>'
-      +'<span style="font-size:10px;font-weight:700;color:'+oclr+';background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;flex-shrink:0">'+(t.oncelik||'Normal')+'</span>'
+      +'<span style="font-size:10px;font-weight:700;color:'+oclr+';background:rgba(0,0,0,0.05);padding:2px 6px;border-radius:4px;flex-shrink:0">'+(t.oncelik||'Normal')+'</span>'
       +'<div style="flex:1;font-size:13px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(t.baslik||t.text||'')+'</div>';
     goB.appendChild(row);
   });
@@ -524,7 +524,7 @@ function renderDavaDash() {
   else sonFinans.forEach(function(f){
     var isG=GELIR_T.includes(f.tur);
     var row=document.createElement('div');
-    row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid rgba(255,255,255,0.04)';
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 18px;border-bottom:1px solid rgba(0,0,0,0.05)';
     row.innerHTML='<div style="width:28px;height:28px;border-radius:7px;background:'+(isG?'rgba(74,140,92,0.15)':'rgba(192,83,58,0.15)')+';display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">'+(isG?'↗':'↘')+'</div>'
       +'<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(f.muvekkil||f.tur)+'</div><div style="font-size:10px;color:var(--text3)">'+fmtDateShort(f.tarih)+'</div></div>'
       +'<span style="font-size:12px;font-weight:700;color:'+(isG?'var(--green)':'var(--red)')+';font-family:monospace;flex-shrink:0">'+(isG?'+':'−')+'₺'+fmt(f.tutar)+'</span>';
@@ -605,13 +605,13 @@ function renderDavaDash() {
   var mvDagilim=muvekkiller.map(function(m){return {ad:m.ad,dava:davalar0.filter(function(d){return d.muvekkil===m.ad;}).length,icra:icralar0.filter(function(i){return i.muvekkil===m.ad;}).length};}).filter(function(m){return m.dava+m.icra>0;}).sort(function(a,b){return b.dava+b.icra-a.dava-a.icra;});
   var mvc=document.createElement('div');mvc.style.cssText='background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column';
   mvc.innerHTML='<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)">👤 Müvekkil Dağılımı</div>'
-    +(mvDagilim.length?mvDagilim.slice(0,6).map(function(m){return '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="flex:1;font-size:13px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(m.ad)+'</div><div style="display:flex;gap:4px">'+(m.dava?'<span style="font-size:11px;font-weight:700;color:var(--text3);background:rgba(255,255,255,0.07);padding:2px 8px;border-radius:4px">📁 '+m.dava+'</span>':'')+(m.icra?'<span style="font-size:11px;font-weight:700;color:#7ab5d4;background:rgba(58,107,140,0.15);padding:2px 8px;border-radius:4px">⚡ '+m.icra+'</span>':'')+'</div></div>';}).join(''):'<div style="padding:12px 16px;color:var(--text3);font-size:12px">Veri yok</div>');
+    +(mvDagilim.length?mvDagilim.slice(0,6).map(function(m){return '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><div style="flex:1;font-size:13px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(m.ad)+'</div><div style="display:flex;gap:4px">'+(m.dava?'<span style="font-size:11px;font-weight:700;color:var(--text3);background:rgba(0,0,0,0.06);padding:2px 8px;border-radius:4px">📁 '+m.dava+'</span>':'')+(m.icra?'<span style="font-size:11px;font-weight:700;color:#7ab5d4;background:rgba(58,107,140,0.15);padding:2px 8px;border-radius:4px">⚡ '+m.icra+'</span>':'')+'</div></div>';}).join(''):'<div style="padding:12px 16px;color:var(--text3);font-size:12px">Veri yok</div>');
   altGrid.appendChild(mvc);
   // Dosya özeti
   var sc=document.createElement('div');sc.style.cssText='background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column';
   sc.innerHTML='<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)">📊 Dosya Özeti</div><div style="padding:8px 16px">'
     +[{l:'Aktif Dava',v:davalar0.filter(function(d){return d.durum==='Aktif';}).length,c:'var(--green)'},{l:'Bekleyen Dava',v:davalar0.filter(function(d){return d.durum==='Bekliyor';}).length,c:'var(--gold)'},{l:'Kapalı Dava',v:davalar0.filter(function(d){return d.durum==='Kapalı';}).length,c:'var(--text3)'},{l:'Aktif İcra',v:icralar0.filter(function(i){return i.durum==='Aktif';}).length,c:'#7ab5d4'},{l:'İstinaf',v:istinafDosyalar.length,c:'rgba(122,181,212,0.9)'},{l:'Temyiz',v:temyizDosyalar.length,c:'rgba(156,150,141,0.9)'},{l:'Satış Avansı',v:satisAvansliIcra.length,c:'var(--gold)'},{l:'Haciz Yenileme!',v:hacizYenilemGerek.length,c:hacizYenilemGerek.length?'var(--red)':'var(--text3)'}]
-    .map(function(x){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="font-size:12px;color:var(--text3)">'+x.l+'</span><span style="font-size:15px;font-weight:700;color:'+x.c+'">'+x.v+'</span></div>';}).join('')+'</div>';
+    .map(function(x){return '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="font-size:12px;color:var(--text3)">'+x.l+'</span><span style="font-size:15px;font-weight:700;color:'+x.c+'">'+x.v+'</span></div>';}).join('')+'</div>';
   altGrid.appendChild(sc);
   el.appendChild(altGrid);
 }
@@ -1556,11 +1556,13 @@ function makeDonut(id, labels, data, colors, legendId) {
           callbacks: {
             label: ctx => ` ${ctx.label}: ${ctx.raw} (${total?Math.round(ctx.raw/total*100):0}%)`
           },
-          backgroundColor: '#211f1b',
-          borderColor: '#3d3a32',
-          borderWidth: 1,
-          titleColor: '#f0ead8',
-          bodyColor: '#a89f8a',
+          backgroundColor: 'rgba(28,26,23,0.95)',
+          borderColor: 'transparent',
+          borderWidth: 0,
+          titleColor: '#ffffff',
+          bodyColor: 'rgba(255,255,255,0.85)',
+          padding: 10,
+          cornerRadius: 8,
         }
       }
     },
@@ -1571,7 +1573,7 @@ function makeDonut(id, labels, data, colors, legendId) {
         const cx = (left+right)/2, cy = (top+bottom)/2;
         ctx.save();
         ctx.font = 'bold 32px DM Mono, monospace';
-        ctx.fillStyle = 'var(--text)';
+        ctx.fillStyle = '#1c1a17';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(total, cx, cy);
@@ -1594,9 +1596,25 @@ function makeDonut(id, labels, data, colors, legendId) {
 function makeBar(id, labels, datasets) {
   const ctx = document.getElementById(id);
   if (!ctx) return;
+  // Zaman serisi (aylık trend) — yumuşak eğrisel çizgi grafik olarak çizilir.
+  // Gelen bar dataset'leri, alan dolgulu line dataset'lerine dönüştürülür.
+  const lineDatasets = datasets.map(ds => ({
+    label: ds.label,
+    data: ds.data,
+    borderColor: ds.borderColor,
+    backgroundColor: ds.backgroundColor || ds.borderColor,
+    fill: 'origin',
+    tension: 0.4,
+    borderWidth: 2.5,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+    pointBackgroundColor: ds.borderColor,
+    pointBorderColor: '#ffffff',
+    pointBorderWidth: 1.5
+  }));
   const c = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets },
+    type: 'line',
+    data: { labels, datasets: lineDatasets },
     options: {
       animation: { duration: 0 },
       responsive: true,
@@ -1604,21 +1622,22 @@ function makeBar(id, labels, datasets) {
       hover: { mode: 'index', intersect: false },
       interaction: { mode: 'index', intersect: false },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 } } },
-        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 }, callback: v => '₺'+fmt(v) } }
+        x: { grid: { display: false }, ticks: { color: '#9c968d', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { color: '#9c968d', font: { size: 11 }, callback: v => '₺'+fmt(v) } }
       },
       plugins: {
-        legend: { labels: { color: '#a89f8a', font: { size: 11 }, boxWidth: 10, boxHeight: 10 } },
+        legend: { labels: { color: '#57534c', font: { size: 11 }, boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'circle' } },
         tooltip: {
           enabled: true,
           mode: 'index',
           intersect: false,
-          backgroundColor: 'rgba(33,31,27,0.95)',
-          borderColor: '#1c1a17',
-          borderWidth: 1,
-          titleColor: '#f0ead8',
-          bodyColor: '#a89f8a',
+          backgroundColor: 'rgba(28,26,23,0.95)',
+          borderColor: 'transparent',
+          borderWidth: 0,
+          titleColor: '#ffffff',
+          bodyColor: 'rgba(255,255,255,0.85)',
           padding: 10,
+          cornerRadius: 8,
           callbacks: {
             title: items => items[0]?.label || '',
             label: ctx => ` ${ctx.dataset.label}: ₺${fmt(ctx.raw)}`,
@@ -1645,17 +1664,17 @@ function makeHBar(id, labels, data) {
     type: 'bar',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: 'rgba(28,26,23,0.5)', borderColor: '#1c1a17', borderWidth: 1, borderRadius: 4 }]
+      datasets: [{ data, backgroundColor: 'rgba(87,83,76,0.8)', borderColor: '#57534c', borderWidth: 0, borderRadius: 5, barThickness: 'flex', maxBarThickness: 26 }]
     },
     options: {
       animation: { duration: 0 },
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { backgroundColor:'#211f1b', borderColor:'#3d3a32', borderWidth:1, titleColor:'#f0ead8', bodyColor:'#a89f8a' } },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor:'rgba(28,26,23,0.95)', borderColor:'transparent', borderWidth:0, titleColor:'#ffffff', bodyColor:'rgba(255,255,255,0.85)', padding:10, cornerRadius:8 } },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font:{size:11} } },
-        y: { grid: { display:false }, ticks: { color: '#a89f8a', font:{size:11} } }
+        x: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { color: '#9c968d', font:{size:11}, precision:0 } },
+        y: { grid: { display:false }, border: { display: false }, ticks: { color: '#57534c', font:{size:11} } }
       }
     }
   });
@@ -1806,17 +1825,17 @@ function renderDashboard() {
   setTimeout(() => {
     const dDurum = ['Aktif','Bekliyor','Kapalı'].map(s=>davalar.filter(d=>d.durum===s).length);
     makeDonut('chart-dava-durum', ['Aktif','Bekliyor','Kapalı'], dDurum,
-      ['#4a8c5c','#1c1a17','#6b6455'], 'chart-dava-legend');
+      ['#4a8c5c','#b0863c','#cbc6bd'], 'chart-dava-legend');
 
     // --- DONUT: İcra Durumları ---
     const iDurum = ['Aktif','Bekliyor','Kapalı'].map(s=>icralar.filter(i=>i.durum===s).length);
     makeDonut('chart-icra-durum', ['Aktif','Bekliyor','Kapalı'], iDurum,
-      ['#3a6b8c','#1c1a17','#6b6455'], 'chart-icra-legend');
+      ['#3a6b8c','#b0863c','#cbc6bd'], 'chart-icra-legend');
 
     // --- DONUT: Görev Öncelikleri ---
     const tPri = ['Acil','Yüksek','Normal'].map(p=>tasks.filter(t=>!t.done&&t.oncelik===p).length);
     makeDonut('chart-task-oncelik', ['Acil','Yüksek','Normal'], tPri,
-      ['#c0533a','#1c1a17','#4a8c5c'], 'chart-task-legend');
+      ['#c0533a','#b0863c','#a8a29a'], 'chart-task-legend');
 
     // --- BAR: Aylık finans (son 6 ay) ---
     const months = [];
@@ -1834,8 +1853,8 @@ function renderDashboard() {
       masArr.push(mVal);
     }
     makeBar('chart-finans-aylik', months, [
-      { label:'Tahsilat', data:tahArr, backgroundColor:'rgba(74,140,92,0.6)', borderColor:'#4a8c5c', borderWidth:1, borderRadius:4 },
-      { label:'Masraf',   data:masArr, backgroundColor:'rgba(192,83,58,0.5)', borderColor:'#c0533a', borderWidth:1, borderRadius:4 }
+      { label:'Tahsilat', data:tahArr, backgroundColor:'rgba(74,140,92,0.13)', borderColor:'#4a8c5c' },
+      { label:'Masraf',   data:masArr, backgroundColor:'rgba(192,83,58,0.12)', borderColor:'#c0533a' }
     ]);
 
     // --- HBAR: Müvekkil başına dava sayısı (top 6) ---
@@ -2499,7 +2518,7 @@ function renderDavaTab(id, sekme) {
           // D2: Sonuç field + D3: saat
           var sonucHtml = t.sonuc ? '<div style="font-size:11px;margin-top:3px"><span style="background:rgba(28,26,23,0.12);color:var(--gold);padding:1px 6px;border-radius:4px;font-weight:600">'+escHtml(t.sonuc)+'</span></div>' : '';
           var saatHtml = t.saat ? ' · '+escHtml(t.saat) : '';
-          return `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          return `<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
             <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:40px">
               <div class="${dotClass}" style="width:10px;height:10px;border-radius:50%;background:${gecti?'var(--text3)':diff===0?'var(--red)':'var(--gold)'};margin-top:3px"></div>
               <div style="width:1px;flex:1;background:var(--border);margin-top:4px${gecti?';border-left:1px dashed var(--text3);width:0':''}"></div>
@@ -2625,7 +2644,7 @@ function renderDavaTab(id, sekme) {
               monthHeader = '<div class="ddp-month-header">'+(monthNames[parseInt(parts[1])]||'')+' '+parts[0]+'</div>';
               lastMonth = monthKey;
             }
-            return monthHeader+`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+            return monthHeader+`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
               <div style="width:32px;height:32px;border-radius:8px;background:${isG?'rgba(74,140,92,0.15)':'rgba(192,83,58,0.15)'};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${isG?'↗':'↘'}</div>
               <div style="flex:1;min-width:0">
                 <div style="font-size:13px;font-weight:600;color:var(--text2)">${escHtml(f.tur)}${isMasraf&&f.odpisr?'<span style="font-size:9px;background:rgba(74,140,92,0.2);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:6px">ÖDENDİ</span>':''}</div>
@@ -2725,7 +2744,7 @@ function _ddpRenderMasraflar(id, d) {
     + (masraflar.length === 0
       ? '<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Henüz masraf kaydı yok</div>'
       : masraflar.map(function(m){
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.05)">'
             + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(192,83,58,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🧾</div>'
             + '<div style="flex:1;min-width:0">'
             + '<div style="font-size:13px;font-weight:600;color:var(--text2)">'+escHtml(m.tur||'Masraf')+'</div>'

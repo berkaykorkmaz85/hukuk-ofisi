@@ -996,7 +996,7 @@ function _idpRenderMasraflar(id, i, masraflar) {
     + (masraflar.length === 0
       ? '<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Henüz masraf kaydı yok</div>'
       : masraflar.slice().sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);}).map(function(m){
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.05)">'
             + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(192,83,58,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🧾</div>'
             + '<div style="flex:1;min-width:0">'
             + '<div style="font-size:13px;font-weight:600;color:var(--text2)">'+escHtml(m.tur||'Masraf')+'</div>'
@@ -1164,7 +1164,7 @@ function renderIcraTab(id, sekme) {
       + '<span style="font-size:11px;background:rgba(125,196,149,0.1);color:var(--green);padding:4px 10px;border-radius:6px;font-weight:600">🏘 '+tasinmazlar.length+' taşınmaz</span>'
       + '<span style="font-size:11px;background:rgba(122,181,212,0.1);color:#7ab5d4;padding:4px 10px;border-radius:6px;font-weight:600">🚗 '+araclar.length+' araç</span>'
       + (hacizData.maasHaczi?'<span style="font-size:11px;background:rgba(74,140,92,0.15);color:var(--green);padding:4px 10px;border-radius:6px;font-weight:600">💼 Maaş haczi aktif</span>':'')
-      + '<span style="font-size:11px;background:rgba(255,255,255,0.06);color:var(--text3);padding:4px 10px;border-radius:6px;font-weight:600">📅 '+tamamlanan+'/'+tlItems.length+' tarih</span>'
+      + '<span style="font-size:11px;background:rgba(0,0,0,0.05);color:var(--text3);padding:4px 10px;border-radius:6px;font-weight:600">📅 '+tamamlanan+'/'+tlItems.length+' tarih</span>'
       + '</div>'
       // T4: Timeline
       + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;font-weight:700">📅 Takip Aşamaları</div>'
@@ -1277,7 +1277,7 @@ function renderIcraTab(id, sekme) {
       + kalemler.map(function(k) {
           var isReadonly = k.key === 'islemiFaiz' && gosterilecekFaiz !== null;
           var displayVal = isReadonly ? gosterilecekFaiz : escAttr(kd[k.key]||'');
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04)">'
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(0,0,0,0.05)">'
             + '<span style="font-size:16px;width:22px;text-align:center;flex-shrink:0">'+k.icon+'</span>'
             + '<div style="flex:1;font-size:13px;color:var(--text2)">'+escHtml(k.label)+'</div>'
             + (isReadonly
@@ -1840,9 +1840,9 @@ function showMuvekkilDetail(id) {
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">İletişim</div>
       <div style="padding:8px 0">
-        ${mv.tel?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--text3);font-size:16px">📞</span><div><div style="font-size:11px;color:var(--text3)">Telefon</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.tel)}</div></div></div>`:''}
-        ${mv.email?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--text3);font-size:16px">✉️</span><div><div style="font-size:11px;color:var(--text3)">E-posta</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.email)}</div></div></div>`:''}
-        ${mv.tc?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--text3);font-size:16px">🪪</span><div><div style="font-size:11px;color:var(--text3)">${isKurumsal?'Vergi No':'TC No'}</div><div style="font-size:13px;color:var(--text);font-family:monospace">${escHtml(mv.tc)}</div></div></div>`:''}
+        ${mv.tel?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3);font-size:16px">📞</span><div><div style="font-size:11px;color:var(--text3)">Telefon</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.tel)}</div></div></div>`:''}
+        ${mv.email?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3);font-size:16px">✉️</span><div><div style="font-size:11px;color:var(--text3)">E-posta</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.email)}</div></div></div>`:''}
+        ${mv.tc?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3);font-size:16px">🪪</span><div><div style="font-size:11px;color:var(--text3)">${isKurumsal?'Vergi No':'TC No'}</div><div style="font-size:13px;color:var(--text);font-family:monospace">${escHtml(mv.tc)}</div></div></div>`:''}
         ${mv.adres?`<div style="display:flex;align-items:start;gap:10px;padding:8px 16px"><span style="color:var(--text3);font-size:16px">📍</span><div><div style="font-size:11px;color:var(--text3)">Adres</div><div style="font-size:13px;color:var(--text);line-height:1.4">${escHtml(mv.adres)}</div></div></div>`:''}
       </div>
     </div>
@@ -1959,7 +1959,7 @@ function showMuvekkilDetail(id) {
       html += '<div id="mv-fin-cards">';
       rows.forEach(function(r){
         var pct = r.anl>0 ? Math.min(Math.round(r.tah/r.anl*100),100) : 0;
-        html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'\'">';
+        html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(0,0,0,0.03)\'" onmouseout="this.style.background=\'\'">';
         html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
         html += '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:700;color:var(--gold);font-family:monospace">'+escHtml(r.no)+'</span>';
         html += '<span class="tag tag-'+(r.durum==='Aktif'?'aktif':r.durum==='Bekliyor'?'bekliyor':'kapali')+'" style="font-size:9px">'+escHtml(r.durum)+'</span></div>';
@@ -1985,7 +1985,7 @@ function showMuvekkilDetail(id) {
       });
       html += '</tr></thead><tbody>';
       rows.forEach(function(r){
-        html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'\'">';
+        html += '<tr style="border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(0,0,0,0.03)\'" onmouseout="this.style.background=\'\'">';
         html += '<td style="padding:8px 12px;font-weight:700;color:var(--gold);font-family:monospace">'+escHtml(r.no)+'</td>';
         html += '<td style="padding:8px 12px;color:var(--text);font-family:monospace">₺'+fmt(r.anl)+'</td>';
         html += '<td style="padding:8px 12px;color:var(--green);font-family:monospace">₺'+fmt(r.tah)+'</td>';
@@ -2023,7 +2023,7 @@ function showMuvekkilDetail(id) {
       ${davalar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">Dava dosyası yok</div>'
         : davalar.sort((a,b)=>a.durum==='Aktif'?-1:1).map(d=>`
-          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer" onclick="openDavaDetailPage('${d.id}')" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer" onclick="openDavaDetailPage('${d.id}')" onmouseover="this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background=''">
             <span style="font-size:12px;color:var(--gold);font-weight:700;font-family:monospace">${escHtml(d.no)}</span>
             <div><div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(d.muvekkil)}${d.karsi?' <span style="color:var(--text3)">vs</span> '+escHtml(d.karsi):''}</div><div style="font-size:11px;color:var(--text3)">${escHtml((d.mahkeme||'').replace('Mahkemesi','Mhk.'))}</div></div>
             <span class="tag tag-${d.durum==='Aktif'?'aktif':d.durum==='Bekliyor'?'bekliyor':'kapali'}" style="font-size:11px">${d.durum}</span>
@@ -2040,7 +2040,7 @@ function showMuvekkilDetail(id) {
       ${icralar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">İcra dosyası yok</div>'
         : icralar.sort((a,b)=>a.durum==='Aktif'?-1:1).map(i=>`
-          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(0,0,0,0.05)">
             <span style="font-size:12px;color:var(--gold);font-weight:700;font-family:monospace">${escHtml(i.bki||i.no)}</span>
             <div><div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(i.borclu)}</div><div style="font-size:11px;color:var(--text3)">${escHtml(i.mudurluk||'')}${i.esas?' · '+escHtml(i.esas):''}</div></div>
             <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:var(--gold);font-family:monospace">₺${fmt(i.alacak)}</div><span class="tag tag-${i.durum==='Aktif'?'aktif':'kapali'}" style="font-size:10px">${i.durum}</span></div>
@@ -2053,7 +2053,7 @@ function showMuvekkilDetail(id) {
       var html = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">';
       html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">⚖️ Karşı Taraf Vekalet Ücreti</div>';
       if (kvTahsil.length > 0) {
-        html += '<div style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">';
+        html += '<div style="padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)">';
         html += '<div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:6px">✓ TAHSİL EDİLDİ</div>';
         kvTahsil.forEach(function(f) {
           var ilgiliDavaTahsil = (DB.get('davalar')||[]).find(function(d){
@@ -2078,7 +2078,7 @@ function showMuvekkilDetail(id) {
                    d.ad === (f.ilgili||'');
           });
           var karsiTaraf = ilgiliDava ? (ilgiliDava.karsi||'—') : (f.aciklama||f.ilgili||'—');
-          html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">';
+          html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05)">';
           html += '<div><div style="font-size:12px;font-weight:600;color:var(--text)">' + escHtml(karsiTaraf) + '</div>';
           html += '<div style="font-size:10px;color:var(--text3)">' + escHtml(f.ilgili||'') + ' · ' + fmtDate(f.tarih) + '</div></div>';
           html += '<span style="font-size:12px;font-weight:700;color:var(--gold);font-family:monospace">₺' + fmt(f.tutar) + '</span></div>';
@@ -2097,7 +2097,7 @@ function showMuvekkilDetail(id) {
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text)">💸 Son İşlemler</div>
       ${finans.filter(f=>f.tur!=='Karşı Vekalet Ücreti'&&f.tur!=='Taksit Planı').sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5).map(f=>{
         const isG=['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur);
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(0,0,0,0.05)">
           <div style="width:30px;height:30px;border-radius:7px;background:${isG?'rgba(74,140,92,0.15)':'rgba(192,83,58,0.15)'};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${isG?'↗':'↘'}</div>
           <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text2)">${escHtml(f.tur)}</div><div style="font-size:11px;color:var(--text3)">${fmtDate(f.tarih)}${f.aciklama?' · '+escHtml(f.aciklama):''}</div></div>
           <span style="font-size:12px;font-weight:700;color:${isG?'var(--green)':'var(--red)'};font-family:monospace;flex-shrink:0">${isG?'+':'−'}₺${fmt(f.tutar)}</span>
@@ -2342,7 +2342,7 @@ function opTaksitUret() {
   }
 
   listEl.innerHTML = rows.map(function(r){
-    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.04)">'
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">'
       +'<span style="font-size:12px;font-weight:700;color:var(--text3);min-width:80px">'+r.label+'</span>'
       +'<span style="font-size:12px;color:var(--text3)">'+fmtDateShort(r.tarih)+'</span>'
       +'<span style="font-size:13px;font-weight:700;color:var(--gold);font-family:monospace;margin-left:auto">₺'+fmt(r.tutar)+'</span>'
@@ -2461,11 +2461,11 @@ function renderOdemePlanlari() {
         var dt = new Date(t.tarih+'T00:00:00');
         var gecikti = t.durum==='bekliyor' && dt<today;
         var clr = t.durum==='odendi'?'var(--green)':gecikti?'var(--red)':'var(--text)';
-        return '<div class="odeme-taksit-row" style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.04)">'
+        return '<div class="odeme-taksit-row" style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,0.05)">'
           +'<span style="font-size:11px;font-weight:700;color:var(--text3);min-width:70px">'+escHtml(t.label)+'</span>'
           +'<span style="font-size:12px;color:'+(gecikti?'var(--red)':'var(--text3)')+'">'+fmtDateShort(t.tarih)+(gecikti?' ⚠':'')+'</span>'
           +'<span style="font-size:13px;font-weight:700;color:'+clr+';font-family:monospace;flex:1;text-align:right">₺'+fmt(t.tutar)+'</span>'
-          +'<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:inherit;border:1px solid '+(t.durum==='odendi'?'rgba(74,140,92,0.3)':'var(--border)')+';background:'+(t.durum==='odendi'?'rgba(74,140,92,0.12)':'rgba(255,255,255,0.05)')+';color:'+(t.durum==='odendi'?'var(--green)':'var(--text2)')+'" data-taksit-plan="'+plan.id+'" data-taksit-idx="'+idx+'">'+(t.durum==='odendi'?'✅ Ödendi':'✓ Öde')+'</button>'
+          +'<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:inherit;border:1px solid '+(t.durum==='odendi'?'rgba(74,140,92,0.3)':'var(--border)')+';background:'+(t.durum==='odendi'?'rgba(74,140,92,0.12)':'rgba(0,0,0,0.05)')+';color:'+(t.durum==='odendi'?'var(--green)':'var(--text2)')+'" data-taksit-plan="'+plan.id+'" data-taksit-idx="'+idx+'">'+(t.durum==='odendi'?'✅ Ödendi':'✓ Öde')+'</button>'
           +'</div>';
       }).join('')
       +'</div></div>';
@@ -2492,7 +2492,7 @@ function renderOdemePlanlari() {
         +'</div>'
         +'<div>'
         +plan.taksitler.map(function(t){
-          return '<div style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:8px 18px;border-bottom:1px solid rgba(255,255,255,0.04)">'
+          return '<div style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:8px 18px;border-bottom:1px solid rgba(0,0,0,0.05)">'
             +'<span style="font-size:11px;font-weight:700;color:var(--text3)">'+escHtml(t.label)+'</span>'
             +'<span style="font-size:12px;color:var(--text3)">'+fmtDateShort(t.tarih)+'</span>'
             +'<span style="font-size:13px;font-weight:700;color:var(--green);font-family:monospace;text-align:right">₺'+fmt(t.tutar)+'</span>'
@@ -2674,7 +2674,7 @@ function renderKarsiVekalet() {
           var durumLabel=durum==='tamam'?'✓ Tahsil Edildi':durum==='kismen'?'Kısmen Tahsil':'⏳ Bekliyor (İcra)';
           var odeBtn = durum!=='tamam'
             ? '<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;background:rgba(74,140,92,0.15);border:1px solid rgba(74,140,92,0.3);color:var(--green);margin-right:4px" onclick="karsiVekaletOde(\'' + f.id + '\')">✓ Öde</button>'
-            : '<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text3);margin-right:4px" onclick="karsiVekaletOde(\'' + f.id + '\')">↩ Geri Al</button>';
+            : '<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;background:rgba(0,0,0,0.05);border:1px solid var(--border);color:var(--text3);margin-right:4px" onclick="karsiVekaletOde(\'' + f.id + '\')">↩ Geri Al</button>';
           // Karşı tarafı bul — önce kayıtlı karsiTaraf, yoksa ilgili dosyadan çöz
           var karsiTaraf = f.karsiTaraf || '';
           if (!karsiTaraf) {
@@ -2742,7 +2742,7 @@ function _avansKasaDetayHTML(mvAd) {
   var harcananIcra = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mvAd;});
 
   function satir(tarih, aciklama, tutar, pozitif, silOnclick) {
-    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px">'
+    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:12px">'
       + '<span style="color:var(--text3);font-family:monospace;width:80px;flex-shrink:0">'+fmtDate(tarih)+'</span>'
       + '<span style="flex:1;color:var(--text2)">'+escHtml(aciklama||'—')+'</span>'
       + '<span style="font-family:monospace;font-weight:700;color:'+(pozitif?'#7ab5d4':'var(--red)')+'">'+(pozitif?'+':'−')+'₺'+fmt(tutar)+'</span>'
@@ -2965,12 +2965,12 @@ function renderFinans() {
       if (!ctx2) return;
       if (window._finansAylikChart) { try { window._finansAylikChart.destroy(); } catch(e) {} }
       window._finansAylikChart = new Chart(ctx2, {
-        type: 'bar',
+        type: 'line',
         data: {
           labels: aylar.map(a => a.label),
           datasets: [
-            { label: 'Tahsilat', data: aylar.map(a => a.tah), backgroundColor: 'rgba(74,140,92,0.7)', borderColor: '#4a8c5c', borderWidth: 1, borderRadius: 4 },
-            { label: 'Masraf',   data: aylar.map(a => a.mas), backgroundColor: 'rgba(192,83,58,0.6)', borderColor: '#c0533a', borderWidth: 1, borderRadius: 4 }
+            { label: 'Tahsilat', data: aylar.map(a => a.tah), backgroundColor: 'rgba(74,140,92,0.13)', borderColor: '#4a8c5c', fill: 'origin', tension: 0.4, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#4a8c5c', pointBorderColor: '#ffffff', pointBorderWidth: 1.5 },
+            { label: 'Masraf',   data: aylar.map(a => a.mas), backgroundColor: 'rgba(192,83,58,0.12)', borderColor: '#c0533a', fill: 'origin', tension: 0.4, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#c0533a', pointBorderColor: '#ffffff', pointBorderWidth: 1.5 }
           ]
         },
         options: {
@@ -2979,8 +2979,8 @@ function renderFinans() {
           hover: { mode: 'index', intersect: false },
           interaction: { mode: 'index', intersect: false },
           scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 }, callback: function(v) { return '₺'+fmt(v); } } }
+            x: { grid: { display: false }, ticks: { color: '#9c968d', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { color: '#9c968d', font: { size: 11 }, callback: function(v) { return '₺'+fmt(v); } } }
           },
           plugins: {
             legend: { display: false },
@@ -2988,12 +2988,13 @@ function renderFinans() {
               enabled: true,
               mode: 'index',
               intersect: false,
-              backgroundColor: 'rgba(33,31,27,0.97)',
-              borderColor: '#1c1a17',
-              borderWidth: 1,
-              titleColor: '#f0ead8',
-              bodyColor: '#a89f8a',
+              backgroundColor: 'rgba(28,26,23,0.95)',
+              borderColor: 'transparent',
+              borderWidth: 0,
+              titleColor: '#ffffff',
+              bodyColor: 'rgba(255,255,255,0.85)',
               padding: 10,
+              cornerRadius: 8,
               callbacks: {
                 label: function(ctx) { return ' ' + ctx.dataset.label + ': ₺' + fmt(ctx.raw); },
                 afterBody: function(items) {
@@ -3257,7 +3258,7 @@ function renderTasks() {
       {icon:'🔥', label:'Gecikmiş', val:geciken, clr:'var(--red)', bg:'rgba(192,83,58,0.1)', border:'rgba(192,83,58,0.3)'},
       {icon:'📍', label:'Bugün', val:bugunku, clr:'var(--gold)', bg:'rgba(28,26,23,0.08)', border:'rgba(28,26,23,0.25)'},
       {icon:'📅', label:'Bu Hafta', val:buHaftaki, clr:'#7ab5d4', bg:'rgba(122,181,212,0.08)', border:'rgba(122,181,212,0.25)'},
-      {icon:'📋', label:'Toplam Bekleyen', val:totalBekleyen, clr:'var(--text2)', bg:'rgba(255,255,255,0.03)', border:'var(--border)'},
+      {icon:'📋', label:'Toplam Bekleyen', val:totalBekleyen, clr:'var(--text2)', bg:'rgba(0,0,0,0.03)', border:'var(--border)'},
       {icon:'✅', label:'Tamamlanan', val:tamamYuzde+'%', clr:'var(--green)', bg:'rgba(74,140,92,0.08)', border:'rgba(74,140,92,0.25)'},
     ];
     kpiBar.innerHTML = kpis.map(function(k){
@@ -3306,8 +3307,8 @@ function renderTasks() {
     var btn = document.createElement('button');
     var isActive = activeTab === tab.id;
     btn.style.cssText = 'padding:8px 14px;background:'+(isActive?'var(--bg)':'transparent')+';border:'+(isActive?'1px solid var(--border)':'1px solid transparent')+';border-radius:9px;color:'+(isActive?tab.clr:'var(--text3)')+';font-size:12px;font-weight:'+(isActive?'700':'500')+';cursor:pointer;white-space:nowrap;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px'+(isActive?';box-shadow:0 1px 3px rgba(0,0,0,0.2)':'');
-    btn.innerHTML = tab.label+(tab.count?'<span style="background:'+(isActive?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.06)')+';border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;min-width:18px;text-align:center">'+tab.count+'</span>':'');
-    btn.onmouseover = function(){ if(!isActive) this.style.background='rgba(255,255,255,0.04)'; };
+    btn.innerHTML = tab.label+(tab.count?'<span style="background:'+(isActive?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.05)')+';border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;min-width:18px;text-align:center">'+tab.count+'</span>':'');
+    btn.onmouseover = function(){ if(!isActive) this.style.background='rgba(0,0,0,0.05)'; };
     btn.onmouseout  = function(){ if(!isActive) this.style.background='transparent'; };
     btn.onclick = (function(tabId){ return function(){
       listEl.dataset.activeTab = tabId;
@@ -3350,7 +3351,7 @@ function renderTasks() {
     var card = document.createElement('div');
     card.style.cssText = 'background:var(--bg2);border:1px solid '+(gecikti?'rgba(192,83,58,0.3)':isToday?'rgba(28,26,23,0.25)':'var(--border)')+';border-left:3px solid '+borderLeft+';border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start'+(t.done?';opacity:0.55':'');
     card.style.animationDelay = (idx * 20) + 'ms';
-    card.onmouseover = function(){ this.style.background='rgba(255,255,255,0.04)';this.style.transform='translateX(2px)'; };
+    card.onmouseover = function(){ this.style.background='rgba(0,0,0,0.05)';this.style.transform='translateX(2px)'; };
     card.onmouseout  = function(){ this.style.background='var(--bg2)';this.style.transform=''; };
     card.onclick = function(){ gorevDetayAc(t.id); };
 
@@ -3398,11 +3399,11 @@ function renderTasks() {
     // Aksiyon butonları
     var acts = document.createElement('div');
     acts.style.cssText = 'display:flex;gap:2px;opacity:0.4;transition:opacity 0.15s';
-    card.onmouseover = (function(actsRef, cardRef){ return function(){ actsRef.style.opacity='1';cardRef.style.background='rgba(255,255,255,0.04)';cardRef.style.transform='translateX(2px)'; }; })(acts, card);
+    card.onmouseover = (function(actsRef, cardRef){ return function(){ actsRef.style.opacity='1';cardRef.style.background='rgba(0,0,0,0.05)';cardRef.style.transform='translateX(2px)'; }; })(acts, card);
     card.onmouseout = (function(actsRef, cardRef){ return function(){ actsRef.style.opacity='0.4';cardRef.style.background='var(--bg2)';cardRef.style.transform=''; }; })(acts, card);
 
     var editBtn = document.createElement('button');
-    editBtn.style.cssText='font-size:11px;padding:4px 8px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:6px;color:var(--text3);cursor:pointer;font-family:inherit';
+    editBtn.style.cssText='font-size:11px;padding:4px 8px;background:rgba(0,0,0,0.05);border:1px solid var(--border);border-radius:6px;color:var(--text3);cursor:pointer;font-family:inherit';
     editBtn.textContent='✏'; editBtn.onclick=function(e){e.stopPropagation();editTask(t.id);};
     var delBtn = document.createElement('button');
     delBtn.style.cssText='font-size:11px;padding:4px 8px;background:rgba(192,83,58,0.06);border:1px solid rgba(192,83,58,0.2);border-radius:6px;color:var(--red);cursor:pointer;font-family:inherit';

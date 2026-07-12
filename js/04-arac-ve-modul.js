@@ -200,7 +200,7 @@ function _uetsRender() {
       '<div style="flex:1;min-width:0">' +
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">' +
           '<span style="font-size:13px;font-weight:600;color:var(--text)">' + escHtml(k.konu) + '</span>' +
-          '<span style="font-size:11px;font-weight:700;color:' + durumRenk + ';background:rgba(255,255,255,0.06);padding:1px 7px;border-radius:10px">' + durumMetin + '</span>' +
+          '<span style="font-size:11px;font-weight:700;color:' + durumRenk + ';background:rgba(0,0,0,0.05);padding:1px 7px;border-radius:10px">' + durumMetin + '</span>' +
         '</div>' +
         '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text3)">' +
           (k.gonderen ? '<span>🏛 ' + escHtml(k.gonderen) + '</span>' : '') +
@@ -1583,9 +1583,9 @@ function fhHesapla() {
     +   '</div>'
     + '</div>'
     + '<div style="background:var(--bg3);border-radius:10px;padding:14px">'
-    +   '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--text3)">Faiz Türü</span><span style="font-weight:600">' + turLabel + '</span></div>'
-    +   (gun > 0 ? '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--text3)">Süre</span><span style="font-weight:600">' + sureTxt + '</span></div>' : '')
-    +   '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--text3)">Yöntem</span><span style="font-weight:600">' + (yontem === 'basit' ? 'Basit Faiz' : 'Bileşik Faiz') + '</span></div>'
+    +   '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3)">Faiz Türü</span><span style="font-weight:600">' + turLabel + '</span></div>'
+    +   (gun > 0 ? '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3)">Süre</span><span style="font-weight:600">' + sureTxt + '</span></div>' : '')
+    +   '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3)">Yöntem</span><span style="font-weight:600">' + (yontem === 'basit' ? 'Basit Faiz' : 'Bileşik Faiz') + '</span></div>'
     +   '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0"><span style="color:var(--text3)">Faiz / Anapara</span><span style="font-weight:600;color:var(--gold)">%' + (Math.round(faizTutari / anapara * 1000) / 10) + '</span></div>'
     + '</div>'
     + '<button id="fh-copy-btn" class="btn btn-outline" style="width:100%;justify-content:center;font-size:12px">📋 Sonucu Kopyala</button>'
@@ -1697,7 +1697,7 @@ function fhDonemHesapla() {
     var faiz = anapara * (d.oran / 100) * (d.gun / 365);
     toplamFaiz += faiz;
     toplamGun += d.gun;
-    satirHtml += '<tr style="border-top:1px solid rgba(255,255,255,0.06)">'
+    satirHtml += '<tr style="border-top:1px solid rgba(0,0,0,0.05)">'
       + '<td style="padding:8px 10px;font-size:12px;color:var(--text3)">' + (idx+1) + '</td>'
       + '<td style="padding:8px 6px;font-size:11px;font-family:monospace;color:var(--text2)">' + fmtDate(d.bas) + '</td>'
       + '<td style="padding:8px 6px;font-size:11px;font-family:monospace;color:var(--text2)">' + fmtDate(d.bit) + '</td>'
@@ -2683,7 +2683,7 @@ function finansDosyaAra(q) {
 
   function makeHeader(txt) {
     const h = document.createElement('div');
-    h.style.cssText = 'font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:8px 12px 4px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.05)';
+    h.style.cssText = 'font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;padding:8px 12px 4px;font-weight:600;border-bottom:1px solid rgba(0,0,0,0.05)';
     h.textContent = txt;
     return h;
   }
@@ -3683,7 +3683,7 @@ function _gorevRow(t, ctxType, id) {
     + '<td style="width:34px"><div class="ddp-checkbox ' + (t.done ? 'done' : 'undone') + '" onclick="toggleTask(\'' + t.id + '\',function(){_gorevRerender(\'' + ctxType + '\',\'' + id + '\')})">' + (t.done ? '<span style="color:#fff;font-size:11px">✓</span>' : '') + '</div></td>'
     + '<td><div style="font-size:13px;font-weight:600;color:' + (t.done ? 'var(--text3)' : 'var(--text)') + (t.done ? ';text-decoration:line-through' : '') + '">' + escHtml(t.baslik || t.text || '') + '</div></td>'
     + '<td style="font-size:12px;color:' + (gecikti ? 'var(--red)' : diff === 0 ? 'var(--gold)' : 'var(--text3)') + ';white-space:nowrap">' + (t.tarih ? fmtDate(t.tarih.slice(0, 10)) + (gecikti ? ' ⚠' : '') : '—') + '</td>'
-    + '<td><span style="font-size:11px;font-weight:700;color:' + oclr + ';background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:10px">' + escHtml(t.oncelik || 'Normal') + '</span></td>'
+    + '<td><span style="font-size:11px;font-weight:700;color:' + oclr + ';background:rgba(0,0,0,0.05);padding:2px 8px;border-radius:10px">' + escHtml(t.oncelik || 'Normal') + '</span></td>'
     + '<td><span style="cursor:pointer;font-size:11px;font-weight:700;color:' + db.renk + ';background:' + db.renk + '1a;padding:3px 10px;border-radius:10px;white-space:nowrap" title="Tıklayarak durumu değiştir" onclick="_gorevDurumDongu(\'' + t.id + '\',\'' + ctxType + '\',\'' + id + '\')">' + db.icon + ' ' + db.label + '</span></td>'
     + '<td style="text-align:right;white-space:nowrap">'
     + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="editTask(\'' + t.id + '\')">✏</button>'

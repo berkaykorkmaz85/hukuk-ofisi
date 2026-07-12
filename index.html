@@ -1260,7 +1260,7 @@
   .ch-rr { font-size:10px; color:var(--text3); background:var(--bg3); border:1px solid var(--border2); border-radius:4px; padding:1px 5px; }
   .ch-rt { font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
   .ch-rbody { font-size:11px; color:var(--text2); line-height:1.55; margin-bottom:5px; white-space:pre-wrap; word-break:break-word; min-width:0; }
-  .ch-ractions { display:flex; align-items:center; border-top:1px solid rgba(255,255,255,0.06); padding-top:6px; margin-top:5px; gap:0; }
+  .ch-ractions { display:flex; align-items:center; border-top:1px solid rgba(0,0,0,0.05); padding-top:6px; margin-top:5px; gap:0; }
   /* Ayraçlar */
   .ch-sep-date { display:flex; align-items:center; gap:8px; padding:4px 2px 8px; }
   .ch-sep-new { display:flex; align-items:center; gap:8px; padding:4px 0; }
@@ -1462,7 +1462,7 @@
     padding: 7px 14px;
     cursor: pointer;
     transition: background 0.12s;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
   }
   .bugun-row:last-child { border-bottom: none; }
   .bugun-row:hover { background: rgba(0,0,0,0.02); }
@@ -2544,7 +2544,7 @@
 
   /* T2: Tab badges */
   .ddp-sekme-badge { display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;font-size:9px;font-weight:700;padding:0 4px;margin-left:4px;line-height:1; }
-  .ddp-sekme-badge.normal { background:rgba(255,255,255,0.08);color:var(--text3); }
+  .ddp-sekme-badge.normal { background:rgba(0,0,0,0.05);color:var(--text3); }
   .ddp-sekme-badge.warn { background:rgba(192,83,58,0.3);color:#e88; }
   .ddp-sekme-dot { width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;animation:ddpDotPulse 2s infinite; }
 
@@ -2893,7 +2893,7 @@
       <div id="tab-bar"></div>
       <button class="tab-scroll-btn right" id="tab-scroll-right" onclick="_tabScrollRight()">›</button>
     </div>
-    <button onclick="tabEkle((pageTitles&&pageTitles[currentPage])||document.getElementById('page-title').textContent||'Sayfa','📌',currentPage||'dashboard')" style="flex-shrink:0;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:4px 12px;cursor:pointer;font-size:15px;line-height:1" title="Mevcut sayfayı sekmeye ekle">+</button>
+    <button onclick="tabEkle((pageTitles&&pageTitles[currentPage])||document.getElementById('page-title').textContent||'Sayfa','📌',currentPage||'dashboard')" style="flex-shrink:0;background:rgba(0,0,0,0.04);border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:4px 12px;cursor:pointer;font-size:15px;line-height:1" title="Mevcut sayfayı sekmeye ekle">+</button>
     <!-- F3: Tab context menu -->
     <div class="tab-ctx-menu" id="tab-ctx-menu">
       <div class="tab-ctx-item" onclick="_tabCtxAction('close')">✕ Bu sekmeyi kapat</div>
@@ -5123,10 +5123,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260712d"></script>
-<script src="js/02-dava-yonetimi.js?v=20260712d"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260712d"></script>
-<script src="js/04-arac-ve-modul.js?v=20260712d"></script>
+<script src="js/01-cekirdek-veri.js?v=20260712e"></script>
+<script src="js/02-dava-yonetimi.js?v=20260712e"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260712e"></script>
+<script src="js/04-arac-ve-modul.js?v=20260712e"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">
@@ -5255,7 +5255,7 @@
 <style>
 @keyframes confirmPop{from{opacity:0;transform:scale(.93) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 #confirm-modal.cm-open{display:flex!important}
-#confirm-modal-cancel:hover{background:rgba(255,255,255,.06)!important}
+#confirm-modal-cancel:hover{background:rgba(0,0,0,0.05)!important}
 #confirm-modal-ok:hover{background:rgba(192,83,58,1)!important}
 </style>
 </body>
