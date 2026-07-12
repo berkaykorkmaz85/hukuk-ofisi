@@ -1331,7 +1331,7 @@ function renderIcraTab(id, sekme) {
               +   '<div style="font-size:11px;color:var(--text3);margin-top:2px">'+escHtml(b.tur||'')+(b.taraf?' · '+escHtml(b.taraf):'')+' · '+fmtDate(b.tarih)+'</div>'
               +   (b.aciklama?'<div style="font-size:12px;color:var(--text3);margin-top:3px">'+escHtml(b.aciklama)+'</div>':'')
               + '</div>'
-              + (b.url?'<a href="'+escHtml(b.url)+'" target="_blank" class="btn btn-outline" style="font-size:11px;padding:4px 10px;flex-shrink:0">Aç →</a>':'')
+              + (b.url?'<a href="'+escHtml(b.url)+'" '+_dosyaAcLinkAttrs(b.ad)+' class="btn btn-outline" style="font-size:11px;padding:4px 10px;flex-shrink:0">Aç →</a>':'')
               + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 6px;flex-shrink:0" onclick="editIcraBelge(\''+b.id+'\',\''+id+'\')">✏</button>'
               + '<button class="btn btn-ghost" style="color:var(--red);font-size:12px;flex-shrink:0" onclick="deleteIcraBelge(\''+b.id+'\',\''+id+'\')">🗑</button>'
               + '</div>';

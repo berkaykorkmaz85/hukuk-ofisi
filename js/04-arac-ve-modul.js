@@ -3460,6 +3460,14 @@ async function chatterDosyaYukle(dosyalar, mod, dosyaId) {
 function _chGetExt(ad) {
   return (ad || '').toLowerCase().split('.').pop();
 }
+// Tarayıcının içeride gösterebildiği türler (pdf/resim) yeni sekmede açılır;
+// diğerleri (Word/Excel/UDF vb. — özellikle UYAP Doküman Editörü'nün .udf
+// formatı) tarayıcıda render edilemediği için doğrudan indirilir.
+function _dosyaAcLinkAttrs(ad) {
+  var ext = _chGetExt(ad);
+  var onizlenebilir = ['pdf','png','jpg','jpeg','gif','webp'];
+  return onizlenebilir.includes(ext) ? 'target="_blank"' : ('download="' + escAttr(ad || '') + '"');
+}
 function _chGetBadge(ad, tip) {
   var ext = _chGetExt(ad);
   var mime = (tip || '').toLowerCase();
@@ -3471,6 +3479,8 @@ function _chGetBadge(ad, tip) {
     return '<div class="ch-thumb-badge xls-badge">XLS</div>';
   if (['doc','docx'].includes(ext) || mime.includes('word'))
     return '<div class="ch-thumb-badge doc-badge">DOC</div>';
+  if (ext === 'udf')
+    return '<div class="ch-thumb-badge doc-badge">UDF</div>';
   return '<div class="ch-thumb-badge file-badge">&#x1f4ce;</div>';
 }
 function _chFooterHtml(ek, boyut) {
@@ -3510,8 +3520,13 @@ function chRenderEkler(ekler) {
       // PDF.js render'ı DOM'a eklendikten sonra çalıştır
       setTimeout(function() { _chRenderPdfThumb(canvasId, ek.url); }, 50);
     } else {
-      // ── DİĞER DOSYALAR: kompakt kart (önizleme yok) ──
-      html += '<a href="' + safeUrl + '" target="_blank" class="ch-attach-item">'
+      // ── DİĞER DOSYALAR (Word/Excel/UDF vb.): kompakt kart, önizleme yok ──
+      // download attribute'u zorunlu: tarayıcı bu dosya türlerini render
+      // edemediği için (özellikle UDF — UYAP Doküman Editörü formatı) link
+      // yeni sekmede boş/bozuk açılmak yerine doğrudan indirilsin; kullanıcı
+      // indirdikten sonra kendi bilgisayarındaki ilgili programla (UDF için
+      // UYAP Doküman Editörü) açabilir.
+      html += '<a href="' + safeUrl + '" download="' + escAttr(ek.ad) + '" class="ch-attach-item" title="İndir">'
         + _chGetBadge(ek.ad, ek.tip)
         + '<div class="ch-attach-info">'
         +   '<div class="ch-attach-name">' + escHtml(ek.ad) + '</div>'
