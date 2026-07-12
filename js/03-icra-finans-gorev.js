@@ -1348,7 +1348,7 @@ function renderIcraTab(id, sekme) {
     el.innerHTML = '<div style="padding:0">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px">'
       + '<div style="font-size:14px;font-weight:700;color:var(--text)">✅ Görevler</div>'
-      + '<button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="openModal(\'modal-task\');document.getElementById(\'t-ilgili\').value=\''+escHtml(i.no)+'\'">+ Görev Ekle</button>'
+      + '<button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="window._taskIlgiliOnac=\''+escHtml(i.no)+'\';openModal(\'modal-task\')">+ Görev Ekle</button>'
       + '</div>'
       // Ö4: Summary
       + '<div class="ddp-task-summary"><span style="color:var(--red)"><span class="cnt">'+gecikmisTasks.length+'</span> gecikmiş</span><span style="color:var(--gold)"><span class="cnt">'+bekleyenTasks.length+'</span> bekleyen</span><span style="color:var(--green)"><span class="cnt">'+tamamTasks.length+'</span> tamamlandı</span></div>'
@@ -3466,8 +3466,11 @@ function editTask(id) {
   document.getElementById('t-aciklama').value = t.aciklama||'';
   document.getElementById('t-mahkeme-durusma').value = t.mahkeme||'';
   document.getElementById('modal-task-title').textContent = t.tip === 'durusma' ? 'Duruşmayı Düzenle' : 'Görevi Düzenle';
+  // İlgili dosya değeri window._taskIlgiliOnac üzerinden openModal'a iletilir
+  // (bkz. openModal'daki açıklama) — görevin bağlı olduğu dosya artık
+  // düzenlemede seçili kalıyor.
+  window._taskIlgiliOnac = t.ilgili || '';
   openModal('modal-task');
-  populateDavaSelect(t.ilgili||'');
 }
 
 // ========== GOOGLE CALENDAR ==========

@@ -1034,16 +1034,33 @@ function populateMuvekkilSelects() {
   if (typeof updateTarafDatalist === 'function') updateTarafDatalist();
 }
 
+// Görev modalındaki "İlgili Dosya" seçicisini doldurur. Tek doğru kaynak
+// burasıdır — hem dava hem icra dosyalarını, tasks tablosunda t.ilgili
+// olarak fiilen saklanan değerle (d.no / i.bki||i.no) BİREBİR aynı value
+// şemasıyla listeler. Önceden iki farklı yerde (burada ve openModal
+// içinde) birbiriyle çelişen iki ayrı doldurma mantığı vardı — biri sadece
+// davaları d.ad değeriyle, diğeri dava+icra'yı d.no/i.no değeriyle
+// dolduruyordu. openModal'daki setTimeout'lu (gecikmeli) rebuild ikincisini
+// SONRADAN çalıştırdığı için, bu fonksiyonun (yanlış value ile) yaptığı
+// seçim her zaman eziliyordu — düzenlenen görevin dosyası hiç seçili
+// kalmıyordu. Artık ikisi de bu tek fonksiyonu kullanıyor.
 function populateDavaSelect(curVal) {
   const sel = document.getElementById('t-ilgili');
   if (!sel) return;
-  const davalar = DB.get('davalar');
-  sel.innerHTML = '<option value="">— Seçin veya boş bırakın —</option>' +
-    davalar.map(d => {
-      const label = d.ad ? `${d.ad} (${d.no})` : `${d.no} — ${d.konu.slice(0,30)}${d.konu.length>30?'…':''}`;
-      return `<option value="${d.ad||d.no}">${label}</option>`;
-    }).join('');
-  if (curVal) sel.value = curVal;
+  if (curVal === undefined) curVal = sel.value;
+  const davalar = DB.get('davalar') || [];
+  const icralar = DB.get('icralar') || [];
+  sel.innerHTML = '<option value="">— Genel görev (dosya bağlantısı yok) —</option>'
+    + '<optgroup label="📁 Dava Dosyaları">'
+    + davalar.map(d => {
+        var tp = (typeof _davaTarafPair === 'function') ? _davaTarafPair(d) : { davaci: d.muvekkil, davali: d.karsi };
+        return '<option value="' + escAttr(d.no) + '">' + escHtml(d.no) + ' — ' + escHtml(tp.davaci || '') + (tp.davali ? ' vs ' + escHtml(tp.davali) : '') + ' (' + d.durum + ')</option>';
+      }).join('')
+    + '</optgroup>'
+    + '<optgroup label="⚡ İcra Dosyaları">'
+    + icralar.map(i => '<option value="' + escAttr(i.bki || i.no) + '">' + escHtml(i.bki || i.no) + ' — ' + escHtml(i.borclu || '') + ' (' + i.durum + ')</option>').join('')
+    + '</optgroup>';
+  sel.value = curVal || '';
 }
 
 function populateTaskDosyaFilter() {
@@ -1094,8 +1111,8 @@ function openTaskForDava(davaId) {
   editingId = null;
   clearForms();
   document.getElementById('modal-task-title').textContent = `Yeni Görev — ${dava.ad || dava.no}`;
+  window._taskIlgiliOnac = dava.no;
   openModal('modal-task');
-  populateDavaSelect(dava.ad || dava.no); // modal açıldıktan sonra doldur
 }
 
 function clearForms() {
@@ -1330,22 +1347,15 @@ function openModal(id) {
       populateMuvekkilSelects();
       finansTurDegisti();
     }
-    // Görev modalı: t-ilgili dropdown'ı doldur
+    // Görev modalı: t-ilgili dropdown'ı doldur (tek doğru kaynak: populateDavaSelect).
+    // window._taskIlgiliOnac varsa (editTask/openTaskForDava vb. tarafından
+    // openModal'dan ÖNCE set edilir) o değer kullanılır — çünkü seçenekler
+    // henüz bu noktada oluşturulmadan bir <select>'e keyfi bir value atamak
+    // (native davranış gereği) sessizce iptal olur; sadece populateDavaSelect
+    // seçenekleri kurduktan SONRA doğru değeri seçebilir.
     if (id === 'modal-task') {
-      const sel = document.getElementById('t-ilgili');
-      if (sel) {
-        const curVal = sel.value;
-        const davalar = DB.get('davalar') || [];
-        const icralar = DB.get('icralar') || [];
-        sel.innerHTML = '<option value="">— Genel görev (dosya bağlantısı yok) —</option>'
-          + '<optgroup label="📁 Dava Dosyaları">'
-          + davalar.map(d => { var tp = _davaTarafPair(d); return `<option value="${d.no}"${d.no===curVal?' selected':''}>${d.no} — ${escHtml(tp.davaci||'')}${tp.davali?' vs '+escHtml(tp.davali):''} (${d.durum})</option>`; }).join('')
-          + '</optgroup>'
-          + '<optgroup label="⚡ İcra Dosyaları">'
-          + icralar.map(i => `<option value="${i.bki||i.no}"${(i.bki||i.no)===curVal?' selected':''}>${i.bki||i.no} — ${escHtml(i.borclu||'')} (${i.durum})</option>`).join('')
-          + '</optgroup>';
-        if (curVal) sel.value = curVal;
-      }
+      populateDavaSelect(window._taskIlgiliOnac !== undefined ? window._taskIlgiliOnac : undefined);
+      window._taskIlgiliOnac = undefined;
     }
     // Ücret alanlarını YALNIZ yeni kayıt açılışında temizle. Düzenlemede
     // (editingId dolu) editMuvekkil bu alanları az önce doldurdu; burada

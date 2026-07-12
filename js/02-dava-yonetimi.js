@@ -1425,8 +1425,8 @@ function handleTopbarAdd() {
   if (document.getElementById('dava-detail-page').classList.contains('open') && currentDavaId) {
     const dava = DB.get('davalar').find(x => x.id === currentDavaId);
     document.getElementById('modal-task-title').textContent = dava ? `Yeni Görev — ${dava.ad || dava.no}` : 'Yeni Görev';
+    if (dava) window._taskIlgiliOnac = dava.no;
     openModal('modal-task');
-    if (dava) populateDavaSelect(dava.ad || dava.no);
     return;
   }
 
@@ -1434,18 +1434,8 @@ function handleTopbarAdd() {
   if (document.getElementById('icra-detail-page').classList.contains('open') && currentIcraId) {
     const icra = DB.get('icralar').find(x => x.id === currentIcraId);
     document.getElementById('modal-task-title').textContent = icra ? `Yeni Görev — ${icra.bki || icra.no}` : 'Yeni Görev';
-    // önce t-ilgili'yi set et ki openModal curVal olarak alsın
-    const sel0 = document.getElementById('t-ilgili');
-    if (sel0 && icra) sel0.value = icra.bki || icra.no || '';
+    if (icra) window._taskIlgiliOnac = icra.bki || icra.no || '';
     openModal('modal-task');
-    // openModal setTimeout(50) ile dropdown'ı yeniden oluşturuyor, sonra curVal'ı restore ediyor
-    // ama emin olmak için 100ms sonra tekrar set edelim
-    if (icra) {
-      setTimeout(function(){
-        var sel2 = document.getElementById('t-ilgili');
-        if (sel2) sel2.value = icra.bki || icra.no || '';
-      }, 120);
-    }
     return;
   }
 
@@ -2479,7 +2469,7 @@ function renderDavaTab(id, sekme) {
     el.innerHTML = `<div style="padding:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
         <div style="font-size:14px;font-weight:700;color:var(--text)">⚖️ Duruşma Geçmişi & Planı</div>
-        <button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="openModal('modal-task');setTaskTip('durusma');document.getElementById('t-ilgili').value='${escHtml(d.no)}';document.getElementById('t-mahkeme-durusma').value='${escHtml(d.mahkeme||'')}';document.getElementById('t-baslik').value='DURUŞMA'">+ Duruşma Ekle</button>
+        <button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="window._taskIlgiliOnac='${escHtml(d.no)}';openModal('modal-task');setTaskTip('durusma');document.getElementById('t-mahkeme-durusma').value='${escHtml(d.mahkeme||'')}';document.getElementById('t-baslik').value='DURUŞMA'">+ Duruşma Ekle</button>
       </div>
       ${d.sonraki?`<div class="ddp-hero-durusma">
         <div>
@@ -2672,7 +2662,7 @@ function renderDavaTab(id, sekme) {
     el.innerHTML = `<div style="padding:0">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px">
         <div style="font-size:14px;font-weight:700;color:var(--text)">✅ Görevler</div>
-        <button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="openModal('modal-task');document.getElementById('t-ilgili').value='${escHtml(d.no)}'">+ Görev Ekle</button>
+        <button class="btn btn-gold" style="font-size:12px;padding:6px 12px" onclick="window._taskIlgiliOnac='${escHtml(d.no)}';openModal('modal-task')">+ Görev Ekle</button>
       </div>
       <!-- Ö4: Task summary -->
       <div class="ddp-task-summary">
