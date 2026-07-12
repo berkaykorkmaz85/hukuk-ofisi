@@ -978,9 +978,14 @@ function renderTasksByPerson() {
     const grup = gruplar[key];
     const dava = davalar.find(d => d.ad === key || d.no === key);
     const icra = !dava ? icralar.find(i => i.no === key || i.bki === key) : null;
+    let icraAdi = '';
+    if (icra) {
+      const itp = (typeof _icraTarafPair === 'function') ? _icraTarafPair(icra) : { alacakli: icra.muvekkil, borclu: icra.borclu };
+      icraAdi = (itp.alacakli || itp.borclu) ? `${itp.alacakli || '—'} vs ${itp.borclu || '—'}` : icra.no;
+    }
     const baslik = key === '__genel__' ? '📋 Genel Görevler'
       : dava ? `📁 ${dava.ad || dava.no} <span style="font-size:12px;color:var(--text3);font-weight:400">${dava.muvekkil ? '· ' + dava.muvekkil : ''}</span>`
-      : icra ? `⚡ ${icra.no}${icra.borclu ? ' — ' + icra.borclu : ''} <span style="font-size:12px;color:var(--text3);font-weight:400">${icra.muvekkil ? '· ' + icra.muvekkil : ''}</span>`
+      : icra ? `⚡ ${icraAdi} <span style="font-size:12px;color:var(--text3);font-weight:400">(${icra.no})${icra.muvekkil ? ' · ' + icra.muvekkil : ''}</span>`
       : `📁 ${key}`;
 
     const aktif = grup.filter(t => !t.done).length;
