@@ -3200,7 +3200,7 @@ function populateDavaDashCesit() {
 // Renk paleti dosyalara göre (tutarlı)
 var DOSYA_RENKLER = [
   '#1c1a17','#7ab5d4','#7dc495','#9c968d','#e8a04d',
-  '#d4756b','#5fa8a0','#b0c45a','#a882c8','#6ba5d4'
+  '#d4756b','#5fa8a0','#b0c45a','#8a8f98','#6ba5d4'
 ];
 
 function gorevDonut(gorevler, today, boyut) {
