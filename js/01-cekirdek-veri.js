@@ -2470,12 +2470,13 @@ const DAVA_CESITLERI = {
 function updateDavaCesitleri(tur) {
   const wrap = document.getElementById('d-cesit-wrap');
   const sel = document.getElementById('d-cesit');
+  if (!sel) return;
   const cesitler = DAVA_CESITLERI[tur];
   if (!cesitler || cesitler.length === 0) {
-    wrap.style.display = 'none';
+    if (wrap) wrap.style.display = 'none';
     return;
   }
-  wrap.style.display = 'block';
+  if (wrap) wrap.style.display = 'block';
   sel.innerHTML = '<option value="">Seçin...</option>' +
     cesitler.map(c => `<option value="${c === 'Diğer / Manuel Giriş' ? '__diger__' : c}">${c}</option>`).join('');
 }
@@ -2692,12 +2693,18 @@ function onDavaTuruChange() {
 
   // Yargı kolu alanını güncelle
   const turMap = DAVA_TUR_MAP[tur];
-  document.getElementById('d-yargi-kolu').value = turMap ? turMap.yargi : '';
+  const yargiKoluEl = document.getElementById('d-yargi-kolu');
+  if (yargiKoluEl) yargiKoluEl.value = turMap ? turMap.yargi : '';
 
   // Dava çeşitlerini güncelle
   updateDavaCesitleri(tur);
   // Asgari ücret güncelle
   hesaplaVekaletUcreti('dava');
+
+  // d-il / d-sira mevcut formda yok (mahkeme artık tek bir serbest metin
+  // alanı — bkz. d-mahkeme); bu eski il/sıra seçim mantığı yalnızca bu
+  // alanlar gerçekten DOM'da varsa çalışır.
+  if (!ilSel || !siraSel) return;
 
   // Üst derece mahkemelerde il seçimi anlamsız
   const ilsiz = ['Danıştay', 'Yargıtay', 'Anayasa'].includes(tur);
@@ -2725,8 +2732,10 @@ function onDavaTuruChange() {
 
 function onMahkemeIlChange(mod) {
   const tur = mod === 'dava' ? document.getElementById('d-tur').value : 'İcra';
-  const il = document.getElementById(mod === 'dava' ? 'd-il' : 'i-il').value;
+  const ilEl = document.getElementById(mod === 'dava' ? 'd-il' : 'i-il');
   const siraSel = document.getElementById(mod === 'dava' ? 'd-sira' : 'i-sira');
+  if (!ilEl || !siraSel) return;
+  const il = ilEl.value;
 
   if (!il) { siraSel.innerHTML = '<option value="">—</option>'; return; }
 
