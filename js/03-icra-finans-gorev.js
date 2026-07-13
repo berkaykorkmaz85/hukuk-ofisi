@@ -736,7 +736,7 @@ function vuHesapla() {
     + '<div style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text3);font-size:11px">'
     + 'AAÜT ' + tarife.yil + ' · ' + baslik + ' · ' + _vuFmt(tutar) + ',00 TL için VEKALET ÜCRETİ Hesap Tablosu</div>'
     + '<table style="width:100%;border-collapse:collapse">'
-    + '<thead><tr style="background:rgba(28,26,23,0.07)">'
+    + '<thead><tr style="background:rgba(108,71,255,0.07)">'
     + '<th style="text-align:left;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Dilim</th>'
     + '<th style="text-align:center;padding:7px 8px;font-size:11px;color:var(--text3);font-weight:600">Oran</th>'
     + '<th style="text-align:right;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Tutar</th>'
@@ -750,7 +750,7 @@ function vuHesapla() {
       + '</tr>';
   });
 
-  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(28,26,23,0.1)">'
+  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(108,71,255,0.1)">'
     + '<td colspan="2" style="padding:10px 12px;font-size:13px;font-weight:700;color:var(--gold)">' + _vuFmt(tutar) + ',00 TL için TOPLAM</td>'
     + '<td style="padding:10px 12px;text-align:right;font-size:15px;font-family:monospace;font-weight:900;color:var(--gold)">' + _vuFmt(toplamGosterilen) + ',00 TL</td>'
     + '</tr></tfoot></table>';
@@ -996,7 +996,7 @@ function _idpRenderMasraflar(id, i, masraflar) {
     + (masraflar.length === 0
       ? '<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Henüz masraf kaydı yok</div>'
       : masraflar.slice().sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);}).map(function(m){
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.05)">'
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)">'
             + '<div style="width:32px;height:32px;border-radius:8px;background:rgba(192,83,58,0.12);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🧾</div>'
             + '<div style="flex:1;min-width:0">'
             + '<div style="font-size:13px;font-weight:600;color:var(--text2)">'+escHtml(m.tur||'Masraf')+'</div>'
@@ -1071,7 +1071,7 @@ function renderIcraTab(id, sekme) {
       + alacakliDisplay+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+borcluDisplay
       + '</div></div>'
       // Finansal vurgu satırı — Asıl Alacak öne çıkarılmış
-      + '<div style="background:rgba(28,26,23,0.06);border-top:1px solid var(--border)"><div style="padding:12px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div></div>'
+      + '<div style="background:rgba(201,168,76,0.06);border-top:1px solid var(--border)"><div style="padding:12px 20px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Asıl Alacak</div><div style="font-size:19px;color:var(--gold);font-weight:800;font-family:monospace">₺'+fmt(i.alacak)+'</div></div></div>'
       // İdari bilgi satırı — ikincil, sade
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border)">'
       + '<div style="padding:8px 20px;border-right:1px solid var(--border)"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px">İcra Müdürlüğü</div><div style="font-size:12px;color:var(--text2);font-weight:500">'+escHtml(i.mudurluk||'—')+'</div></div>'
@@ -1101,7 +1101,7 @@ function renderIcraTab(id, sekme) {
       + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">💰 Finansal Durum</div>'
       // T3: 4 KPI cards with colored borders
       + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
-      + '<div style="background:var(--bg3);border:1px solid rgba(28,26,23,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asıl Alacak</div><div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
+      + '<div style="background:var(--bg3);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asıl Alacak</div><div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid rgba(74,140,92,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tahsil Edilen</div><div style="font-size:16px;font-weight:800;color:var(--green);font-family:monospace">₺'+fmt(i.tahsilEdilen||0)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid rgba(192,83,58,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Toplam Masraf</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplamMasraf)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid '+(netKazanc>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.3)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Net Kazanç</div><div style="font-size:16px;font-weight:800;color:'+(netKazanc>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(netKazanc>=0?'+':'')+'₺'+fmt(Math.abs(netKazanc))+'</div></div>'
@@ -1135,13 +1135,13 @@ function renderIcraTab(id, sekme) {
       var isSet = !!val;
       var inputId = 'th-' + id + '-' + key;
       var displayVal = val ? val.split('-').reverse().join('.') : '';
-      return '<div style="background:var(--bg3);border:1px solid '+(isSet?'rgba(28,26,23,0.35)':'var(--border)')+';border-radius:8px;padding:10px">'
+      return '<div style="background:var(--bg3);border:1px solid '+(isSet?'rgba(201,168,76,0.35)':'var(--border)')+';border-radius:8px;padding:10px">'
         + '<div style="font-size:10px;color:'+(isSet?'var(--gold)':'var(--text3)')+';text-transform:uppercase;letter-spacing:0.05em;margin-bottom:7px;font-weight:600">'+escHtml(label)+'</div>'
         + '<div style="display:flex;gap:4px;margin-bottom:6px">'
         + '<input id="'+inputId+'" type="text" inputmode="numeric" placeholder="GG.AA.YYYY" value="'+displayVal+'" oninput="hacizTarihFormat(this)" onblur="hacizTarihKaydet(this,\''+id+'\',\''+key+'\')" onkeydown="if(event.key===\'Enter\'){this.blur()}" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:15px;padding:8px 10px;outline:none;cursor:text;font-family:monospace;letter-spacing:0.05em">'
         + '<input type="date" style="width:36px;padding:0;background:none;border:none;color:transparent;cursor:pointer;position:relative;margin-left:-40px;opacity:0.01" onchange="var v=this.value;if(v){var d=v.split(\'-\').reverse().join(\'.\');this.previousElementSibling.value=d;hacizTarihKaydet(this.previousElementSibling,\''+id+'\',\''+key+'\')}">'
         + '</div>'
-        + '<button onclick="var t=new Date().toISOString().slice(0,10);var d=t.split(\'-\').reverse().join(\'.\');document.getElementById(\''+inputId+'\').value=d;saveIcraHaciz(\''+id+'\',\''+key+'\',t);renderIcraTab(\''+id+'\',\'haciz\')" style="width:100%;background:rgba(28,26,23,0.1);border:1px solid rgba(28,26,23,0.3);border-radius:6px;color:var(--gold);font-size:11px;padding:5px 8px;cursor:pointer;text-align:center">📅 Bugün</button>'
+        + '<button onclick="var t=new Date().toISOString().slice(0,10);var d=t.split(\'-\').reverse().join(\'.\');document.getElementById(\''+inputId+'\').value=d;saveIcraHaciz(\''+id+'\',\''+key+'\',t);renderIcraTab(\''+id+'\',\'haciz\')" style="width:100%;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);border-radius:6px;color:var(--gold);font-size:11px;padding:5px 8px;cursor:pointer;text-align:center">📅 Bugün</button>'
         + '</div>';
     };
 
@@ -1160,11 +1160,11 @@ function renderIcraTab(id, sekme) {
       + '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">⚖️ Haciz & Takip</div>'
       // Ö5: Dashboard özet
       + '<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">'
-      + '<span style="font-size:11px;background:rgba(28,26,23,0.1);color:var(--gold);padding:4px 10px;border-radius:6px;font-weight:600">🏦 '+seciliBanka+' banka</span>'
+      + '<span style="font-size:11px;background:rgba(201,168,76,0.1);color:var(--gold);padding:4px 10px;border-radius:6px;font-weight:600">🏦 '+seciliBanka+' banka</span>'
       + '<span style="font-size:11px;background:rgba(125,196,149,0.1);color:var(--green);padding:4px 10px;border-radius:6px;font-weight:600">🏘 '+tasinmazlar.length+' taşınmaz</span>'
       + '<span style="font-size:11px;background:rgba(122,181,212,0.1);color:#7ab5d4;padding:4px 10px;border-radius:6px;font-weight:600">🚗 '+araclar.length+' araç</span>'
       + (hacizData.maasHaczi?'<span style="font-size:11px;background:rgba(74,140,92,0.15);color:var(--green);padding:4px 10px;border-radius:6px;font-weight:600">💼 Maaş haczi aktif</span>':'')
-      + '<span style="font-size:11px;background:rgba(0,0,0,0.05);color:var(--text3);padding:4px 10px;border-radius:6px;font-weight:600">📅 '+tamamlanan+'/'+tlItems.length+' tarih</span>'
+      + '<span style="font-size:11px;background:rgba(255,255,255,0.06);color:var(--text3);padding:4px 10px;border-radius:6px;font-weight:600">📅 '+tamamlanan+'/'+tlItems.length+' tarih</span>'
       + '</div>'
       // T4: Timeline
       + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;font-weight:700">📅 Takip Aşamaları</div>'
@@ -1177,7 +1177,7 @@ function renderIcraTab(id, sekme) {
         var lineOpacity = idx < tlItems.length-1 ? '1' : '0';
         return '<div style="display:flex;gap:12px;align-items:flex-start;position:relative">'
           + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px">'
-          + '<div style="width:10px;height:10px;border-radius:50%;background:'+dotColor+';margin-top:5px'+(isSet?'':';box-shadow:0 0 0 3px rgba(28,26,23,0.2)')+'"></div>'
+          + '<div style="width:10px;height:10px;border-radius:50%;background:'+dotColor+';margin-top:5px'+(isSet?'':';box-shadow:0 0 0 3px rgba(201,168,76,0.2)')+'"></div>'
           + '<div style="width:1px;flex:1;background:var(--border);margin-top:2px;opacity:'+lineOpacity+'"></div>'
           + '</div>'
           + '<div style="flex:1;padding-bottom:12px">'
@@ -1253,7 +1253,7 @@ function renderIcraTab(id, sekme) {
     el.innerHTML = '<div style="padding:16px;max-width:560px">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
       + '<div style="font-size:14px;font-weight:700;color:var(--text)">🧮 Kapak Hesabı</div>'
-      + '<button onclick="icraKapakYenile(\''+id+'\')" style="display:flex;align-items:center;gap:6px;background:rgba(28,26,23,0.12);border:1px solid rgba(28,26,23,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer">🔄 Yenile & Hesapla</button>'
+      + '<button onclick="icraKapakYenile(\''+id+'\')" style="display:flex;align-items:center;gap:6px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.35);border-radius:8px;color:var(--gold);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer">🔄 Yenile & Hesapla</button>'
       + '</div>'
       // Faiz parametreleri kutusu
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">'
@@ -1277,17 +1277,17 @@ function renderIcraTab(id, sekme) {
       + kalemler.map(function(k) {
           var isReadonly = k.key === 'islemiFaiz' && gosterilecekFaiz !== null;
           var displayVal = isReadonly ? gosterilecekFaiz : escAttr(kd[k.key]||'');
-          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(0,0,0,0.05)">'
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04)">'
             + '<span style="font-size:16px;width:22px;text-align:center;flex-shrink:0">'+k.icon+'</span>'
             + '<div style="flex:1;font-size:13px;color:var(--text2)">'+escHtml(k.label)+'</div>'
             + (isReadonly
-              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(28,26,23,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(gosterilecekFaiz))+'</div>'
+              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(201,168,76,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(gosterilecekFaiz))+'</div>'
               : '<input type="text" inputmode="decimal" value="'+displayVal+'" placeholder="0,00" onchange="icraKapakKaydet(\''+id+'\',\''+k.key+'\',this.value)" style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:6px 10px;outline:none;text-align:right;font-family:monospace">')
             + '</div>';
         }).join('')
       + '</div>'
       // Toplam alacak kutusu
-      + '<div style="background:rgba(28,26,23,0.08);border:1.5px solid rgba(28,26,23,0.4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="background:rgba(201,168,76,0.08);border:1.5px solid rgba(201,168,76,0.4);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">'
       + '<div style="font-size:14px;font-weight:700;color:var(--gold)">Toplam Alacak</div>'
       + '<div style="font-size:20px;font-weight:800;color:var(--gold);font-family:monospace">'+fmtTL(toplam)+'</div>'
       + '</div>'
@@ -1827,12 +1827,12 @@ function showMuvekkilDetail(id) {
 
     <!-- Profil kartı -->
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center">
-      <div style="width:64px;height:64px;border-radius:50%;background:rgba(28,26,23,0.15);border:2px solid rgba(28,26,23,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">${isKurumsal?'🏢':'👤'}</div>
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(201,168,76,0.15);border:2px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">${isKurumsal?'🏢':'👤'}</div>
       <div style="font-size:18px;font-weight:700;color:var(--text)">${escHtml(mv.ad)}</div>
       ${mv.sektor?`<div style="font-size:12px;color:var(--text3);margin-top:3px">${escHtml(mv.sektor)}</div>`:''}
       <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
         <span style="font-size:11px;background:${isKurumsal?'rgba(58,107,140,0.2)':'rgba(74,140,92,0.15)'};color:${isKurumsal?'#7ab5d4':'var(--green)'};padding:3px 10px;border-radius:10px;font-weight:600">${isKurumsal?'Kurumsal':'Bireysel'}</span>
-        <span style="font-size:11px;background:rgba(28,26,23,0.1);color:var(--gold);padding:3px 10px;border-radius:10px;font-weight:600">${davalar.length} Dava · ${icralar.length} İcra</span>
+        <span style="font-size:11px;background:rgba(201,168,76,0.1);color:var(--gold);padding:3px 10px;border-radius:10px;font-weight:600">${davalar.length} Dava · ${icralar.length} İcra</span>
       </div>
     </div>
 
@@ -1840,9 +1840,9 @@ function showMuvekkilDetail(id) {
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">İletişim</div>
       <div style="padding:8px 0">
-        ${mv.tel?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3);font-size:16px">📞</span><div><div style="font-size:11px;color:var(--text3)">Telefon</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.tel)}</div></div></div>`:''}
-        ${mv.email?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3);font-size:16px">✉️</span><div><div style="font-size:11px;color:var(--text3)">E-posta</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.email)}</div></div></div>`:''}
-        ${mv.tc?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:var(--text3);font-size:16px">🪪</span><div><div style="font-size:11px;color:var(--text3)">${isKurumsal?'Vergi No':'TC No'}</div><div style="font-size:13px;color:var(--text);font-family:monospace">${escHtml(mv.tc)}</div></div></div>`:''}
+        ${mv.tel?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--text3);font-size:16px">📞</span><div><div style="font-size:11px;color:var(--text3)">Telefon</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.tel)}</div></div></div>`:''}
+        ${mv.email?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--text3);font-size:16px">✉️</span><div><div style="font-size:11px;color:var(--text3)">E-posta</div><div style="font-size:13px;color:var(--text)">${escHtml(mv.email)}</div></div></div>`:''}
+        ${mv.tc?`<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><span style="color:var(--text3);font-size:16px">🪪</span><div><div style="font-size:11px;color:var(--text3)">${isKurumsal?'Vergi No':'TC No'}</div><div style="font-size:13px;color:var(--text);font-family:monospace">${escHtml(mv.tc)}</div></div></div>`:''}
         ${mv.adres?`<div style="display:flex;align-items:start;gap:10px;padding:8px 16px"><span style="color:var(--text3);font-size:16px">📍</span><div><div style="font-size:11px;color:var(--text3)">Adres</div><div style="font-size:13px;color:var(--text);line-height:1.4">${escHtml(mv.adres)}</div></div></div>`:''}
       </div>
     </div>
@@ -1895,7 +1895,7 @@ function showMuvekkilDetail(id) {
       <!-- CARİ 1: Ücret Carisi -->
       <div style="padding:10px 16px;border-bottom:1px solid var(--border)">
         <div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">⚖️ Ücret Carisi</div>
-        ${anlaşılan===0?`<div style="padding:8px 12px;background:rgba(28,26,23,0.08);border:1px solid rgba(28,26,23,0.2);border-radius:8px;font-size:12px;color:var(--text3)">💡 Anlaşılan tutar girilmemiş. Müvekkilin "Düzenle" butonundan veya yukarıdaki butona basarak girebilirsiniz.</div>`
+        ${anlaşılan===0?`<div style="padding:8px 12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:8px;font-size:12px;color:var(--text3)">💡 Anlaşılan tutar girilmemiş. Müvekkilin "Düzenle" butonundan veya yukarıdaki butona basarak girebilirsiniz.</div>`
         :`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden">
           ${[
             {l:'Anlaşılan',v:'₺'+fmt(anlaşılan),c:'var(--gold)'},
@@ -1959,7 +1959,7 @@ function showMuvekkilDetail(id) {
       html += '<div id="mv-fin-cards">';
       rows.forEach(function(r){
         var pct = r.anl>0 ? Math.min(Math.round(r.tah/r.anl*100),100) : 0;
-        html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(0,0,0,0.03)\'" onmouseout="this.style.background=\'\'">';
+        html += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'\'">';
         html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
         html += '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;font-weight:700;color:var(--gold);font-family:monospace">'+escHtml(r.no)+'</span>';
         html += '<span class="tag tag-'+(r.durum==='Aktif'?'aktif':r.durum==='Bekliyor'?'bekliyor':'kapali')+'" style="font-size:9px">'+escHtml(r.durum)+'</span></div>';
@@ -1985,7 +1985,7 @@ function showMuvekkilDetail(id) {
       });
       html += '</tr></thead><tbody>';
       rows.forEach(function(r){
-        html += '<tr style="border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(0,0,0,0.03)\'" onmouseout="this.style.background=\'\'">';
+        html += '<tr style="border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer" onclick="openDavaDetailPage(\''+r.id+'\')" onmouseover="this.style.background=\'rgba(255,255,255,0.03)\'" onmouseout="this.style.background=\'\'">';
         html += '<td style="padding:8px 12px;font-weight:700;color:var(--gold);font-family:monospace">'+escHtml(r.no)+'</td>';
         html += '<td style="padding:8px 12px;color:var(--text);font-family:monospace">₺'+fmt(r.anl)+'</td>';
         html += '<td style="padding:8px 12px;color:var(--green);font-family:monospace">₺'+fmt(r.tah)+'</td>';
@@ -1994,7 +1994,7 @@ function showMuvekkilDetail(id) {
         html += '</tr>';
       });
       // Totals row
-      html += '<tr style="border-top:2px solid var(--gold);background:rgba(28,26,23,0.06)">';
+      html += '<tr style="border-top:2px solid var(--gold);background:rgba(201,168,76,0.06)">';
       html += '<td style="padding:10px 12px;font-weight:700;color:var(--gold)">TOPLAM</td>';
       html += '<td style="padding:10px 12px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(gtAnl)+'</td>';
       html += '<td style="padding:10px 12px;font-weight:800;color:var(--green);font-family:monospace">₺'+fmt(gtTah)+'</td>';
@@ -2003,7 +2003,7 @@ function showMuvekkilDetail(id) {
       html += '</tr>';
       html += '</tbody></table></div>';
       // Grand totals in card view
-      html += '<div style="padding:12px 16px;background:rgba(28,26,23,0.06);border-top:2px solid rgba(28,26,23,0.3)">';
+      html += '<div style="padding:12px 16px;background:rgba(201,168,76,0.06);border-top:2px solid rgba(201,168,76,0.3)">';
       html += '<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">GENEL TOPLAM ('+rows.length+' DAVA)</div>';
       html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:6px;overflow:hidden">';
       [{l:'Anlaşılan',v:gtAnl,c:'var(--gold)'},{l:'Tahsil',v:gtTah,c:'var(--green)'},{l:'Masraf',v:gtMas,c:'var(--red)'},{l:'Net Kâr/Zarar',v:gtNet,c:gtNet>=0?'var(--green)':'var(--red)'}].forEach(function(x){
@@ -2023,7 +2023,7 @@ function showMuvekkilDetail(id) {
       ${davalar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">Dava dosyası yok</div>'
         : davalar.sort((a,b)=>a.durum==='Aktif'?-1:1).map(d=>`
-          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer" onclick="openDavaDetailPage('${d.id}')" onmouseover="this.style.background='rgba(0,0,0,0.03)'" onmouseout="this.style.background=''">
+          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);cursor:pointer" onclick="openDavaDetailPage('${d.id}')" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
             <span style="font-size:12px;color:var(--gold);font-weight:700;font-family:monospace">${escHtml(d.no)}</span>
             <div><div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(d.muvekkil)}${d.karsi?' <span style="color:var(--text3)">vs</span> '+escHtml(d.karsi):''}</div><div style="font-size:11px;color:var(--text3)">${escHtml((d.mahkeme||'').replace('Mahkemesi','Mhk.'))}</div></div>
             <span class="tag tag-${d.durum==='Aktif'?'aktif':d.durum==='Bekliyor'?'bekliyor':'kapali'}" style="font-size:11px">${d.durum}</span>
@@ -2040,7 +2040,7 @@ function showMuvekkilDetail(id) {
       ${icralar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">İcra dosyası yok</div>'
         : icralar.sort((a,b)=>a.durum==='Aktif'?-1:1).map(i=>`
-          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(0,0,0,0.05)">
+          <div style="display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
             <span style="font-size:12px;color:var(--gold);font-weight:700;font-family:monospace">${escHtml(i.bki||i.no)}</span>
             <div><div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(i.borclu)}</div><div style="font-size:11px;color:var(--text3)">${escHtml(i.mudurluk||'')}${i.esas?' · '+escHtml(i.esas):''}</div></div>
             <div style="text-align:right"><div style="font-size:12px;font-weight:700;color:var(--gold);font-family:monospace">₺${fmt(i.alacak)}</div><span class="tag tag-${i.durum==='Aktif'?'aktif':'kapali'}" style="font-size:10px">${i.durum}</span></div>
@@ -2053,7 +2053,7 @@ function showMuvekkilDetail(id) {
       var html = '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px">';
       html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">⚖️ Karşı Taraf Vekalet Ücreti</div>';
       if (kvTahsil.length > 0) {
-        html += '<div style="padding:8px 16px;border-bottom:1px solid rgba(0,0,0,0.05)">';
+        html += '<div style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">';
         html += '<div style="font-size:10px;color:var(--green);font-weight:700;margin-bottom:6px">✓ TAHSİL EDİLDİ</div>';
         kvTahsil.forEach(function(f) {
           var ilgiliDavaTahsil = (DB.get('davalar')||[]).find(function(d){
@@ -2078,7 +2078,7 @@ function showMuvekkilDetail(id) {
                    d.ad === (f.ilgili||'');
           });
           var karsiTaraf = ilgiliDava ? (ilgiliDava.karsi||'—') : (f.aciklama||f.ilgili||'—');
-          html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05)">';
+          html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04)">';
           html += '<div><div style="font-size:12px;font-weight:600;color:var(--text)">' + escHtml(karsiTaraf) + '</div>';
           html += '<div style="font-size:10px;color:var(--text3)">' + escHtml(f.ilgili||'') + ' · ' + fmtDate(f.tarih) + '</div></div>';
           html += '<span style="font-size:12px;font-weight:700;color:var(--gold);font-family:monospace">₺' + fmt(f.tutar) + '</span></div>';
@@ -2097,7 +2097,7 @@ function showMuvekkilDetail(id) {
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text)">💸 Son İşlemler</div>
       ${finans.filter(f=>f.tur!=='Karşı Vekalet Ücreti'&&f.tur!=='Taksit Planı').sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5).map(f=>{
         const isG=['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur);
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(0,0,0,0.05)">
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
           <div style="width:30px;height:30px;border-radius:7px;background:${isG?'rgba(74,140,92,0.15)':'rgba(192,83,58,0.15)'};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${isG?'↗':'↘'}</div>
           <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text2)">${escHtml(f.tur)}</div><div style="font-size:11px;color:var(--text3)">${fmtDate(f.tarih)}${f.aciklama?' · '+escHtml(f.aciklama):''}</div></div>
           <span style="font-size:12px;font-weight:700;color:${isG?'var(--green)':'var(--red)'};font-family:monospace;flex-shrink:0">${isG?'+':'−'}₺${fmt(f.tutar)}</span>
@@ -2342,7 +2342,7 @@ function opTaksitUret() {
   }
 
   listEl.innerHTML = rows.map(function(r){
-    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid rgba(0,0,0,0.05)">'
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.04)">'
       +'<span style="font-size:12px;font-weight:700;color:var(--text3);min-width:80px">'+r.label+'</span>'
       +'<span style="font-size:12px;color:var(--text3)">'+fmtDateShort(r.tarih)+'</span>'
       +'<span style="font-size:13px;font-weight:700;color:var(--gold);font-family:monospace;margin-left:auto">₺'+fmt(r.tutar)+'</span>'
@@ -2461,11 +2461,11 @@ function renderOdemePlanlari() {
         var dt = new Date(t.tarih+'T00:00:00');
         var gecikti = t.durum==='bekliyor' && dt<today;
         var clr = t.durum==='odendi'?'var(--green)':gecikti?'var(--red)':'var(--text)';
-        return '<div class="odeme-taksit-row" style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(0,0,0,0.05)">'
+        return '<div class="odeme-taksit-row" style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,0.04)">'
           +'<span style="font-size:11px;font-weight:700;color:var(--text3);min-width:70px">'+escHtml(t.label)+'</span>'
           +'<span style="font-size:12px;color:'+(gecikti?'var(--red)':'var(--text3)')+'">'+fmtDateShort(t.tarih)+(gecikti?' ⚠':'')+'</span>'
           +'<span style="font-size:13px;font-weight:700;color:'+clr+';font-family:monospace;flex:1;text-align:right">₺'+fmt(t.tutar)+'</span>'
-          +'<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:inherit;border:1px solid '+(t.durum==='odendi'?'rgba(74,140,92,0.3)':'var(--border)')+';background:'+(t.durum==='odendi'?'rgba(74,140,92,0.12)':'rgba(0,0,0,0.05)')+';color:'+(t.durum==='odendi'?'var(--green)':'var(--text2)')+'" data-taksit-plan="'+plan.id+'" data-taksit-idx="'+idx+'">'+(t.durum==='odendi'?'✅ Ödendi':'✓ Öde')+'</button>'
+          +'<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:inherit;border:1px solid '+(t.durum==='odendi'?'rgba(74,140,92,0.3)':'var(--border)')+';background:'+(t.durum==='odendi'?'rgba(74,140,92,0.12)':'rgba(255,255,255,0.05)')+';color:'+(t.durum==='odendi'?'var(--green)':'var(--text2)')+'" data-taksit-plan="'+plan.id+'" data-taksit-idx="'+idx+'">'+(t.durum==='odendi'?'✅ Ödendi':'✓ Öde')+'</button>'
           +'</div>';
       }).join('')
       +'</div></div>';
@@ -2492,7 +2492,7 @@ function renderOdemePlanlari() {
         +'</div>'
         +'<div>'
         +plan.taksitler.map(function(t){
-          return '<div style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:8px 18px;border-bottom:1px solid rgba(0,0,0,0.05)">'
+          return '<div style="display:grid;grid-template-columns:90px 1fr 1fr auto;gap:10px;align-items:center;padding:8px 18px;border-bottom:1px solid rgba(255,255,255,0.04)">'
             +'<span style="font-size:11px;font-weight:700;color:var(--text3)">'+escHtml(t.label)+'</span>'
             +'<span style="font-size:12px;color:var(--text3)">'+fmtDateShort(t.tarih)+'</span>'
             +'<span style="font-size:13px;font-weight:700;color:var(--green);font-family:monospace;text-align:right">₺'+fmt(t.tutar)+'</span>'
@@ -2674,7 +2674,7 @@ function renderKarsiVekalet() {
           var durumLabel=durum==='tamam'?'✓ Tahsil Edildi':durum==='kismen'?'Kısmen Tahsil':'⏳ Bekliyor (İcra)';
           var odeBtn = durum!=='tamam'
             ? '<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;background:rgba(74,140,92,0.15);border:1px solid rgba(74,140,92,0.3);color:var(--green);margin-right:4px" onclick="karsiVekaletOde(\'' + f.id + '\')">✓ Öde</button>'
-            : '<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;background:rgba(0,0,0,0.05);border:1px solid var(--border);color:var(--text3);margin-right:4px" onclick="karsiVekaletOde(\'' + f.id + '\')">↩ Geri Al</button>';
+            : '<button style="font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text3);margin-right:4px" onclick="karsiVekaletOde(\'' + f.id + '\')">↩ Geri Al</button>';
           // Karşı tarafı bul — önce kayıtlı karsiTaraf, yoksa ilgili dosyadan çöz
           var karsiTaraf = f.karsiTaraf || '';
           if (!karsiTaraf) {
@@ -2742,7 +2742,7 @@ function _avansKasaDetayHTML(mvAd) {
   var harcananIcra = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mvAd;});
 
   function satir(tarih, aciklama, tutar, pozitif, silOnclick) {
-    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05);font-size:12px">'
+    return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px">'
       + '<span style="color:var(--text3);font-family:monospace;width:80px;flex-shrink:0">'+fmtDate(tarih)+'</span>'
       + '<span style="flex:1;color:var(--text2)">'+escHtml(aciklama||'—')+'</span>'
       + '<span style="font-family:monospace;font-weight:700;color:'+(pozitif?'#7ab5d4':'var(--red)')+'">'+(pozitif?'+':'−')+'₺'+fmt(tutar)+'</span>'
@@ -2965,12 +2965,12 @@ function renderFinans() {
       if (!ctx2) return;
       if (window._finansAylikChart) { try { window._finansAylikChart.destroy(); } catch(e) {} }
       window._finansAylikChart = new Chart(ctx2, {
-        type: 'line',
+        type: 'bar',
         data: {
           labels: aylar.map(a => a.label),
           datasets: [
-            { label: 'Tahsilat', data: aylar.map(a => a.tah), backgroundColor: 'rgba(74,140,92,0.13)', borderColor: '#4a8c5c', fill: 'origin', tension: 0.4, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#4a8c5c', pointBorderColor: '#ffffff', pointBorderWidth: 1.5 },
-            { label: 'Masraf',   data: aylar.map(a => a.mas), backgroundColor: 'rgba(192,83,58,0.12)', borderColor: '#c0533a', fill: 'origin', tension: 0.4, borderWidth: 2.5, pointRadius: 3, pointHoverRadius: 5, pointBackgroundColor: '#c0533a', pointBorderColor: '#ffffff', pointBorderWidth: 1.5 }
+            { label: 'Tahsilat', data: aylar.map(a => a.tah), backgroundColor: 'rgba(74,140,92,0.7)', borderColor: '#4a8c5c', borderWidth: 1, borderRadius: 4 },
+            { label: 'Masraf',   data: aylar.map(a => a.mas), backgroundColor: 'rgba(192,83,58,0.6)', borderColor: '#c0533a', borderWidth: 1, borderRadius: 4 }
           ]
         },
         options: {
@@ -2979,8 +2979,8 @@ function renderFinans() {
           hover: { mode: 'index', intersect: false },
           interaction: { mode: 'index', intersect: false },
           scales: {
-            x: { grid: { display: false }, ticks: { color: '#9c968d', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { color: '#9c968d', font: { size: 11 }, callback: function(v) { return '₺'+fmt(v); } } }
+            x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 }, callback: function(v) { return '₺'+fmt(v); } } }
           },
           plugins: {
             legend: { display: false },
@@ -2988,13 +2988,12 @@ function renderFinans() {
               enabled: true,
               mode: 'index',
               intersect: false,
-              backgroundColor: 'rgba(28,26,23,0.95)',
-              borderColor: 'transparent',
-              borderWidth: 0,
-              titleColor: '#ffffff',
-              bodyColor: 'rgba(255,255,255,0.85)',
+              backgroundColor: 'rgba(33,31,27,0.97)',
+              borderColor: '#c9a84c',
+              borderWidth: 1,
+              titleColor: '#f0ead8',
+              bodyColor: '#a89f8a',
               padding: 10,
-              cornerRadius: 8,
               callbacks: {
                 label: function(ctx) { return ' ' + ctx.dataset.label + ': ₺' + fmt(ctx.raw); },
                 afterBody: function(items) {
@@ -3256,9 +3255,9 @@ function renderTasks() {
 
     var kpis = [
       {icon:'🔥', label:'Gecikmiş', val:geciken, clr:'var(--red)', bg:'rgba(192,83,58,0.1)', border:'rgba(192,83,58,0.3)'},
-      {icon:'📍', label:'Bugün', val:bugunku, clr:'var(--gold)', bg:'rgba(28,26,23,0.08)', border:'rgba(28,26,23,0.25)'},
+      {icon:'📍', label:'Bugün', val:bugunku, clr:'var(--gold)', bg:'rgba(201,168,76,0.08)', border:'rgba(201,168,76,0.25)'},
       {icon:'📅', label:'Bu Hafta', val:buHaftaki, clr:'#7ab5d4', bg:'rgba(122,181,212,0.08)', border:'rgba(122,181,212,0.25)'},
-      {icon:'📋', label:'Toplam Bekleyen', val:totalBekleyen, clr:'var(--text2)', bg:'rgba(0,0,0,0.03)', border:'var(--border)'},
+      {icon:'📋', label:'Toplam Bekleyen', val:totalBekleyen, clr:'var(--text2)', bg:'rgba(255,255,255,0.03)', border:'var(--border)'},
       {icon:'✅', label:'Tamamlanan', val:tamamYuzde+'%', clr:'var(--green)', bg:'rgba(74,140,92,0.08)', border:'rgba(74,140,92,0.25)'},
     ];
     kpiBar.innerHTML = kpis.map(function(k){
@@ -3307,8 +3306,8 @@ function renderTasks() {
     var btn = document.createElement('button');
     var isActive = activeTab === tab.id;
     btn.style.cssText = 'padding:8px 14px;background:'+(isActive?'var(--bg)':'transparent')+';border:'+(isActive?'1px solid var(--border)':'1px solid transparent')+';border-radius:9px;color:'+(isActive?tab.clr:'var(--text3)')+';font-size:12px;font-weight:'+(isActive?'700':'500')+';cursor:pointer;white-space:nowrap;font-family:inherit;transition:all 0.15s;display:flex;align-items:center;gap:6px'+(isActive?';box-shadow:0 1px 3px rgba(0,0,0,0.2)':'');
-    btn.innerHTML = tab.label+(tab.count?'<span style="background:'+(isActive?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.05)')+';border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;min-width:18px;text-align:center">'+tab.count+'</span>':'');
-    btn.onmouseover = function(){ if(!isActive) this.style.background='rgba(0,0,0,0.05)'; };
+    btn.innerHTML = tab.label+(tab.count?'<span style="background:'+(isActive?'rgba(255,255,255,0.12)':'rgba(255,255,255,0.06)')+';border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;min-width:18px;text-align:center">'+tab.count+'</span>':'');
+    btn.onmouseover = function(){ if(!isActive) this.style.background='rgba(255,255,255,0.04)'; };
     btn.onmouseout  = function(){ if(!isActive) this.style.background='transparent'; };
     btn.onclick = (function(tabId){ return function(){
       listEl.dataset.activeTab = tabId;
@@ -3343,15 +3342,15 @@ function renderTasks() {
 
     // Öncelik renkleri
     var prClr = t.oncelik==='Acil'?'var(--red)':t.oncelik==='Yüksek'?'var(--gold)':'rgba(74,140,92,0.6)';
-    var prBg = t.oncelik==='Acil'?'rgba(192,83,58,0.12)':t.oncelik==='Yüksek'?'rgba(28,26,23,0.08)':'rgba(74,140,92,0.06)';
+    var prBg = t.oncelik==='Acil'?'rgba(192,83,58,0.12)':t.oncelik==='Yüksek'?'rgba(201,168,76,0.08)':'rgba(74,140,92,0.06)';
 
     // Kart border sol kenar rengi — öncelik göstergesi
     var borderLeft = t.done ? 'var(--green)' : (gecikti ? 'var(--red)' : prClr);
 
     var card = document.createElement('div');
-    card.style.cssText = 'background:var(--bg2);border:1px solid '+(gecikti?'rgba(192,83,58,0.3)':isToday?'rgba(28,26,23,0.25)':'var(--border)')+';border-left:3px solid '+borderLeft+';border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start'+(t.done?';opacity:0.55':'');
+    card.style.cssText = 'background:var(--bg2);border:1px solid '+(gecikti?'rgba(192,83,58,0.3)':isToday?'rgba(201,168,76,0.25)':'var(--border)')+';border-left:3px solid '+borderLeft+';border-radius:10px;padding:12px 16px;cursor:pointer;transition:all 0.15s;display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start'+(t.done?';opacity:0.55':'');
     card.style.animationDelay = (idx * 20) + 'ms';
-    card.onmouseover = function(){ this.style.background='rgba(0,0,0,0.05)';this.style.transform='translateX(2px)'; };
+    card.onmouseover = function(){ this.style.background='rgba(255,255,255,0.04)';this.style.transform='translateX(2px)'; };
     card.onmouseout  = function(){ this.style.background='var(--bg2)';this.style.transform=''; };
     card.onclick = function(){ gorevDetayAc(t.id); };
 
@@ -3399,11 +3398,11 @@ function renderTasks() {
     // Aksiyon butonları
     var acts = document.createElement('div');
     acts.style.cssText = 'display:flex;gap:2px;opacity:0.4;transition:opacity 0.15s';
-    card.onmouseover = (function(actsRef, cardRef){ return function(){ actsRef.style.opacity='1';cardRef.style.background='rgba(0,0,0,0.05)';cardRef.style.transform='translateX(2px)'; }; })(acts, card);
+    card.onmouseover = (function(actsRef, cardRef){ return function(){ actsRef.style.opacity='1';cardRef.style.background='rgba(255,255,255,0.04)';cardRef.style.transform='translateX(2px)'; }; })(acts, card);
     card.onmouseout = (function(actsRef, cardRef){ return function(){ actsRef.style.opacity='0.4';cardRef.style.background='var(--bg2)';cardRef.style.transform=''; }; })(acts, card);
 
     var editBtn = document.createElement('button');
-    editBtn.style.cssText='font-size:11px;padding:4px 8px;background:rgba(0,0,0,0.05);border:1px solid var(--border);border-radius:6px;color:var(--text3);cursor:pointer;font-family:inherit';
+    editBtn.style.cssText='font-size:11px;padding:4px 8px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:6px;color:var(--text3);cursor:pointer;font-family:inherit';
     editBtn.textContent='✏'; editBtn.onclick=function(e){e.stopPropagation();editTask(t.id);};
     var delBtn = document.createElement('button');
     delBtn.style.cssText='font-size:11px;padding:4px 8px;background:rgba(192,83,58,0.06);border:1px solid rgba(192,83,58,0.2);border-radius:6px;color:var(--red);cursor:pointer;font-family:inherit';
@@ -3608,7 +3607,7 @@ function _saveTaskInner() {
       showConfirmModal(
         '⚠️ Aynı tarih ve saatte (' + fmtDate(obj.tarih.slice(0,10)) + ' saat ' + obj.tarih.slice(11,16) + ') zaten kayıtlı duruşma(lar) var:<br><br>' + detay + '<br><br>Yine de kaydetmek istiyor musunuz?',
         function() { _saveTaskFinalize(obj, tip); },
-        { okLabel: 'Yine de Kaydet', okBg: 'rgba(28,26,23,0.85)', okBorder: 'rgba(28,26,23,0.4)', icon: '⚖️', iconBg: 'rgba(28,26,23,0.15)', iconBorder: 'rgba(28,26,23,0.3)' }
+        { okLabel: 'Yine de Kaydet', okBg: 'rgba(201,168,76,0.85)', okBorder: 'rgba(201,168,76,0.4)', icon: '⚖️', iconBg: 'rgba(201,168,76,0.15)', iconBorder: 'rgba(201,168,76,0.3)' }
       );
       return;
     }
@@ -3867,7 +3866,7 @@ function _uyapRenderPreview() {
       ? '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(192,83,58,0.12);color:var(--red)">zaten takvimde</span>'
       : r.eslesenId
         ? '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(74,163,110,0.12);color:var(--green)">dosya: ' + escHtml(r.eslesenNo) + '</span>'
-        : '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(28,26,23,0.15);color:var(--gold)">dosya sende yok</span>';
+        : '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(201,168,76,0.15);color:var(--gold)">dosya sende yok</span>';
     var ana = _uyapAnaTaraflar(r.taraflar).map(function(t){ return (t.rol ? t.rol + ' ' : '') + escHtml(t.ad); }).join(', ') || '—';
     var when = r.tarihOk ? escHtml(r.tarihIso) + (r.saat ? ' · ' + escHtml(r.saat) : '') : '<span style="color:var(--red)">okunamadı</span>';
     return '<tr' + (r.zatenVar ? ' style="opacity:.5"' : '') + '>' +
