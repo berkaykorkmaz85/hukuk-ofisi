@@ -2071,7 +2071,7 @@ function renderDavaDetailPage(id) {
   const titleEl = document.getElementById('ddp-title');
   titleEl.textContent = d.no + (d.muvekkil ? ' — ' + d.muvekkil : '');
 
-  document.getElementById('ddp-edit-btn').onclick = () => { closeDavaDetailPage(); editDava(id); };
+  document.getElementById('ddp-edit-btn').onclick = () => { editDava(id); };
   document.getElementById('ddp-delete-btn').onclick = () => {
     showConfirmModal('Bu dava dosyasını silmek istediğinizden emin misiniz?', function(){ closeDavaDetailPage(); deleteDava(id); });
   };
