@@ -2404,7 +2404,6 @@ function renderDavaTab(id, sekme) {
             </div>
           </div>
           <!-- Plaintiff vs Defendant -->
-          <div style="margin-bottom:4px"><span style="font-size:10px;font-weight:700;background:rgba(201,168,76,0.15);color:var(--gold);padding:2px 9px;border-radius:10px">👤 Müvekkilimiz: ${d.taraf==='davali'?'Davalı':'Davacı'}</span></div>
           <div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">
             ${davaciDisplay}${davaliDisplay?' <span style="color:var(--gold);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+davaliDisplay:''}
           </div>
@@ -2419,19 +2418,22 @@ function renderDavaTab(id, sekme) {
             <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Esas No</div>
             <div style="font-size:13px;color:var(--text);font-weight:500;font-family:'DM Mono',monospace">${escHtml(d.esas||'—')}</div>
           </div>
+          <div style="padding:10px 20px;grid-column:span 2;border-bottom:1px solid var(--border)">
+            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Konu</div>
+            <div style="font-size:13px;color:var(--text);font-weight:500">${escHtml(d.konu||'—')}</div>
+          </div>
           <div style="padding:10px 20px;border-right:1px solid var(--border)">
-            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Dava Türü / Konusu</div>
-            <div style="font-size:13px;color:var(--text);font-weight:500">${escHtml(d.tur||'')}${d.cesit?' · '+escHtml(d.cesit):''}${d.konu?' — '+escHtml(d.konu):''}</div>
+            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Davacı</div>
+            <div style="font-size:13px;color:var(--text);font-weight:500">${davaciDisplay||'—'}</div>
           </div>
           <div style="padding:10px 20px">
-            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Müvekkil</div>
-            <div style="font-size:13px;color:var(--text);font-weight:500">${muvekkilLink}</div>
+            <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:3px">Davalı</div>
+            <div style="font-size:13px;color:var(--text);font-weight:500">${davaliDisplay||'—'}</div>
           </div>
         </div>
       </div>
       <!-- Bilgi grid -->
       <div class="info-grid">
-        ${ei('karsi','Karşı Taraf',d.karsi)}
         ${ei('hakim','Hâkim',d.hakim)}
         ${d.savci?ei('savci','Savcı',d.savci):''}
         ${ei('karsiAvukat','Karşı Av.',d.karsiAvukat)}
