@@ -1946,13 +1946,15 @@ function renderDavalar() {
       var ta = _davaTarafPair(a), tb = _davaTarafPair(b);
       av = (ta.davaci || a.ad || a.no || ''); bv = (tb.davaci || b.ad || b.no || '');
     } else if (alan === 'konu') { av = a.konu || ''; bv = b.konu || ''; }
+    else if (alan === 'mahkeme') { av = a.mahkeme || ''; bv = b.mahkeme || ''; }
+    else if (alan === 'esas') { av = a.esas || ''; bv = b.esas || ''; }
     else if (alan === 'durum') { av = a.durum || ''; bv = b.durum || ''; }
     else { av = a.no || ''; bv = b.no || ''; }
     var cmp = String(av).localeCompare(String(bv), 'tr', {numeric:true});
     return yon === 'asc' ? cmp : -cmp;
   });
 
-  ['no','ad','konu','durum'].forEach(function(a) {
+  ['no','ad','konu','mahkeme','esas','durum'].forEach(function(a) {
     var el = document.getElementById('dava-sort-'+a);
     if (el) el.textContent = (_davaSirala.alan === a) ? (_davaSirala.yon === 'asc' ? '▲' : '▼') : '';
   });
@@ -1965,13 +1967,15 @@ function renderDavalar() {
       <td data-label="Dosya No"><span class="mono text-gold" style="cursor:pointer">${escHtml(d.no)}</span></td>
       <td data-label="Dosya Adı">${escHtml(dosyaAdi)}</td>
       <td data-label="Konu">${escHtml(d.konu)}${d.cesit ? `<div style="font-size:11px;color:var(--gold);margin-top:2px">${escHtml(d.cesit)}</div>` : ''}</td>
+      <td data-label="Mahkeme">${escHtml(d.mahkeme||'—')}</td>
+      <td data-label="Esas No"><span class="mono">${escHtml(d.esas||'—')}</span></td>
       <td data-label="Durum"><span class="tag tag-${d.durum==='Aktif'?'aktif':d.durum==='Bekliyor'?'bekliyor':'kapali'}">${d.durum}</span></td>
       <td onclick="event.stopPropagation()">
         <button class="btn btn-ghost" onclick="editDava('${d.id}')">✏</button>
         <button class="btn btn-ghost" style="color:var(--red)" onclick="deleteDava('${d.id}')">🗑</button>
       </td>
     </tr>
-  `;}).join('') : `<tr><td colspan="5"><div class="empty"><div class="empty-icon">📁</div><div class="empty-text">Henüz dava dosyası yok</div></div></td></tr>`;
+  `;}).join('') : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">📁</div><div class="empty-text">Henüz dava dosyası yok</div></div></td></tr>`;
 }
 
 // ========== DAVA DETAY TAM SAYFA ==========
