@@ -2438,7 +2438,7 @@ function renderDavaTab(id, sekme) {
         ${d.savci?ei('savci','Savcı',d.savci):''}
         ${ei('karsiAvukat','Karşı Av.',d.karsiAvukat)}
         ${ei('bilirkisi','Bilirkişi',d.bilirkisi)}
-        ${d.sonraki?ei('sonraki','Sonraki Duruşma',fmtDate(d.sonraki),'date'):''}
+        ${ei('sonraki','Sonraki Duruşma',d.sonraki?fmtDate(d.sonraki):'','date')}
         ${d.durusma?ei('durusma','Son Duruşma',fmtDate(d.durusma),'date'):''}
       </div>
       <!-- İstinaf / Temyiz -->
