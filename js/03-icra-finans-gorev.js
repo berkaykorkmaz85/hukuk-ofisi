@@ -1084,12 +1084,11 @@ function renderIcraTab(id, sekme) {
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
       + '<span class="ddp-no-pill" style="background:rgba(125,196,149,0.15);color:var(--green)">'+escHtml(i.no)+'</span>'
       + '<div style="display:flex;align-items:center;gap:6px">'
+      + (i.tur ? '<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;background:rgba(122,181,212,0.15);color:#7ab5d4;padding:3px 10px;border-radius:20px;border:1px solid rgba(122,181,212,0.3)">📋 '+escHtml(i.tur)+'</span>' : '')
       + (ageStr?'<span style="font-size:10px;color:var(--text3)">📅 '+ageStr+'</span>':'')
       + '<span class="ddp-durum-badge ddp-durum-'+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'" onclick="_idpCycleStatus(\''+id+'\')" title="Tıklayarak durum değiştir" style="cursor:pointer"><span class="ddp-durum-dot '+(i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali')+'"></span> '+escHtml(i.durum||'Aktif')+'</span>'
       + '</div></div>'
-      + (i.tur ? '<div style="padding:0 20px;margin-top:-2px"><span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;background:rgba(122,181,212,0.15);color:#7ab5d4;padding:4px 12px;border-radius:20px;border:1px solid rgba(122,181,212,0.3)">📋 '+escHtml(i.tur)+'</span></div>':'')
-      + '<div style="padding:8px 20px 0"><span style="font-size:10px;font-weight:700;background:rgba(125,196,149,0.15);color:var(--green);padding:2px 9px;border-radius:10px">👤 Müvekkilimiz: '+(i.taraf==='borclu'?'Borçlu':'Alacaklı')+'</span></div>'
-      + '<div style="padding:6px 20px 0;font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
+      + '<div style="font-size:20px;font-weight:700;color:var(--text);line-height:1.3">'
       + alacakliDisplay+' <span style="color:var(--green);font-size:15px;font-weight:400;margin:0 6px">vs</span> '+borcluDisplay
       + '</div></div>'
       // Finansal vurgu satırı — Asıl Alacak öne çıkarılmış
