@@ -994,14 +994,19 @@ function renderTasksByPerson() {
     const grup = gruplar[key];
     const dava = davalar.find(d => d.ad === key || d.no === key);
     const icra = !dava ? icralar.find(i => i.no === key || i.bki === key) : null;
+    let davaAdi = '';
+    if (dava) {
+      const dtp = (typeof _davaTarafPair === 'function') ? _davaTarafPair(dava) : { davaci: dava.muvekkil, davali: dava.karsi };
+      davaAdi = (dtp.davaci || dtp.davali) ? `${dtp.davaci || '—'} vs ${dtp.davali || '—'}` : (dava.ad || dava.no);
+    }
     let icraAdi = '';
     if (icra) {
       const itp = (typeof _icraTarafPair === 'function') ? _icraTarafPair(icra) : { alacakli: icra.muvekkil, borclu: icra.borclu };
       icraAdi = (itp.alacakli || itp.borclu) ? `${itp.alacakli || '—'} vs ${itp.borclu || '—'}` : icra.no;
     }
     const baslik = key === '__genel__' ? '📋 Genel Görevler'
-      : dava ? `📁 ${dava.ad || dava.no} <span style="font-size:12px;color:var(--text3);font-weight:400">${dava.muvekkil ? '· ' + dava.muvekkil : ''}</span>`
-      : icra ? `⚡ ${icraAdi} <span style="font-size:12px;color:var(--text3);font-weight:400">(${icra.no})${icra.muvekkil ? ' · ' + icra.muvekkil : ''}</span>`
+      : dava ? `📁 ${davaAdi}${dava.konu ? ' <span style="font-size:12px;color:var(--text3);font-weight:400">— ' + escHtml(dava.konu) + '</span>' : ''}`
+      : icra ? `⚡ ${icraAdi}${icra.tur ? ' <span style="font-size:12px;color:var(--text3);font-weight:400">— ' + escHtml(icra.tur) + '</span>' : ''}`
       : `📁 ${key}`;
 
     const aktif = grup.filter(t => !t.done).length;
