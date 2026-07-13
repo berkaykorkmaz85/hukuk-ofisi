@@ -3242,6 +3242,24 @@ document.body.addEventListener('click', function(e) {
     deleteFinans(delFinansEl.dataset.deleteFinans);
     return;
   }
+
+  // ── Görev tamamla / yeniden aç ──────────────────────────
+  var chtEl = e.target.closest('[data-chtid2]');
+  if (chtEl && chtEl.dataset.chtid2) {
+    var gdm = document.getElementById('gorev-detay-modal');
+    if (gdm && gdm.parentNode) gdm.parentNode.remove();
+    toggleTask(chtEl.dataset.chtid2);
+    return;
+  }
+
+  // ── Görev düzenle / ertele ──────────────────────────────
+  var geEl = e.target.closest('[data-geid]');
+  if (geEl && geEl.dataset.geid) {
+    var gdm2 = document.getElementById('gorev-detay-modal');
+    if (gdm2 && gdm2.parentNode) gdm2.parentNode.remove();
+    editTask(geEl.dataset.geid);
+    return;
+  }
 }, true); // capture=true: modal overlay'lerin altında da çalışır
 
 // ========== INIT ==========
