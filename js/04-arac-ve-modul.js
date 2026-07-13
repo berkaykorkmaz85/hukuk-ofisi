@@ -3490,13 +3490,18 @@ async function chatterDosyaYukle(dosyalar, mod, dosyaId) {
 function _chGetExt(ad) {
   return (ad || '').toLowerCase().split('.').pop();
 }
-// Tarayıcının içeride gösterebildiği türler (pdf/resim) yeni sekmede açılır;
-// diğerleri (Word/Excel/UDF vb. — özellikle UYAP Doküman Editörü'nün .udf
-// formatı) tarayıcıda render edilemediği için doğrudan indirilir.
+// Belgeler Supabase Storage gibi farklı bir origin'de barındığından,
+// `download` attribute'u tarayıcı tarafından yok sayılır ve target
+// belirtilmezse dosya SPA'nın kendi sekmesinde (uygulamanın üzerine)
+// açılırdı. target="_blank" ile her zaman yeni sekmede açılması
+// garanti edilir; previewable türler (pdf/resim) orada görüntülenir,
+// diğerleri (Word/Excel/UDF vb.) tarayıcı ayarına göre indirilir/açılır.
 function _dosyaAcLinkAttrs(ad) {
   var ext = _chGetExt(ad);
   var onizlenebilir = ['pdf','png','jpg','jpeg','gif','webp'];
-  return onizlenebilir.includes(ext) ? 'target="_blank"' : ('download="' + escAttr(ad || '') + '"');
+  return onizlenebilir.includes(ext)
+    ? 'target="_blank" rel="noopener"'
+    : ('target="_blank" rel="noopener" download="' + escAttr(ad || '') + '"');
 }
 function _chGetBadge(ad, tip) {
   var ext = _chGetExt(ad);
