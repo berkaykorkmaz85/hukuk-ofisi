@@ -580,28 +580,50 @@ function deleteDava(id) {
 }
 
 // ========== İCRALAR ==========
+var _icraSirala = { alan: 'no', yon: 'asc' };
+function icraSirala(alan) {
+  if (_icraSirala.alan === alan) _icraSirala.yon = _icraSirala.yon === 'asc' ? 'desc' : 'asc';
+  else { _icraSirala.alan = alan; _icraSirala.yon = 'asc'; }
+  renderIcralar();
+}
+
 function renderIcralar() {
-  const icralar = DB.get('icralar');
+  let icralar = DB.get('icralar').slice();
   populateMuvekkilSelects();
+
+  const alan = _icraSirala.alan, yon = _icraSirala.yon;
+  icralar.sort(function(a, b) {
+    var av, bv;
+    if (alan === 'ad') {
+      var ta = _icraTarafPair(a), tb = _icraTarafPair(b);
+      av = (ta.alacakli || a.no || ''); bv = (tb.alacakli || b.no || '');
+    } else if (alan === 'tur') { av = a.tur || ''; bv = b.tur || ''; }
+    else if (alan === 'alacak') { av = Number(a.alacak)||0; bv = Number(b.alacak)||0; return yon==='asc' ? av-bv : bv-av; }
+    else if (alan === 'durum') { av = a.durum || ''; bv = b.durum || ''; }
+    else { av = a.no || ''; bv = b.no || ''; }
+    var cmp = String(av).localeCompare(String(bv), 'tr', {numeric:true});
+    return yon === 'asc' ? cmp : -cmp;
+  });
+
+  ['no','ad','tur','alacak','durum'].forEach(function(a) {
+    var el = document.getElementById('icra-sort-'+a);
+    if (el) el.textContent = (_icraSirala.alan === a) ? (_icraSirala.yon === 'asc' ? '▲' : '▼') : '';
+  });
+
   document.getElementById('icra-tbody').innerHTML = icralar.length ? icralar.map(i=>{
     const tp = _icraTarafPair(i);
-    const borcluCell = i.taraf==='borclu'
-      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.borclu)}</span>`
-      : escHtml(tp.borclu);
-    const alacakliCell = i.taraf!=='borclu'
-      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.alacakli)}</span>`
-      : escHtml(tp.alacakli);
-    const vsAdi = (tp.alacakli||tp.borclu) ? (tp.alacakli||'—')+' vs '+(tp.borclu||'—') : '';
+    const alacakliPart = i.taraf!=='borclu'
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.alacakli||'—')}</span>`
+      : escHtml(tp.alacakli||'—');
+    const borcluPart = i.taraf==='borclu'
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.borclu||'—')}</span>`
+      : escHtml(tp.borclu||'—');
     return `
     <tr oncontextmenu="itemContextMenu(event,'icra','${i.id}','${escHtml(i.borclu||i.no)}')" style="cursor:pointer" onclick="showIcraDetail('${i.id}')">
-      <td data-label="Dosya No">
-        <span class="mono text-gold" style="cursor:pointer">${escHtml(i.no)}</span>
-        ${vsAdi ? `<div style="font-size:11px;color:var(--text2);margin-top:2px;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escAttr(vsAdi)}">📌 ${escHtml(vsAdi)}</div>` : ''}
-      </td>
-      <td data-label="Borçlu">${borcluCell}</td>
-      <td data-label="Alacaklı">${alacakliCell}</td>
-      <td data-label="Asıl Alacak" class="mono">₺${fmt(i.alacak)}</td>
+      <td data-label="Dosya No"><span class="mono text-gold" style="cursor:pointer">${escHtml(i.no)}</span></td>
+      <td data-label="Dosya Adı">${alacakliPart} <span style="color:var(--text3)">vs</span> ${borcluPart}</td>
       <td data-label="Takip Türü"><span class="tag" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${escHtml(i.tur||'—')}</span></td>
+      <td data-label="Asıl Alacak" class="mono">₺${fmt(i.alacak)}</td>
       <td data-label="Durum"><span class="tag tag-${i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali'}">${i.durum}</span></td>
       <td onclick="event.stopPropagation()">
         <button class="btn btn-ghost" onclick="editIcra('${i.id}')">✏</button>
@@ -609,7 +631,7 @@ function renderIcralar() {
       </td>
     </tr>
   `;
-  }).join('') : `<tr><td colspan="7"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
+  }).join('') : `<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
 }
 
 function hesaplaIcraAaüt(alacak) {

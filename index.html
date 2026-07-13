@@ -425,6 +425,9 @@
     border-bottom: 1px solid var(--border);
     font-weight: 500;
   }
+  th.th-sort { cursor: pointer; user-select: none; transition: color 0.15s; }
+  th.th-sort:hover { color: var(--gold); }
+  .th-sort-ico { display: inline-block; margin-left: 4px; font-size: 9px; opacity: 0.7; }
   td {
     padding: 11px 12px;
     border-bottom: 1px solid var(--border);
@@ -3043,12 +3046,10 @@
           <div class="table-wrap">
             <table id="dava-table">
               <thead><tr>
-                <th>Dosya No</th>
-                <th>Müvekkil</th>
-                <th>Konu</th>
-                <th>Mahkeme</th>
-                <th>Son Duruşma</th>
-                <th>Durum</th>
+                <th class="th-sort" onclick="davaSirala('no')">Dosya No<span class="th-sort-ico" id="dava-sort-no"></span></th>
+                <th class="th-sort" onclick="davaSirala('ad')">Dosya Adı<span class="th-sort-ico" id="dava-sort-ad"></span></th>
+                <th class="th-sort" onclick="davaSirala('konu')">Konu<span class="th-sort-ico" id="dava-sort-konu"></span></th>
+                <th class="th-sort" onclick="davaSirala('durum')">Durum<span class="th-sort-ico" id="dava-sort-durum"></span></th>
                 <th></th>
               </tr></thead>
               <tbody id="dava-tbody"></tbody>
@@ -3070,12 +3071,11 @@
           <div class="table-wrap">
             <table id="icra-table">
               <thead><tr>
-                <th>Dosya No</th>
-                <th>Borçlu</th>
-                <th>Alacaklı</th>
-                <th>Asıl Alacak</th>
-                <th>Takip Türü</th>
-                <th>Durum</th>
+                <th class="th-sort" onclick="icraSirala('no')">Dosya No<span class="th-sort-ico" id="icra-sort-no"></span></th>
+                <th class="th-sort" onclick="icraSirala('ad')">Dosya Adı<span class="th-sort-ico" id="icra-sort-ad"></span></th>
+                <th class="th-sort" onclick="icraSirala('tur')">Takip Türü<span class="th-sort-ico" id="icra-sort-tur"></span></th>
+                <th class="th-sort" onclick="icraSirala('alacak')">Asıl Alacak<span class="th-sort-ico" id="icra-sort-alacak"></span></th>
+                <th class="th-sort" onclick="icraSirala('durum')">Durum<span class="th-sort-ico" id="icra-sort-durum"></span></th>
                 <th></th>
               </tr></thead>
               <tbody id="icra-tbody"></tbody>
@@ -5119,10 +5119,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260712b"></script>
-<script src="js/02-dava-yonetimi.js?v=20260712b"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260712b"></script>
-<script src="js/04-arac-ve-modul.js?v=20260712b"></script>
+<script src="js/01-cekirdek-veri.js?v=20260713b"></script>
+<script src="js/02-dava-yonetimi.js?v=20260713b"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260713b"></script>
+<script src="js/04-arac-ve-modul.js?v=20260713b"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">
