@@ -1363,8 +1363,8 @@ function renderIcraTab(id, sekme) {
 
   } else if (sekme === 'gorev') {
     // Ö4: Görevler sekmesi (kanban görünümü)
-    var gecikmisTasks = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0;});
-    var bekleyenTasks = tasks.filter(function(t){return !t.done&&(!t.tarih||Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)>=0);});
+    var gecikmisTasks = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)<0;});
+    var bekleyenTasks = tasks.filter(function(t){return !t.done&&(!t.tarih||Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)>=0);});
     var tamamTasks = tasks.filter(function(t){return t.done;});
 
     el.innerHTML = '<div style="padding:0">'
@@ -3251,7 +3251,7 @@ function renderTasks() {
 
   function getDiff(t) {
     if (!t.tarih) return null;
-    return Math.ceil((new Date(t.tarih.slice(0,10)) - today) / 86400000);
+    return Math.ceil((_yerelTarih(t.tarih) - today) / 86400000);
   }
 
   function dosyaAdi(t) {

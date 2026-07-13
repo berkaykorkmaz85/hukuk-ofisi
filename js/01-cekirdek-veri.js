@@ -90,6 +90,22 @@ function formatDateForDisplay(yyyymmdd) {
   return yyyymmdd;
 }
 
+// "YYYY-MM-DD" (veya baştaki 10 karakteri bu formatta olan herhangi bir
+// string, örn. "YYYY-MM-DDTHH:mm") stringini YEREL saat diliminde gece
+// yarısına denk gelen bir Date'e çevirir.
+// KRİTİK: new Date("YYYY-MM-DD") tarayıcı tarafından UTC gece yarısı olarak
+// yorumlanır (ISO date-only string kuralı) — ama "bugün" karşılaştırması
+// için kullanılan `new Date(); date.setHours(0,0,0,0)` YEREL gece yarısıdır.
+// UTC'nin doğusundaki saat dilimlerinde (örn. Türkiye, UTC+3) bu, bugüne
+// ait bir görevin "1 gün sonra"ymış gibi hesaplanmasına ve "Bugün"
+// filtresinde hiç görünmemesine yol açan gerçek bir prod hatasıydı.
+function _yerelTarih(str) {
+  if (!str) return null;
+  var p = str.slice(0, 10).split('-');
+  if (p.length !== 3) return new Date(str);
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+}
+
 function getDateValue(el) {
   // Input'tan DB formatında değer al
   if (!el) return '';
@@ -3209,7 +3225,7 @@ function gorevDonut(gorevler, today, boyut) {
   var cx = boyut/2, cy = boyut/2;
   var bugun = gorevler.filter(function(t){
     if(!t.tarih) return false;
-    var d = Math.ceil((new Date(t.tarih.slice(0,10))-today)/86400000);
+    var d = Math.ceil((_yerelTarih(t.tarih)-today)/86400000);
     return d === 0;
   });
   var total = bugun.length;
@@ -3242,7 +3258,7 @@ function gorevDonut(gorevler, today, boyut) {
     var bitAci = basAci + dilimAci - bosluk;
     var key = t.ilgili || '__genel__';
     var renk = dosyaRenkMap[key];
-    var gecikti = t.tarih && Math.ceil((new Date(t.tarih.slice(0,10))-today)/86400000) < 0;
+    var gecikti = t.tarih && Math.ceil((_yerelTarih(t.tarih)-today)/86400000) < 0;
     var tamam = t.done;
     
     var x1 = cx + r * Math.cos(basAci);

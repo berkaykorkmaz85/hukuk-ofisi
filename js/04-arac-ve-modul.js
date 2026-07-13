@@ -987,8 +987,10 @@ function fmtDateShort(d) {
 }
 function isUrgent(d) {
   if (!d) return false;
-  // datetime-local "2026-03-20T14:30" formatını yerel saat olarak parse et
-  const dt = d.includes('T') ? new Date(d.replace('T', 'T').length === 16 ? d + ':00' : d) : new Date(d);
+  // datetime-local "2026-03-20T14:30" formatını yerel saat olarak parse et;
+  // tarih-only "YYYY-MM-DD" için _yerelTarih kullan (new Date(d) burada UTC
+  // yorumlardı — aynı "bugün" hesaplama hatasının bir başka örneği)
+  const dt = d.includes('T') ? new Date(d.replace('T', 'T').length === 16 ? d + ':00' : d) : _yerelTarih(d);
   const diff = dt - Date.now();
   return diff < 86400000 * 3 && diff > 0;
 }
@@ -3672,7 +3674,7 @@ function _gorevDurumBadge(durum) {
 
 function _gorevRow(t, ctxType, id) {
   var today2 = new Date(); today2.setHours(0, 0, 0, 0);
-  var diff = t.tarih ? Math.ceil((new Date(t.tarih.slice(0, 10)) - today2) / 86400000) : null;
+  var diff = t.tarih ? Math.ceil((_yerelTarih(t.tarih) - today2) / 86400000) : null;
   var gecikti = diff !== null && diff < 0 && !t.done;
   var oclr = t.oncelik === 'Acil' ? 'var(--red)' : t.oncelik === 'Yüksek' ? 'var(--gold)' : 'var(--text3)';
   var durum = _gorevDurum(t);

@@ -6,7 +6,7 @@ function buHaftaGorevList(gorevler, today) {
   var haftaSonu = new Date(today); haftaSonu.setDate(haftaSonu.getDate()+7);
   var hafta = gorevler.filter(function(t){
     if(!t.tarih) return false;
-    var d = new Date(t.tarih.slice(0,10));
+    var d = _yerelTarih(t.tarih);
     return d >= today && d <= haftaSonu;
   }).sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
   return hafta;
@@ -257,7 +257,7 @@ function renderDavaDash() {
   var sureRiski = [];
   gorevler.forEach(function(t){
     if(!t.tarih||!t.ilgili) return;
-    var dt=new Date(t.tarih.slice(0,10)); dt.setHours(0,0,0,0);
+    var dt=_yerelTarih(t.tarih); dt.setHours(0,0,0,0);
     if(dt>=today&&dt<=haftaSonu){
       var diff=Math.ceil((dt-today)/86400000);
       // İlgili dosyayı bul (dava veya icra)
@@ -296,7 +296,7 @@ function renderDavaDash() {
   el.appendChild(fb);
 
   // ── 4 KPI ────────────────────────────────────────────────────────
-  var bugunGorevler = gorevler.filter(function(t){if(!t.tarih)return false;return Math.ceil((new Date(t.tarih.slice(0,10))-today)/86400000)===0;});
+  var bugunGorevler = gorevler.filter(function(t){if(!t.tarih)return false;return Math.ceil((_yerelTarih(t.tarih)-today)/86400000)===0;});
   var kg=document.createElement('div');
   kg.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:10px;margin-bottom:20px';
   [{icon:'📁',label:'Aktif Dava',val:davalar.filter(function(d){return d.durum==='Aktif';}).length,sub:davalar.length+' toplam',clr:'var(--text)',click:function(){showPage('davalar');}},
@@ -487,12 +487,12 @@ function renderDavaDash() {
   satir3.appendChild(durW);
 
   // Bu Haftaki Görevler + Randevular
-  var haftaGorevleri=(function(){var hs=new Date(today);hs.setDate(hs.getDate()+7);return gorevler.filter(function(t){if(!t.tarih)return false;var d=new Date(t.tarih.slice(0,10));return d>=today&&d<=hs;}).sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});})();
+  var haftaGorevleri=(function(){var hs=new Date(today);hs.setDate(hs.getDate()+7);return gorevler.filter(function(t){if(!t.tarih)return false;var d=_yerelTarih(t.tarih);return d>=today&&d<=hs;}).sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});})();
   var {wrap:goW,hdr:goH,body:goB}=kart(null,280);
   goH.appendChild(kartBaslik('📋','Bu Haftaki Görevler',haftaGorevleri.length+' görev · 7 gün',haftaGorevleri.length||null));
   if(!haftaGorevleri.length) goB.appendChild(bos('Bu hafta görev yok'));
   else haftaGorevleri.forEach(function(t){
-    var diff2=t.tarih?Math.ceil((new Date(t.tarih.slice(0,10))-today)/86400000):null;
+    var diff2=t.tarih?Math.ceil((_yerelTarih(t.tarih)-today)/86400000):null;
     var oclr=t.oncelik==='Acil'?'var(--red)':t.oncelik==='Yüksek'?'var(--gold)':'var(--text3)';
     var tipIcon=t.tip==='randevu'?'📞':t.tip==='durusma'?'⚖️':'✅';
     var row=document.createElement('div');
@@ -1289,7 +1289,7 @@ function showPage(page) {
     if(tl) {
       var allTasks = DB.get('tasks') || [];
       var todayCheck = new Date(); todayCheck.setHours(0,0,0,0);
-      var hasGecikmus = allTasks.some(function(t){ return !t.done && t.tarih && new Date(t.tarih.slice(0,10)) < todayCheck; });
+      var hasGecikmus = allTasks.some(function(t){ return !t.done && t.tarih && _yerelTarih(t.tarih) < todayCheck; });
       tl.dataset.activeTab = hasGecikmus ? 'gecikmus' : 'tumü';
     }
     taskFilter = 'all';
@@ -2049,7 +2049,7 @@ function _ddpUpdateBadges(d, id) {
   var masrafBadge = document.getElementById('ddp-badge-masraf');
   if (masrafBadge) { var mc = (DB.get('dava_masraflar')||[]).filter(function(m){return m.davaId===id;}).length; masrafBadge.textContent = mc||''; }
   var today2 = new Date(); today2.setHours(0,0,0,0);
-  var gecikmisCnt = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0;}).length;
+  var gecikmisCnt = tasks.filter(function(t){return !t.done&&t.tarih&&Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)<0;}).length;
 
   var bDur = document.getElementById('ddp-badge-durusma');
   if(bDur) bDur.textContent = durusmalar.length||'';
@@ -2484,8 +2484,8 @@ function renderDavaTab(id, sekme) {
     });
     // D5: Filter
     var filteredDur = durusmalar;
-    if(_ddpDurusmaFilter==='upcoming') filteredDur = durusmalar.filter(function(t){return !t.tarih||Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)>=0;});
-    else if(_ddpDurusmaFilter==='past') filteredDur = durusmalar.filter(function(t){return t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0;});
+    if(_ddpDurusmaFilter==='upcoming') filteredDur = durusmalar.filter(function(t){return !t.tarih||Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)>=0;});
+    else if(_ddpDurusmaFilter==='past') filteredDur = durusmalar.filter(function(t){return t.tarih&&Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)<0;});
     // D1: Hero card with countdown badge
     var heroDays = d.sonraki ? Math.ceil((new Date(d.sonraki)-today2)/86400000) : null;
     var heroBadgeClass = heroDays!==null?(heroDays<=7?'urgent':heroDays<=30?'soon':'safe'):'safe';
@@ -2516,7 +2516,7 @@ function renderDavaTab(id, sekme) {
       ${filteredDur.length===0?'<div style="text-align:center;color:var(--text3);padding:30px">Duruşma kaydı yok</div>':
         '<div style="display:flex;flex-direction:column;gap:2px">'
         +filteredDur.map(t=>{
-          const diff=t.tarih?Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000):null;
+          const diff=t.tarih?Math.ceil((_yerelTarih(t.tarih)-today2)/86400000):null;
           const gecti=diff!==null&&diff<0;
           // T7: dot classes
           var dotClass = gecti?'':'ddp-tl-dot '+(diff===0?'today':'future');
@@ -2679,8 +2679,8 @@ function renderDavaTab(id, sekme) {
   } else if (sekme === 'gorev') {
     const today2 = new Date(); today2.setHours(0,0,0,0);
     const allTasks = tasks;
-    const gecikmisTasks = allTasks.filter(t=>!t.done&&t.tarih&&Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)<0);
-    const bekleyenTasks = allTasks.filter(t=>!t.done&&(!t.tarih||Math.ceil((new Date(t.tarih.slice(0,10))-today2)/86400000)>=0));
+    const gecikmisTasks = allTasks.filter(t=>!t.done&&t.tarih&&Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)<0);
+    const bekleyenTasks = allTasks.filter(t=>!t.done&&(!t.tarih||Math.ceil((_yerelTarih(t.tarih)-today2)/86400000)>=0));
     const tamamTasks   = allTasks.filter(t=>t.done);
 
     el.innerHTML = `<div style="padding:0">
