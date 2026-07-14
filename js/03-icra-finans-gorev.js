@@ -3297,12 +3297,18 @@ function renderTasks() {
   // Görevleri grupla
   var bugun    = tasks.filter(function(t){return !t.done && getDiff(t)===0;});
   var buHafta  = tasks.filter(function(t){var d=getDiff(t);return !t.done && d!==null && d>0 && d<=7;}).sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
-  var buAy     = tasks.filter(function(t){var d=getDiff(t);return !t.done && d!==null && d>7 && d<=31;}).sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
+  // Bu Ay: önümüzdeki 31 gün içindeki TÜM bekleyen görevler — Bugün ve Bu
+  // Hafta'dakiler de dahil (kümülatif). Diğer sekmeler (Bugün/Bu Hafta)
+  // kesişmeyen alt kümeler olmaya devam ediyor, sadece Bu Ay bunları da kapsıyor.
+  var buAy     = tasks.filter(function(t){var d=getDiff(t);return !t.done && d!==null && d>=0 && d<=31;}).sort(function(a,b){return new Date(a.tarih)-new Date(b.tarih);});
+  // Bu Ay kümülatif olduğundan (Bugün + Bu Hafta'yı da kapsıyor), "Tümü"
+  // sekmesinde tekrar saymamak için sadece 8-31 gün aralığındaki kısmını kullan.
+  var buAyStrict = tasks.filter(function(t){var d=getDiff(t);return !t.done && d!==null && d>7 && d<=31;});
   var buYil    = tasks.filter(function(t){var d=getDiff(t);return !t.done && (d===null || d>31);}).sort(function(a,b){return new Date(a.tarih||'9999')-new Date(b.tarih||'9999');});
   var gecikmus = tasks.filter(function(t){var d=getDiff(t);return !t.done && d!==null && d<0;}).sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
   var tamam    = tasks.filter(function(t){return t.done;}).sort(function(a,b){return new Date(b.tamamlanmaTarihi||b.tarih||'0')-new Date(a.tamamlanmaTarihi||a.tarih||'0');});
 
-  var tumBekleyen = gecikmus.concat(bugun).concat(buHafta).concat(buAy).concat(buYil);
+  var tumBekleyen = gecikmus.concat(bugun).concat(buHafta).concat(buAyStrict).concat(buYil);
   var tabs = [
     {id:'tumü',     label:'📋 Tümü',     count:tumBekleyen.length, clr:'var(--text2)', liste:tumBekleyen},
     {id:'gecikmus', label:'⚠ Gecikmiş', count:gecikmus.length,    clr:'var(--red)',   liste:gecikmus},
