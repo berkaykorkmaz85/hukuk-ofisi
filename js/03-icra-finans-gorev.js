@@ -1715,7 +1715,7 @@ function renderMuvekkiller() {
     const isKurumsal = m.tur === 'kurumsal';
     const ctCount = contacts.filter(c => c.muvekkilId === m.id).length;
     return `
-    <tr style="cursor:pointer" onclick="tabMuvekkilAc('${m.id}')" oncontextmenu="itemContextMenu(event,'muvekkil','${m.id}','${escHtml(m.ad)}')">
+    <tr style="cursor:pointer" onclick="if(!window.getSelection().toString())tabMuvekkilAc('${m.id}')" oncontextmenu="itemContextMenu(event,'muvekkil','${m.id}','${escHtml(m.ad)}')">
       <td data-label="Ad Soyad / Unvan">
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:16px">${isKurumsal ? '🏢' : '👤'}</span>
@@ -2245,10 +2245,19 @@ async function _saveMuvekkilInner() {
   if (eskiMv && eskiMv.ad && eskiMv.ad !== obj.ad) {
     _muvekkilAdiGuncelle(eskiMv.ad, obj.ad);
   }
+  const wasEditing = !!editingId;
+  const editedId = editingId || obj.id;
   closeModal('modal-muvekkil');
   renderMuvekkiller();
-  notify(editingId ? 'Müvekkil güncellendi' : 'Müvekkil eklendi ✓');
+  notify(wasEditing ? 'Müvekkil güncellendi' : 'Müvekkil eklendi ✓');
   editingId = null;
+  // Müvekkil detay sayfası açıksa (örn. TC no bu ekrandan düzenlendiyse),
+  // orayı da yenile — aksi halde değişiklik başka bir sekmeye gidip
+  // gelene kadar ekranda görünmüyordu.
+  var mvDetailEl = document.getElementById('muvekkil-detail');
+  if (wasEditing && mvDetailEl && mvDetailEl.classList.contains('active')) {
+    showMuvekkilDetail(editedId);
+  }
 }
 
 // Müvekkil adı değişince, adı string olarak saklayan tüm kayıtları güncelle.
