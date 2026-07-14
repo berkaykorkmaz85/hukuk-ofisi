@@ -1645,7 +1645,7 @@ function makeHBar(id, labels, data) {
     type: 'bar',
     data: {
       labels,
-      datasets: [{ data, backgroundColor: 'rgba(201,168,76,0.5)', borderColor: '#c9a84c', borderWidth: 1, borderRadius: 4 }]
+      datasets: [{ data, backgroundColor: 'rgba(224,185,58,0.85)', borderColor: '#e0b93a', borderWidth: 1, borderRadius: 4 }]
     },
     options: {
       animation: { duration: 0 },
@@ -1806,17 +1806,17 @@ function renderDashboard() {
   setTimeout(() => {
     const dDurum = ['Aktif','Bekliyor','Kapalı'].map(s=>davalar.filter(d=>d.durum===s).length);
     makeDonut('chart-dava-durum', ['Aktif','Bekliyor','Kapalı'], dDurum,
-      ['#4a8c5c','#c9a84c','#6b6455'], 'chart-dava-legend');
+      ['#22a35a','#e0b93a','#8a8172'], 'chart-dava-legend');
 
     // --- DONUT: İcra Durumları ---
     const iDurum = ['Aktif','Bekliyor','Kapalı'].map(s=>icralar.filter(i=>i.durum===s).length);
     makeDonut('chart-icra-durum', ['Aktif','Bekliyor','Kapalı'], iDurum,
-      ['#3a6b8c','#c9a84c','#6b6455'], 'chart-icra-legend');
+      ['#2f7dc4','#e0b93a','#8a8172'], 'chart-icra-legend');
 
     // --- DONUT: Görev Öncelikleri ---
     const tPri = ['Acil','Yüksek','Normal'].map(p=>tasks.filter(t=>!t.done&&t.oncelik===p).length);
     makeDonut('chart-task-oncelik', ['Acil','Yüksek','Normal'], tPri,
-      ['#c0533a','#c9a84c','#4a8c5c'], 'chart-task-legend');
+      ['#e0472b','#e0b93a','#22a35a'], 'chart-task-legend');
 
     // --- BAR: Aylık finans (son 6 ay) ---
     const months = [];
@@ -1834,8 +1834,8 @@ function renderDashboard() {
       masArr.push(mVal);
     }
     makeBar('chart-finans-aylik', months, [
-      { label:'Tahsilat', data:tahArr, backgroundColor:'rgba(74,140,92,0.6)', borderColor:'#4a8c5c', borderWidth:1, borderRadius:4 },
-      { label:'Masraf',   data:masArr, backgroundColor:'rgba(192,83,58,0.5)', borderColor:'#c0533a', borderWidth:1, borderRadius:4 }
+      { label:'Tahsilat', data:tahArr, backgroundColor:'rgba(34,163,90,0.85)', borderColor:'#22a35a', borderWidth:1, borderRadius:4 },
+      { label:'Masraf',   data:masArr, backgroundColor:'rgba(224,71,43,0.85)', borderColor:'#e0472b', borderWidth:1, borderRadius:4 }
     ]);
 
     // --- HBAR: Müvekkil başına dava sayısı (top 6) ---
