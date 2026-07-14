@@ -1839,9 +1839,29 @@ function renderDashboard() {
     ]);
 
     // --- HBAR: Müvekkil başına dava sayısı (top 6) ---
+    // d.muvekkil/i.muvekkil alanı bazı kayıtlarda (örn. UYAP'tan içe
+    // aktarılan dosyalar) boş kalabiliyor — asıl kaynak davacı/davalı
+    // (alacaklı/borçlu) çiftidir, bu yüzden önce oradan müvekkil adını
+    // türetip, yoksa eski muvekkil alanına düşüyoruz.
+    const davaMuvekkilAdi = d => {
+      if (typeof _davaTarafPair === 'function') {
+        const tp = _davaTarafPair(d);
+        const ad = d.taraf === 'davali' ? tp.davali : tp.davaci;
+        if (ad) return ad;
+      }
+      return d.muvekkil || '';
+    };
+    const icraMuvekkilAdi = i => {
+      if (typeof _icraTarafPair === 'function') {
+        const tp = _icraTarafPair(i);
+        const ad = i.taraf === 'borclu' ? tp.borclu : tp.alacakli;
+        if (ad) return ad;
+      }
+      return i.muvekkil || '';
+    };
     const mvDava = muvekkiller.map(m=>({
       ad: m.ad.split(' ')[0] + (m.ad.split(' ')[1]?' '+m.ad.split(' ')[1][0]+'.':''),
-      count: davalar.filter(d=>d.muvekkil===m.ad).length + icralar.filter(i=>i.muvekkil===m.ad).length
+      count: davalar.filter(d=>davaMuvekkilAdi(d)===m.ad).length + icralar.filter(i=>icraMuvekkilAdi(i)===m.ad).length
     })).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
     if (mvDava.length) makeHBar('chart-muvekkil-dava', mvDava.map(x=>x.ad), mvDava.map(x=>x.count));
     else {
