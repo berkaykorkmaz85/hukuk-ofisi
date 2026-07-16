@@ -1321,6 +1321,9 @@ function showPage(page) {
       if (inp) inp.focus();
     }, 80);
   }
+  else if (page === 'udfDonusturucu') {
+    if (typeof udfdInit === 'function') udfdInit();
+  }
 
   // Topbar "+ Yeni Ekle" butonunu sayfaya göre güncelle
   const btn = document.getElementById('topbar-add-btn');
@@ -1340,6 +1343,7 @@ function showPage(page) {
       raporlar:       null,
       tebligat:       null,
       'ptt-takip':    null,
+      udfDonusturucu: null,
     };
     const label = btnLabels[page];
     if (label === null) {
@@ -1403,7 +1407,7 @@ function initMobileTopbar() {
   window.addEventListener('resize', updateTopbar);
 }
 
-const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip'};
+const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip', udfDonusturucu:'🔄 UDF Dönüştürücü'};
 const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'PTT Tebligat'};
 
 function showSubpage(id) {

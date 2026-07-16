@@ -2666,6 +2666,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- UDF Dönüştürücü bağımlılıkları — tamamı istemci tarafında çalışır, sunucuya dosya gönderilmez -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.11.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- docx ve UTIF.js cdnjs.cloudflare.com üzerinde yayınlanmıyor; jsDelivr (aynı şekilde herkese açık, güvenilir bir CDN) üzerinden yükleniyor -->
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js"></script>
 <script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
 </head>
 <body>
@@ -2818,6 +2827,9 @@
     </div>
     <div class="nav-item nav-secondary" onclick="showPage('ptt-takip')" oncontextmenu="navContextMenu(event,'ptt-takip','PTT Tebligat Takip','📬')">
       <span class="nav-icon">📬</span> PTT Tebligat Takip
+    </div>
+    <div class="nav-item nav-secondary" onclick="showPage('udfDonusturucu')" oncontextmenu="navContextMenu(event,'udfDonusturucu','UDF Dönüştürücü','🔄')">
+      <span class="nav-icon">🔄</span> UDF Dönüştürücü
     </div>
   </nav>
   <div class="sidebar-footer">
@@ -3674,6 +3686,26 @@
         <div id="uets-liste"></div>
       </div>
 
+    </div>
+
+    <!-- UDF DÖNÜŞTÜRÜCÜ -->
+    <div id="page-udfDonusturucu" class="page">
+      <div style="max-width:1100px;margin:0 auto">
+        <div class="ptt-hero" style="margin-bottom:16px">
+          <div class="ptt-hero-icon">🔄</div>
+          <div>
+            <div class="ptt-hero-title">UDF Dönüştürücü</div>
+            <div class="ptt-hero-sub">UYAP Doküman Editörü (.udf) dosyalarını Word, PDF ve TIFF formatlarıyla dönüştürün. 🔒 Dosyalarınız sunucuya gönderilmez — tüm işlem tarayıcınızda yapılır.</div>
+          </div>
+        </div>
+
+        <div id="udf-conv-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+          <!-- Kartlar udfd-init() tarafından oluşturulur -->
+        </div>
+
+        <!-- UDF Görüntüle modalı içeriği burada render edilir -->
+        <div id="udf-preview-pane" style="display:none;margin-top:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px"></div>
+      </div>
     </div>
 
     <!-- NOTLAR -->
@@ -5130,10 +5162,11 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260713z"></script>
-<script src="js/02-dava-yonetimi.js?v=20260713z"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260713z"></script>
-<script src="js/04-arac-ve-modul.js?v=20260713z"></script>
+<script src="js/01-cekirdek-veri.js?v=20260714b"></script>
+<script src="js/02-dava-yonetimi.js?v=20260714b"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260714b"></script>
+<script src="js/04-arac-ve-modul.js?v=20260714b"></script>
+<script src="js/05-udf-donusturucu.js?v=20260714b"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">
