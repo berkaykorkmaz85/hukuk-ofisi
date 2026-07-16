@@ -3133,7 +3133,7 @@ function toggleSidebarCollapse() {
   sb.classList.toggle('collapsed');
   var collapsed = sb.classList.contains('collapsed');
   btn.textContent = collapsed ? '▶' : '◀';
-  btn.style.left = collapsed ? '4px' : '224px';
+  btn.style.left = collapsed ? '4px' : '186px';
   main.style.marginLeft = collapsed ? '0' : '220px';
   if (ddp) ddp.style.left = collapsed ? '0' : '220px';
   if (idp2) idp2.style.left = collapsed ? '0' : '220px';
