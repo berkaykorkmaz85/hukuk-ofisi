@@ -3280,9 +3280,26 @@ function renderTasks() {
   function dosyaAdi(t) {
     if(!t.ilgili) return '';
     var dava = davalar.find(function(d){ return d.ad===t.ilgili||d.no===t.ilgili; });
-    if(dava) return dava.no + (dava.muvekkil ? ' — ' + dava.muvekkil.split(' ').slice(0,2).join(' ') : '');
+    if(dava) {
+      var dMv = dava.muvekkil || (function(){
+        if (typeof _davaTarafPair !== 'function') return '';
+        var tp = _davaTarafPair(dava);
+        return dava.taraf === 'davali' ? tp.davali : tp.davaci;
+      })();
+      return dava.no + (dMv ? ' — ' + dMv.split(' ').slice(0,2).join(' ') : '');
+    }
     var icra = icralar.find(function(i){ return i.bki===t.ilgili||i.no===t.ilgili; });
-    if(icra) return (icra.bki||icra.no) + (icra.borclu ? ' — ' + icra.borclu.split(' ').slice(0,2).join(' ') : '');
+    if(icra) {
+      // Dava ile aynı mantık: dosya adının yanında ikinci taraf (karşı taraf)
+      // değil, müvekkilimizin adı gösterilir — icra.borclu çoğu kayıtta boş
+      // kalıyor ve zaten müvekkilimiz olmayabilir.
+      var iMv = icra.muvekkil || (function(){
+        if (typeof _icraTarafPair !== 'function') return '';
+        var tp = _icraTarafPair(icra);
+        return icra.taraf === 'borclu' ? tp.borclu : tp.alacakli;
+      })();
+      return (icra.bki||icra.no) + (iMv ? ' — ' + iMv.split(' ').slice(0,2).join(' ') : '');
+    }
     return t.ilgili;
   }
 
