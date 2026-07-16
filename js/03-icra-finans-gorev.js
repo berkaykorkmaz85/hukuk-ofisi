@@ -598,6 +598,8 @@ function renderIcralar() {
       var ta = _icraTarafPair(a), tb = _icraTarafPair(b);
       av = (ta.alacakli || a.no || ''); bv = (tb.alacakli || b.no || '');
     } else if (alan === 'tur') { av = a.tur || ''; bv = b.tur || ''; }
+    else if (alan === 'mudurluk') { av = a.mudurluk || ''; bv = b.mudurluk || ''; }
+    else if (alan === 'esas') { av = a.esas || ''; bv = b.esas || ''; }
     else if (alan === 'alacak') { av = Number(a.alacak)||0; bv = Number(b.alacak)||0; return yon==='asc' ? av-bv : bv-av; }
     else if (alan === 'durum') { av = a.durum || ''; bv = b.durum || ''; }
     else { av = a.no || ''; bv = b.no || ''; }
@@ -605,7 +607,7 @@ function renderIcralar() {
     return yon === 'asc' ? cmp : -cmp;
   });
 
-  ['no','ad','tur','alacak','durum'].forEach(function(a) {
+  ['no','ad','tur','mudurluk','esas','alacak','durum'].forEach(function(a) {
     var el = document.getElementById('icra-sort-'+a);
     if (el) el.textContent = (_icraSirala.alan === a) ? (_icraSirala.yon === 'asc' ? '▲' : '▼') : '';
   });
@@ -623,6 +625,8 @@ function renderIcralar() {
       <td data-label="Dosya No"><span class="mono text-gold" style="cursor:pointer">${escHtml(i.no)}</span></td>
       <td data-label="Dosya Adı">${alacakliPart} <span style="color:var(--text3)">vs</span> ${borcluPart}</td>
       <td data-label="Takip Türü"><span class="tag" style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)">${escHtml(i.tur||'—')}</span></td>
+      <td data-label="İcra Müdürlüğü">${escHtml(i.mudurluk||'—')}</td>
+      <td data-label="Esas No"><span class="mono">${escHtml(i.esas||'—')}</span></td>
       <td data-label="Asıl Alacak" class="mono">₺${fmt(i.alacak)}</td>
       <td data-label="Durum"><span class="tag tag-${i.durum==='Aktif'?'aktif':i.durum==='Bekliyor'?'bekliyor':'kapali'}">${i.durum}</span></td>
       <td onclick="event.stopPropagation()">
@@ -631,7 +635,7 @@ function renderIcralar() {
       </td>
     </tr>
   `;
-  }).join('') : `<tr><td colspan="6"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
+  }).join('') : `<tr><td colspan="8"><div class="empty"><div class="empty-icon">⚡</div><div class="empty-text">Henüz icra dosyası yok</div></div></td></tr>`;
 }
 
 function hesaplaIcraAaüt(alacak) {
