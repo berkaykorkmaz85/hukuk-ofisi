@@ -2929,20 +2929,23 @@ function idpBuildReply(reply, all, icraId, isLast) {
   var y=reply.yazar||'Kullanıcı';
   var rid=reply.id;
   var rol=reply.rol?'<span class="ch-rr">'+escHtml(reply.rol)+'</span>':'';
+  var duz=reply.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
   var tb=renderIcraTepkiBar(reply,icraId);
   // Sub-replies artık rootReplies flat listesinde zaten var, tekrar ekleme
   return '<div class="ch-rply" id="idp-post-'+rid+'">'
     +'<div class="ch-rhead">'
     +chAvatar(y,18)
     +'<span class="ch-rn">'+escHtml(y)+'</span>'+rol
-    +'<span class="ch-rt">'+fmtDate(reply.tarih)+'</span>'
+    +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
     +'<div class="ch-rbody" id="cbody-idp-'+rid+'">'+escHtml(reply.metin)+'</div>'
     +chRenderEkler(reply.ekler)
     +tb
-    +'<div class="ch-ractions">'
+    +'<div class="ch-ractions" id="cactions-idp-'+rid+'">'
     +'<button class="chatter-btn reply-btn" data-rid="'+rid+'" onclick="idpReply(this.dataset.rid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn edit-btn" data-pid="'+rid+'" data-icraid="'+icraId+'" onclick="startIdpChatterEdit(this.dataset.pid,this.dataset.icraid)">&#x270f; D&uuml;zenle</button>'
     +'<span class="ch-btn-sep"></span>'
     +'<button class="chatter-btn del-btn" data-rid="'+rid+'" onclick="deleteIdpPost(this.dataset.rid)">&#x1f5d1; Sil</button>'
     +'</div>'
@@ -3011,6 +3014,7 @@ function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
   var y=post.yazar||'Kullanıcı';
   var pid=post.id;
   var rol=post.rol?'<span class="ch-role">'+escHtml(post.rol)+'</span>':'';
+  var duz=post.duzenlemeTarih?'<span style="font-size:10px;color:var(--text3);font-style:italic"> &middot; d&uuml;zenlendi</span>':'';
   var lastBadge=isLast?'<span class="ch-last-badge">&#x1f514; Son mesaj</span>':'';
   var tb=renderIcraTepkiBar(post,icraId);
   var replies=repliesOverride!==undefined?repliesOverride:all.filter(function(r){return r.parentId===pid;});
@@ -3020,17 +3024,67 @@ function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
     +chAvatar(y,32)
     +'<div style="flex:1;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
     +'<span class="ch-name">'+escHtml(y)+'</span>'+rol
-    +'<span class="ch-time">'+fmtDate(post.tarih)+'</span>'+lastBadge
+    +'<span class="ch-time">'+fmtDate(post.tarih)+duz+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
     +'<div class="ch-body" id="cbody-idp-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
     +chRenderEkler(post.ekler)
     +tb
-    +'<div class="ch-actions">'
+    +'<div class="ch-actions" id="cactions-idp-'+pid+'">'
     +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" onclick="idpReply(this.dataset.pid)">&#x21a9; Yan&#x131;tla</button>'
+    +'<span class="ch-btn-sep"></span>'
+    +'<button class="chatter-btn edit-btn" data-pid="'+pid+'" data-icraid="'+icraId+'" onclick="startIdpChatterEdit(this.dataset.pid,this.dataset.icraid)">&#x270f; D&uuml;zenle</button>'
     +'<span class="ch-btn-sep"></span>'
     +'<button class="chatter-btn del-btn" data-pid="'+pid+'" onclick="deleteIdpPost(this.dataset.pid)">&#x1f5d1; Sil</button>'
     +'</div>'+repliesHtml+'</div>';
+}
+
+function startIdpChatterEdit(postId, icraId) {
+  var key = 'icra_chatter_' + icraId;
+  var post = (DB.get(key) || []).find(function(p){ return p.id === postId; });
+  if (!post) return;
+
+  var bodyEl = document.getElementById('cbody-idp-' + postId);
+  var actionsEl = document.getElementById('cactions-idp-' + postId);
+  if (!bodyEl) return;
+
+  bodyEl.innerHTML = '<textarea class="chatter-edit-area" id="cedit-idp-' + escHtml(postId) + '">' + escHtml(post.metin) + '</textarea>'
+    + '<div class="chatter-edit-row">'
+    + '<button class="info-inline-save" onclick="saveIdpChatterEdit(\'' + escHtml(postId) + '\',\'' + escHtml(icraId) + '\')">✓ Kaydet</button>'
+    + '<button class="info-inline-cancel" onclick="_renderIdpChatterFromCache(\'' + escHtml(icraId) + '\')">İptal</button>'
+    + '</div>';
+  if (actionsEl) actionsEl.style.display = 'none';
+
+  var ta = document.getElementById('cedit-idp-' + postId);
+  if (ta) {
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveIdpChatterEdit(postId, icraId);
+      if (e.key === 'Escape') _renderIdpChatterFromCache(icraId);
+    });
+  }
+}
+
+async function saveIdpChatterEdit(postId, icraId) {
+  var ta = document.getElementById('cedit-idp-' + postId);
+  if (!ta) return;
+  var yeniMetin = ta.value.trim();
+  if (!yeniMetin) return notify('Not boş olamaz!');
+
+  var duzenlemeTarih = new Date().toISOString();
+  var res = await _supabaseClient.from('dosya_chatter')
+    .update({ metin: yeniMetin, duzenleme_tarih: duzenlemeTarih }).eq('id', postId);
+  if (res.error) { console.error('Not güncellenemedi:', res.error); return notify('❌ Not güncellenemedi: ' + (res.error.message||'bilinmeyen hata')); }
+
+  var key = 'icra_chatter_' + icraId;
+  var arr = DB.get(key) || [];
+  arr = arr.map(function(p){
+    return p.id === postId ? Object.assign({}, p, { metin: yeniMetin, duzenlemeTarih: duzenlemeTarih }) : p;
+  });
+  DB.set(key, arr);
+  _renderIdpChatterFromCache(icraId);
+  notify('Not güncellendi ✓');
 }
 
 async function sendIdpPost() {
