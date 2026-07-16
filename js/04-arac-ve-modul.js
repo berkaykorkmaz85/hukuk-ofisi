@@ -3137,6 +3137,11 @@ function toggleSidebarCollapse() {
   main.style.marginLeft = collapsed ? '0' : '220px';
   if (ddp) ddp.style.left = collapsed ? '0' : '220px';
   if (idp2) idp2.style.left = collapsed ? '0' : '220px';
+  // Panel kapalıyken sol kenardaki '▶' geri-açma butonu topbar'ın sol
+  // köşesinde durur; topbar içeriğini (geri butonu ← dahil) biraz sağa
+  // kaydırarak üst üste binmeyi önle. Açıkken CSS'teki 24px'e geri dön.
+  var topbar = document.getElementById('topbar');
+  if (topbar) topbar.style.paddingLeft = collapsed ? '44px' : '';
 }
 
 // ── İÇERİK SAĞ TIK MENÜSÜ ─────────────────────────────
