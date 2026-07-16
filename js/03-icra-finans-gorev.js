@@ -1037,6 +1037,10 @@ function _idpRenderMasraflar(id, i, masraflar) {
 }
 
 function showIcraDetail(id) {
+  // Aynı icra dosyası zaten açıkken yapılan iç yenilemeler (haciz/taksit
+  // güncellemesi vb.) geri yığınına yeni kayıt eklemesin — sadece gerçekten
+  // farklı bir dosyaya geçişte push yapılır.
+  if (typeof _navPush === 'function' && currentIcraId !== id) _navPush();
   const i = DB.get('icralar').find(x=>x.id===id);
   if (!i) return;
 
@@ -1772,7 +1776,12 @@ function saveMuvekkilNotlar(id, val) {
   notify('Not kaydedildi ✓');
 }
 
+let _currentMvDetailId = null;
 function showMuvekkilDetail(id) {
+  // Aynı müvekkil zaten açıkken yapılan iç yenilemeler (örn. kaydet sonrası
+  // otomatik yenileme) geri yığınına yeni kayıt eklemesin.
+  if (typeof _navPush === 'function' && _currentMvDetailId !== id) _navPush();
+  _currentMvDetailId = id;
   const mv = DB.get('muvekkiller').find(x => x.id === id);
   if (!mv) return;
   const davalar = DB.get('davalar').filter(d => d.muvekkil === mv.ad);
@@ -2260,7 +2269,9 @@ async function _saveMuvekkilInner() {
   // gelene kadar ekranda görünmüyordu.
   var mvDetailEl = document.getElementById('muvekkil-detail');
   if (wasEditing && mvDetailEl && mvDetailEl.classList.contains('active')) {
-    showMuvekkilDetail(editedId);
+    // Aynı görünümün yenilenmesi — geri yığınına yeni kayıt eklenmesin
+    if (typeof window !== 'undefined') window._navGuard = true;
+    try { showMuvekkilDetail(editedId); } finally { window._navGuard = false; }
   }
 }
 

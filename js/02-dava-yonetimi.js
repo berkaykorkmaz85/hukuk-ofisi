@@ -1173,9 +1173,14 @@ window.refreshCurrentPage = function(changedKey) {
 // ========== NAVIGATION ==========
 function showPage(page) {
   if (currentPage !== page) {
+    if (typeof _navPush === 'function') _navPush();
     _prevPage = currentPage; // Önceki sayfayı kaydet
     _navStack.push(currentPage);
     if (_navStack.length > 20) _navStack.shift(); // max 20 kayıt tut
+    // Kişiler sayfasından ayrılınca müvekkil-detay "aynı kayıt" korumasını
+    // sıfırla — aksi halde aynı müvekkile daha sonra tekrar girildiğinde
+    // geri yığınına kayıt düşmeyebilirdi.
+    if (page !== 'kisiler' && typeof _currentMvDetailId !== 'undefined') _currentMvDetailId = null;
   }
   // Aktif sekmenin sayfa bilgisini güncelle (navigasyon durumunu koru)
   if (_activeTabId) {
@@ -1981,11 +1986,20 @@ function renderDavalar() {
 
   document.getElementById('dava-tbody').innerHTML = davalar.length ? davalar.map(d=>{
     const tp = _davaTarafPair(d);
-    const dosyaAdi = (tp.davaci || tp.davali) ? (tp.davaci||'—') + ' vs ' + (tp.davali||'—') : (d.ad || '—');
+    // Müvekkilimiz olan taraf (davacı ya da davalı), müvekkil kaydı varsa
+    // tıklanabilir link olarak gösterilir — icra listesindekiyle aynı desen.
+    const muvekkilAdi = (d.taraf==='davali' ? tp.davali : tp.davaci) || d.muvekkil;
+    const davaciPart = d.taraf!=='davali'
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(muvekkilAdi)}')">${escHtml(tp.davaci||'—')}</span>`
+      : escHtml(tp.davaci||'—');
+    const davaliPart = d.taraf==='davali'
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(muvekkilAdi)}')">${escHtml(tp.davali||'—')}</span>`
+      : escHtml(tp.davali||'—');
+    const dosyaAdi = (tp.davaci || tp.davali) ? davaciPart + ' <span style="color:var(--text3)">vs</span> ' + davaliPart : escHtml(d.ad || '—');
     return `
     <tr oncontextmenu="itemContextMenu(event,'dava','${d.id}','${escHtml(d.ad||d.no)}')" style="cursor:pointer" onclick="openDavaDetailPage('${d.id}')">
       <td data-label="Dosya No"><span class="mono text-gold" style="cursor:pointer">${escHtml(d.no)}</span></td>
-      <td data-label="Dosya Adı">${escHtml(dosyaAdi)}</td>
+      <td data-label="Dosya Adı">${dosyaAdi}</td>
       <td data-label="Konu">${escHtml(d.konu)}${d.cesit ? `<div style="font-size:11px;color:var(--gold);margin-top:2px">${escHtml(d.cesit)}</div>` : ''}</td>
       <td data-label="Mahkeme">${escHtml(d.mahkeme||'—')}</td>
       <td data-label="Esas No"><span class="mono">${escHtml(d.esas||'—')}</span></td>
@@ -2003,6 +2017,9 @@ let currentDavaId = null;
 let replyToPostId = null;
 
 function openDavaDetailPage(id) {
+  // Aynı dava dosyası zaten açıkken yapılan iç yenilemeler geri yığınına
+  // yeni kayıt eklemesin — sadece gerçekten farklı bir dosyaya geçişte push yapılır.
+  if (typeof _navPush === 'function' && currentDavaId !== id) _navPush();
   currentDavaId = id;
   replyToPostId = null;
   const d = DB.get('davalar').find(x => x.id === id);

@@ -1826,6 +1826,73 @@ function fhDosyaDoldur() {
   }
 }
 
+// ========== UYGULAMA GENELİ GERİ BUTONU ==========
+// Tarayıcının kendi geri tuşu bu SPA'da işe yaramıyor (tek sayfa, hash
+// routing yok). Bunun yerine, görünüm değiştiren her ana fonksiyonun
+// (showPage, openDavaDetailPage, showIcraDetail, showMuvekkilDetail,
+// tabAktiflestir) başında "buraya gelmeden önce ne görünüyordu" bilgisini
+// bir yığına (stack) atıyoruz; "← Geri" butonu bu yığından son durumu
+// geri yüklüyor. _navChaining: tabAktiflestir kendi içinde bu fonksiyonları
+// zincirleme çağırdığında (örn. showPage + openDavaDetailPage) tek bir
+// kayıt düşmesi için ara çağrıların push yapmasını bastırır. _navGuard:
+// appGeriGit() geri yükleme yaparken tetiklenen iç çağrıların yeni kayıt
+// eklemesini engeller.
+window._backStack = [];
+window._navChaining = false;
+window._navGuard = false;
+
+function _navCaptureSnapshot() {
+  var ddp = document.getElementById('dava-detail-page');
+  var idp = document.getElementById('icra-detail-page');
+  if (ddp && ddp.classList.contains('open') && typeof currentDavaId !== 'undefined' && currentDavaId) {
+    var did = currentDavaId, dTabId = _activeTabId;
+    return function () {
+      if (dTabId && _tabs.find(function (t) { return t.id === dTabId; })) tabAktiflestir(dTabId);
+      else { showPage('davalar'); openDavaDetailPage(did); }
+    };
+  }
+  if (idp && idp.classList.contains('open') && typeof currentIcraId !== 'undefined' && currentIcraId) {
+    var iid = currentIcraId, iTabId = _activeTabId;
+    return function () {
+      if (iTabId && _tabs.find(function (t) { return t.id === iTabId; })) tabAktiflestir(iTabId);
+      else { showPage('icralar'); showIcraDetail(iid); }
+    };
+  }
+  var mvEl = document.getElementById('muvekkil-detail');
+  if (mvEl && mvEl.classList.contains('active') && currentPage === 'kisiler') {
+    var activeTab = _tabs.find(function (t) { return t.id === _activeTabId; });
+    if (activeTab && activeTab.subpage === 'muvekkil-detail' && activeTab.itemId) {
+      var mvTabId = _activeTabId;
+      return function () { tabAktiflestir(mvTabId); };
+    }
+  }
+  var page = currentPage, tid = _activeTabId;
+  return function () {
+    if (tid && _tabs.find(function (t) { return t.id === tid; })) tabAktiflestir(tid);
+    else showPage(page);
+  };
+}
+
+function _navPush() {
+  if (window._navGuard || window._navChaining) return;
+  window._backStack.push(_navCaptureSnapshot());
+  if (window._backStack.length > 40) window._backStack.shift();
+  _navUpdateBackBtn();
+}
+
+function appGeriGit() {
+  var fn = window._backStack.pop();
+  _navUpdateBackBtn();
+  if (!fn) return;
+  window._navGuard = true;
+  try { fn(); } finally { window._navGuard = false; }
+}
+
+function _navUpdateBackBtn() {
+  var btn = document.getElementById('app-back-btn');
+  if (btn) btn.style.display = window._backStack.length ? 'inline-flex' : 'none';
+}
+
 // ========== SEKME SİSTEMİ ==========
 let _tabs = [];
 let _activeTabId = null;
@@ -1883,13 +1950,16 @@ function tabEkle(label, icon, page, subpage, itemId) {
 }
 
 function tabAktiflestir(tabId) {
+  if (tabId !== _activeTabId) _navPush();
+  window._navChaining = true;
   _activeTabId = tabId;
   const t = _tabs.find(x => x.id === tabId);
-  if (!t) return;
+  if (!t) { window._navChaining = false; return; }
   showPage(t.page);
   if (t.subpage === 'dava-detail' && t.itemId) openDavaDetailPage(t.itemId);
   else if (t.subpage === 'icra-detail' && t.itemId) showIcraDetail(t.itemId);
-  else if (t.subpage === 'muvekkil-detail' && t.itemId) { showPage('kisiler'); setTimeout(()=>showMuvekkilDetail(t.itemId),50); }
+  else if (t.subpage === 'muvekkil-detail' && t.itemId) { showPage('kisiler'); setTimeout(function(){ window._navChaining = true; showMuvekkilDetail(t.itemId); window._navChaining = false; },50); }
+  window._navChaining = false;
   tabRender();
   _tabSaveSession();
   // F4: Scroll active tab into view
@@ -2608,8 +2678,11 @@ function mvGeriEdit(accountType, accountId) {
 function tabMuvekkilAc(mvId) {
   const m = DB.get('muvekkiller').find(x => x.id === mvId);
   if (!m) return;
+  // tabEkle -> tabAktiflestir zaten showMuvekkilDetail'i render ediyor
+  // (muvekkil-detail subpage dalı); burada tekrar çağırmak sadece
+  // gereksiz bir ekstra render'a ve geri-yığınına yinelenen kayıt
+  // eklenmesine yol açıyordu.
   tabEkle('👤 ' + m.ad, '👤', 'kisiler', 'muvekkil-detail', mvId);
-  showMuvekkilDetail(mvId);
 }
 
 function mvFinansModalAc(mvAd, tip) {
