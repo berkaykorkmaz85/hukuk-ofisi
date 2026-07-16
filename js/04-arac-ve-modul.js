@@ -2939,8 +2939,8 @@ function idpBuildReply(reply, all, icraId, isLast) {
     +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
-    +'<div class="ch-rbody" id="cbody-idp-'+rid+'">'+escHtml(reply.metin)+'</div>'
     +chRenderEkler(reply.ekler)
+    +'<div class="ch-rbody" id="cbody-idp-'+rid+'">'+escHtml(reply.metin)+'</div>'
     +tb
     +'<div class="ch-ractions" id="cactions-idp-'+rid+'">'
     +'<button class="chatter-btn reply-btn" data-rid="'+rid+'" onclick="idpReply(this.dataset.rid)">&#x21a9; Yan&#x131;tla</button>'
@@ -3027,8 +3027,8 @@ function idpBuildPost(post, all, icraId, isLast, repliesOverride) {
     +'<span class="ch-time">'+fmtDate(post.tarih)+duz+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
-    +'<div class="ch-body" id="cbody-idp-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
     +chRenderEkler(post.ekler)
+    +'<div class="ch-body" id="cbody-idp-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
     +tb
     +'<div class="ch-actions" id="cactions-idp-'+pid+'">'
     +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" onclick="idpReply(this.dataset.pid)">&#x21a9; Yan&#x131;tla</button>'

@@ -3152,8 +3152,8 @@ function chBuildReply(reply,all,davaId,isLast){
     +'<span class="ch-rt">'+fmtDate(reply.tarih)+duz+'</span>'
     +'</div>'
     +chReplyTo(reply.parentYazar,reply.parentMetin)
-    +'<div class="ch-rbody" id="cbody-'+rid+'">'+(reply.metin ? escHtml(reply.metin) : '')+'</div>'
     +chRenderEkler(reply.ekler)
+    +'<div class="ch-rbody" id="cbody-'+rid+'">'+(reply.metin ? escHtml(reply.metin) : '')+'</div>'
     +tb
     +'<div class="ch-ractions" id="cactions-'+rid+'">'
     +'<button class="chatter-btn reply-btn" data-pid="'+rid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
@@ -3229,8 +3229,8 @@ function chBuildPost(post, all, davaId, isLast, repliesOverride){
     +'<span class="ch-name">'+escHtml(y)+'</span>'+rol+'<span class="ch-time">'+fmtDate(post.tarih)+duz+'</span>'+lastBadge
     +'</div></div>'
     +chReplyTo(post.parentYazar,post.parentMetin)
-    +'<div class="ch-body" id="cbody-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
     +chRenderEkler(post.ekler)
+    +'<div class="ch-body" id="cbody-'+pid+'">'+(post.metin?escHtml(post.metin):'')+'</div>'
     +tb
     +'<div class="ch-actions" id="cactions-'+pid+'">'
     +'<button class="chatter-btn reply-btn" data-pid="'+pid+'" data-did="'+davaId+'" onclick="startReplyById(this.dataset.pid,this.dataset.did)">&#x21a9; Yan&#x131;tla</button>'
