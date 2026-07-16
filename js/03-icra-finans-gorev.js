@@ -1118,8 +1118,10 @@ function renderIcraTab(id, sekme) {
       // Notlar
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px">'
       + '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">📝 Dosya Notları</div>'
-      + '<textarea onchange="saveIcraHaciz(\''+id+'\',\'notlar\',this.value)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;padding:10px;width:100%;resize:vertical;min-height:60px;outline:none;font-family:inherit" placeholder="Dosya notları...">'+escHtml(hacizData.notlar||i.notlar||'')+'</textarea>'
-      + '</div></div>';
+      + '<textarea id="idp-dosya-notlari-'+id+'" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:13px;padding:10px;width:100%;resize:vertical;min-height:60px;outline:none;font-family:inherit" placeholder="Dosya notları...">'+escHtml(hacizData.notlar||i.notlar||'')+'</textarea>'
+      + '<div style="display:flex;justify-content:flex-end;margin-top:8px">'
+      + '<button class="btn btn-gold" style="font-size:12px;padding:6px 14px" onclick="saveIcraDosyaNotu(\''+id+'\')">💾 Kaydet</button>'
+      + '</div></div></div>';
 
   } else if (sekme === 'finans') {
     // T3: KPI kartları + Ö1 faiz + Ö2 progress + Ö6 masraf
@@ -1459,6 +1461,17 @@ function saveIcraHaciz(icraId, key, val) {
   const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
   data[key] = val;
   _hacizLocalYaz(icraId, data);
+}
+
+// Dosya Notları textarea'sı önceden sadece odaktan çıkınca (onchange)
+// sessizce kaydediyordu — buton ya da onay mesajı olmadığı için kullanıcı
+// kaydedilip kaydedilmediğini anlayamıyordu. Artık açık bir "Kaydet"
+// butonuyla tetikleniyor ve bildirim gösteriyor.
+function saveIcraDosyaNotu(icraId) {
+  const ta = document.getElementById('idp-dosya-notlari-' + icraId);
+  if (!ta) return;
+  saveIcraHaciz(icraId, 'notlar', ta.value);
+  notify('Dosya notu kaydedildi ✓');
 }
 
 function icraKapakKaydet(icraId, key, val) {
