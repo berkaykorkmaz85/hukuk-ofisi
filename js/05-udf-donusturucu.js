@@ -123,81 +123,89 @@ async function udfdBuildBlob(paragraphs) {
   return await zip.generateAsync({ type: 'blob' });
 }
 
-// ── 1) WORD → UDF (mammoth.js) ──────────────────────────────
+// ── 1) WORD → UDF (docx XML doğrudan parse) ─────────────────
+// mammoth hizalamayı yansıtmadığından ve index kayması oluştuğundan
+// word/document.xml'i JSZip ile açıp doğrudan parse ediyoruz.
 async function udfdWordToUdf(file, onProgress) {
   onProgress && onProgress('Word dosyası okunuyor…');
-
-  // Hizalama bilgisini ham docx XML'inden al (mammoth bunu çıktıya yansıtmaz)
-  var docxParaAligns = [];
-  try {
-    var alignBuf = await file.arrayBuffer();
-    var docxZip = await JSZip.loadAsync(alignBuf);
-    var docXmlFile = docxZip.file('word/document.xml');
-    if (docXmlFile) {
-      var docXmlText = await docXmlFile.async('string');
-      var paraRegex = /<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g;
-      var pm;
-      while ((pm = paraRegex.exec(docXmlText)) !== null) {
-        var jcMatch = pm[0].match(/<w:jc\s+w:val="([^"]+)"/);
-        var val = jcMatch ? jcMatch[1] : '';
-        var a = 0;
-        if (val === 'center') a = 1;
-        else if (val === 'right') a = 2;
-        else if (val === 'both' || val === 'distribute') a = 3;
-        docxParaAligns.push(a);
-      }
-    }
-  } catch (e) { /* hizalama alınamazsa varsayılan (sol) kullanılır */ }
-
   var buf = await file.arrayBuffer();
-  var result = await mammoth.convertToHtml({ arrayBuffer: buf });
+  var zip = await JSZip.loadAsync(buf);
+  var docFile = zip.file('word/document.xml');
+  if (!docFile) throw new Error('Geçersiz .docx dosyası');
+  var docXml = await docFile.async('string');
   onProgress && onProgress('Biçimlendirme ayrıştırılıyor…');
-  var doc = new DOMParser().parseFromString(result.value || '', 'text/html');
 
-  function walkInline(node, state, runs) {
-    Array.prototype.forEach.call(node.childNodes, function (child) {
-      if (child.nodeType === 3) {
-        if (child.textContent) runs.push({ text: child.textContent, bold: state.bold, italic: state.italic, underline: state.underline, size: state.size });
-      } else if (child.nodeType === 1) {
-        var tag = child.tagName.toLowerCase();
-        if (tag === 'br') { runs.push({ text: '\n', bold: state.bold, italic: state.italic, underline: state.underline, size: state.size }); return; }
-        var ns = Object.assign({}, state);
-        if (tag === 'strong' || tag === 'b') ns.bold = true;
-        if (tag === 'em' || tag === 'i') ns.italic = true;
-        if (tag === 'u') ns.underline = true;
-        walkInline(child, ns, runs);
-      }
-    });
+  var W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+  var xDoc = new DOMParser().parseFromString(docXml, 'application/xml');
+  if (xDoc.querySelector('parsererror')) throw new Error('Word belgesi okunamadı (XML bozuk)');
+
+  function wa(el, attr) {
+    return el.getAttributeNS(W, attr) || el.getAttribute('w:' + attr) || '';
   }
 
-  var paragraphs = [];
-  var paraIndex = 0;
-  var blocks = doc.body.querySelectorAll('p, h1, h2, h3, h4, li');
-  if (!blocks.length) blocks = [doc.body];
-  blocks.forEach(function (block) {
-    var isHeading = /^h[1-4]$/.test(block.tagName.toLowerCase());
-    var runs = [];
-    walkInline(block, { bold: isHeading, italic: false, underline: false, size: isHeading ? 14 : 12 }, runs);
-    if (!runs.length) runs.push({ text: '', bold: false, italic: false, underline: false, size: 12 });
-
-    var isListItem = block.tagName.toLowerCase() === 'li';
-    var isOrdered = isListItem && block.parentElement && block.parentElement.tagName.toLowerCase() === 'ol';
-    if (isListItem && !isOrdered) runs.unshift({ text: '• ', bold: false, italic: false, underline: false, size: 12 });
-
-    // Hizalamayı önce docx XML'inden al; yoksa CSS fallback
-    var align = 0;
-    if (paraIndex < docxParaAligns.length) {
-      align = docxParaAligns[paraIndex];
-    } else {
-      var styleAttr = block.getAttribute('style') || '';
-      if (/text-align:\s*center/.test(styleAttr)) align = 1;
-      else if (/text-align:\s*right/.test(styleAttr)) align = 2;
-      else if (/text-align:\s*justify/.test(styleAttr)) align = 3;
+  function parseRun(rEl) {
+    var rPr = rEl.getElementsByTagNameNS(W, 'rPr')[0];
+    var bold = false, italic = false, underline = false, size = 12;
+    if (rPr) {
+      var bEl = rPr.getElementsByTagNameNS(W, 'b')[0];
+      if (bEl) bold = (wa(bEl, 'val') || '1') !== '0';
+      var iEl = rPr.getElementsByTagNameNS(W, 'i')[0];
+      if (iEl) italic = (wa(iEl, 'val') || '1') !== '0';
+      var uEl = rPr.getElementsByTagNameNS(W, 'u')[0];
+      if (uEl) underline = wa(uEl, 'val') !== 'none';
+      var szEl = rPr.getElementsByTagNameNS(W, 'sz')[0];
+      if (szEl) size = Math.round(parseInt(wa(szEl, 'val') || '24') / 2) || 12;
     }
-    paraIndex++;
+    var text = Array.from(rEl.getElementsByTagNameNS(W, 't')).map(function (t) { return t.textContent; }).join('');
+    return text ? { text: text, bold: bold, italic: italic, underline: underline, size: size } : null;
+  }
 
-    paragraphs.push({ align: align, numbered: isOrdered, leftIndent: isListItem ? 25 : 0, runs: runs });
+  function parsePara(pEl) {
+    var pPr = pEl.getElementsByTagNameNS(W, 'pPr')[0];
+    var align = 0, numbered = false, leftIndent = 0;
+    if (pPr) {
+      var jcEl = pPr.getElementsByTagNameNS(W, 'jc')[0];
+      if (jcEl) {
+        var jv = wa(jcEl, 'val');
+        if (jv === 'center') align = 1;
+        else if (jv === 'right') align = 2;
+        else if (jv === 'both' || jv === 'distribute') align = 3;
+      }
+      if (pPr.getElementsByTagNameNS(W, 'numPr').length) numbered = true;
+      var indEl = pPr.getElementsByTagNameNS(W, 'ind')[0];
+      if (indEl) leftIndent = Math.round(parseInt(wa(indEl, 'left') || '0') * 0.053) || 0;
+    }
+    var runs = [];
+    Array.from(pEl.childNodes).forEach(function (child) {
+      if (child.namespaceURI !== W) return;
+      if (child.localName === 'r') {
+        var run = parseRun(child);
+        if (run) runs.push(run);
+      } else if (child.localName === 'hyperlink') {
+        Array.from(child.getElementsByTagNameNS(W, 'r')).forEach(function (r) {
+          var run = parseRun(r);
+          if (run) { run.underline = true; runs.push(run); }
+        });
+      }
+    });
+    if (!runs.length) runs.push({ text: '', bold: false, italic: false, underline: false, size: 12 });
+    return { align: align, numbered: numbered, leftIndent: leftIndent, runs: runs };
+  }
+
+  var wBody = xDoc.getElementsByTagNameNS(W, 'body')[0];
+  if (!wBody) throw new Error('Word belgesi gövdesi bulunamadı');
+  var paragraphs = [];
+  Array.from(wBody.childNodes).forEach(function (node) {
+    if (node.namespaceURI !== W) return;
+    if (node.localName === 'p') {
+      paragraphs.push(parsePara(node));
+    } else if (node.localName === 'tbl') {
+      Array.from(node.getElementsByTagNameNS(W, 'p')).forEach(function (p) {
+        paragraphs.push(parsePara(p));
+      });
+    }
   });
+  if (!paragraphs.length) throw new Error('Word belgesinde paragraf bulunamadı');
 
   onProgress && onProgress('.udf paketleniyor…');
   return await udfdBuildBlob(paragraphs);
