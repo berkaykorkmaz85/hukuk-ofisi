@@ -87,8 +87,11 @@ async function udfdBuildBlob(paragraphs) {
   var offset = 0;
   var xmlParagraphs = paragraphs.map(function (p) {
     var runs = (p.runs && p.runs.length) ? p.runs : [{ text: ' ', bold: false, italic: false, underline: false, size: 12 }];
-    var runXml = runs.map(function (r) {
+    var runXml = runs.map(function (r, ri) {
       var text = (r.text != null && r.text !== '') ? r.text : ' ';
+      // Her paragraf CDATA blob'unda \n ile bitmeli (UYAP paragraf yapısını
+      // bu \n ayraçlarından çözümlüyor); \n son run'ın length'ine dahildir.
+      if (ri === runs.length - 1) text += '\n';
       var len = text.length;
       var attrs = '';
       if (r.bold) attrs += ' bold="true"';
