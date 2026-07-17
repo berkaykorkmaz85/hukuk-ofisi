@@ -287,7 +287,11 @@ async function udfdUdfToPdf(file, onProgress) {
     onProgress && onProgress('Paragraf ' + (i + 1) + '/' + parsed.paragraphs.length + ' işleniyor…');
     var pEl = document.createElement('div');
     var indentPx = p.leftIndent ? Math.round(p.leftIndent * (96 / 72)) : 0;
-    pEl.style.cssText = 'text-align:' + (UDFD_ALIGN_CSS[p.align] || 'left') + ';white-space:pre-wrap;line-height:1.5;margin:0 0 4px 0;' + (indentPx ? ('padding-left:' + indentPx + 'px;') : '');
+    // Tab içeren paragraflar (başlık/adres satırları) explicit boşlukla
+    // hizalandığından justify uygulanmaz — aksi halde satır taşarsa gerilir.
+    var hasTab = p.runs.some(function (r) { return r.text && r.text.indexOf('\t') !== -1; });
+    var alignCss = (p.align === 3 && hasTab) ? 'left' : (UDFD_ALIGN_CSS[p.align] || 'left');
+    pEl.style.cssText = 'text-align:' + alignCss + ';white-space:pre-wrap;line-height:1.5;margin:0 0 4px 0;' + (indentPx ? ('padding-left:' + indentPx + 'px;') : '');
     p.runs.forEach(function (r) {
       var span = document.createElement('span');
       span.textContent = r.text;
@@ -379,7 +383,9 @@ async function udfdPreview(file) {
       if (r.underline) style += 'text-decoration:underline;';
       return '<span style="' + style + '">' + escHtml(r.text).replace(/\n/g, '<br>') + '</span>';
     }).join('');
-    return '<div style="text-align:' + (UDFD_ALIGN_CSS[p.align] || 'left') + ';white-space:pre-wrap;margin:0 0 4px 0">' + (inner || '&nbsp;') + '</div>';
+    var hasTab = p.runs.some(function (r) { return r.text && r.text.indexOf('\t') !== -1; });
+    var alignCss = (p.align === 3 && hasTab) ? 'left' : (UDFD_ALIGN_CSS[p.align] || 'left');
+    return '<div style="text-align:' + alignCss + ';white-space:pre-wrap;margin:0 0 4px 0">' + (inner || '&nbsp;') + '</div>';
   }).join('');
 
   var pane = document.getElementById('udf-preview-pane');
