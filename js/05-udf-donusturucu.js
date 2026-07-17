@@ -291,7 +291,9 @@ async function udfdUdfToPdf(file, onProgress) {
     // hizalandığından justify uygulanmaz — aksi halde satır taşarsa gerilir.
     var hasTab = p.runs.some(function (r) { return r.text && r.text.indexOf('\t') !== -1; });
     var alignCss = (p.align === 3 && hasTab) ? 'left' : (UDFD_ALIGN_CSS[p.align] || 'left');
-    pEl.style.cssText = 'text-align:' + alignCss + ';white-space:pre-wrap;line-height:1.5;margin:0 0 4px 0;' + (indentPx ? ('padding-left:' + indentPx + 'px;') : '');
+    // UYAP tab durakları 1 inch (96px) sabit aralıklı; CSS varsayılanı (8 boşluk)
+    // farklı sayıda boşluk/tab ile başlayan satırları farklı hizalar (adresler kayar).
+    pEl.style.cssText = 'text-align:' + alignCss + ';white-space:pre-wrap;line-height:1.5;margin:0 0 4px 0;tab-size:96px;-moz-tab-size:96px;' + (indentPx ? ('padding-left:' + indentPx + 'px;') : '');
     p.runs.forEach(function (r) {
       var span = document.createElement('span');
       span.textContent = r.text;
@@ -385,7 +387,7 @@ async function udfdPreview(file) {
     }).join('');
     var hasTab = p.runs.some(function (r) { return r.text && r.text.indexOf('\t') !== -1; });
     var alignCss = (p.align === 3 && hasTab) ? 'left' : (UDFD_ALIGN_CSS[p.align] || 'left');
-    return '<div style="text-align:' + alignCss + ';white-space:pre-wrap;margin:0 0 4px 0">' + (inner || '&nbsp;') + '</div>';
+    return '<div style="text-align:' + alignCss + ';white-space:pre-wrap;tab-size:96px;-moz-tab-size:96px;margin:0 0 4px 0">' + (inner || '&nbsp;') + '</div>';
   }).join('');
 
   var pane = document.getElementById('udf-preview-pane');
