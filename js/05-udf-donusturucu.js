@@ -124,8 +124,6 @@ async function udfdBuildBlob(paragraphs) {
 }
 
 // ── 1) WORD → UDF (docx XML doğrudan parse) ─────────────────
-// mammoth hizalamayı yansıtmadığından ve index kayması oluştuğundan
-// word/document.xml'i JSZip ile açıp doğrudan parse ediyoruz.
 async function udfdWordToUdf(file, onProgress) {
   onProgress && onProgress('Word dosyası okunuyor…');
   var buf = await file.arrayBuffer();
@@ -142,6 +140,52 @@ async function udfdWordToUdf(file, onProgress) {
   function wa(el, attr) {
     return el.getAttributeNS(W, attr) || el.getAttribute('w:' + attr) || '';
   }
+
+  function jcToAlign(val) {
+    if (val === 'center') return 1;
+    if (val === 'right') return 2;
+    if (val === 'both' || val === 'distribute') return 3;
+    return 0;
+  }
+
+  // styles.xml'den stil başına hizalama ve kalıtım zincirini çöz
+  var styleAlignMap = {};   // styleId → align (0/1/2/3)
+  var docDefaultAlign = 0;
+  try {
+    var stylesFile = zip.file('word/styles.xml');
+    if (stylesFile) {
+      var stylesDoc = new DOMParser().parseFromString(await stylesFile.async('string'), 'application/xml');
+
+      // Belge geneli varsayılan hizalama
+      var docDef = stylesDoc.getElementsByTagNameNS(W, 'docDefaults')[0];
+      if (docDef) {
+        var defJc = docDef.getElementsByTagNameNS(W, 'jc')[0];
+        if (defJc) docDefaultAlign = jcToAlign(wa(defJc, 'val'));
+      }
+
+      // Her stilin kendi hizalaması (varsa)
+      Array.from(stylesDoc.getElementsByTagNameNS(W, 'style')).forEach(function (s) {
+        var sid = wa(s, 'styleId');
+        if (!sid) return;
+        var pPr = s.getElementsByTagNameNS(W, 'pPr')[0];
+        if (pPr) {
+          var jc = pPr.getElementsByTagNameNS(W, 'jc')[0];
+          if (jc) styleAlignMap[sid] = jcToAlign(wa(jc, 'val'));
+        }
+      });
+
+      // basedOn kalıtımını tek tur çöz (Normal → Heading vb.)
+      Array.from(stylesDoc.getElementsByTagNameNS(W, 'style')).forEach(function (s) {
+        var sid = wa(s, 'styleId');
+        if (!sid || styleAlignMap[sid] !== undefined) return;
+        var based = s.getElementsByTagNameNS(W, 'basedOn')[0];
+        if (based) {
+          var pid = wa(based, 'val');
+          if (pid && styleAlignMap[pid] !== undefined) styleAlignMap[sid] = styleAlignMap[pid];
+        }
+      });
+    }
+  } catch (e) { /* styles.xml okunamazsa devam et */ }
 
   function parseRun(rEl) {
     var rPr = rEl.getElementsByTagNameNS(W, 'rPr')[0];
@@ -162,19 +206,26 @@ async function udfdWordToUdf(file, onProgress) {
 
   function parsePara(pEl) {
     var pPr = pEl.getElementsByTagNameNS(W, 'pPr')[0];
-    var align = 0, numbered = false, leftIndent = 0;
+    var align = -1, numbered = false, leftIndent = 0, styleId = '';
     if (pPr) {
+      // Paragrafın stili
+      var pStyleEl = pPr.getElementsByTagNameNS(W, 'pStyle')[0];
+      if (pStyleEl) styleId = wa(pStyleEl, 'val');
+
+      // Paragrafın kendi doğrudan hizalaması (varsa)
       var jcEl = pPr.getElementsByTagNameNS(W, 'jc')[0];
-      if (jcEl) {
-        var jv = wa(jcEl, 'val');
-        if (jv === 'center') align = 1;
-        else if (jv === 'right') align = 2;
-        else if (jv === 'both' || jv === 'distribute') align = 3;
-      }
+      if (jcEl) align = jcToAlign(wa(jcEl, 'val'));
+
       if (pPr.getElementsByTagNameNS(W, 'numPr').length) numbered = true;
       var indEl = pPr.getElementsByTagNameNS(W, 'ind')[0];
       if (indEl) leftIndent = Math.round(parseInt(wa(indEl, 'left') || '0') * 0.053) || 0;
     }
+
+    // Hizalama yoksa: stile bak, sonra belge varsayılanına
+    if (align === -1) {
+      align = (styleId && styleAlignMap[styleId] !== undefined) ? styleAlignMap[styleId] : docDefaultAlign;
+    }
+
     var runs = [];
     Array.from(pEl.childNodes).forEach(function (child) {
       if (child.namespaceURI !== W) return;
