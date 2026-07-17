@@ -317,31 +317,77 @@ async function udfdUdfToPdf(file, onProgress) {
   return pdf.output('blob');
 }
 
-// ── 3) PDF → UDF (pdf.js — uygulamada zaten yüklü) ──────────
+// ── 3) PDF → UDF (pdf.js) ───────────────────────────────────
+// Naif "her satır = paragraf" yaklaşımı cümleleri ortadan bölüyordu.
+// Artık öğeler Y konumuna göre satırlara gruplanıp, sağ kenara kadar
+// uzanan (sarma) satırlar bir sonrakiyle birleştiriliyor; kısa biten
+// satır paragrafı sonlandırıyor. Böylece gerçek paragraf yapısı korunur.
 async function udfdPdfToUdf(file, onProgress) {
   onProgress && onProgress('PDF okunuyor…');
   var buf = await file.arrayBuffer();
   var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
   var paragraphs = [];
+
   for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
     onProgress && onProgress('Sayfa ' + pageNum + '/' + pdf.numPages + ' okunuyor…');
     var page = await pdf.getPage(pageNum);
     var textContent = await page.getTextContent();
-    var line = '';
-    textContent.items.forEach(function (item) {
-      line += item.str;
-      if (item.hasEOL) {
-        paragraphs.push({ align: 0, numbered: false, leftIndent: 0, runs: [{ text: line, bold: false, italic: false, underline: false, size: 12 }] });
-        line = '';
+
+    // 1) Öğeleri konumlarıyla topla
+    var items = [];
+    textContent.items.forEach(function (it) {
+      if (!it.str || !it.str.trim()) return;
+      var x = it.transform[4];
+      var y = it.transform[5];
+      var w = it.width || 0;
+      items.push({ x: x, y: y, x1: x + w, str: it.str });
+    });
+    if (!items.length) { continue; }
+
+    // 2) Y konumuna göre satır grupla (tolerans 4pt)
+    items.sort(function (a, b) { return (b.y - a.y) || (a.x - b.x); });
+    var lines = [];
+    items.forEach(function (it) {
+      var last = lines[lines.length - 1];
+      if (last && Math.abs(last.y - it.y) < 4) {
+        last.items.push(it);
+        if (it.x1 > last.x1) last.x1 = it.x1;
+        if (it.x < last.x0) last.x0 = it.x;
+      } else {
+        lines.push({ y: it.y, x0: it.x, x1: it.x1, items: [it] });
       }
     });
-    if (line.trim()) {
-      paragraphs.push({ align: 0, numbered: false, leftIndent: 0, runs: [{ text: line, bold: false, italic: false, underline: false, size: 12 }] });
+
+    // 3) Satır metnini oluştur (x sırasına göre, boşlukları normalize et)
+    lines.forEach(function (ln) {
+      ln.items.sort(function (a, b) { return a.x - b.x; });
+      ln.text = ln.items.map(function (i) { return i.str; }).join(' ').replace(/\s+/g, ' ').trim();
+    });
+
+    // 4) Sarma tespiti: sağ kenara yakın biten satır bir sonrakine bağlanır
+    var maxEnd = lines.reduce(function (m, l) { return Math.max(m, l.x1); }, 0);
+    var minStart = lines.reduce(function (m, l) { return Math.min(m, l.x0); }, maxEnd);
+    var rightThresh = maxEnd - Math.max(30, (maxEnd - minStart) * 0.05);
+    lines.forEach(function (l) { l.wrapped = l.x1 >= rightThresh; });
+
+    // 5) Paragraflara birleştir (satırlar zaten y-desc sıralı)
+    var cur = null;
+    for (var i = 0; i < lines.length; i++) {
+      if (cur === null) {
+        cur = lines[i].text;
+      } else if (lines[i - 1].wrapped) {
+        cur += ' ' + lines[i].text;
+      } else {
+        paragraphs.push({ align: 0, numbered: false, leftIndent: 0, runs: [{ text: cur, bold: false, italic: false, underline: false, size: 12 }] });
+        cur = lines[i].text;
+      }
     }
-    if (pageNum < pdf.numPages) {
-      paragraphs.push({ align: 0, numbered: false, leftIndent: 0, runs: [{ text: '', bold: false, italic: false, underline: false, size: 12 }] });
+    if (cur !== null) {
+      paragraphs.push({ align: 0, numbered: false, leftIndent: 0, runs: [{ text: cur, bold: false, italic: false, underline: false, size: 12 }] });
     }
   }
+
+  if (!paragraphs.length) paragraphs.push({ align: 0, numbered: false, leftIndent: 0, runs: [{ text: '', bold: false, italic: false, underline: false, size: 12 }] });
   onProgress && onProgress('.udf paketleniyor…');
   return await udfdBuildBlob(paragraphs);
 }
