@@ -123,7 +123,7 @@ async function udfdBuildBlob(paragraphs) {
   return await zip.generateAsync({ type: 'blob' });
 }
 
-// ── 1) WORD → UDF (docx XML doğrudan parse) ─────────────────
+// ── 1) WORD → UDF (tamamen string/regex tabanlı — DOMParser/XMLSerializer yok) ──
 async function udfdWordToUdf(file, onProgress) {
   onProgress && onProgress('Word dosyası okunuyor…');
   var buf = await file.arrayBuffer();
@@ -133,58 +133,40 @@ async function udfdWordToUdf(file, onProgress) {
   var docXmlStr = await docFile.async('string');
   onProgress && onProgress('Biçimlendirme ayrıştırılıyor…');
 
-  var W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-
   function jcToAlign(val) {
     if (val === 'center') return 1;
     if (val === 'right') return 2;
     if (val === 'both' || val === 'distribute') return 3;
     return 0;
   }
-
-  // getAttributeNS bazen boş döndüğünden XMLSerializer+regex kullanıyoruz
-  var _ser = new XMLSerializer();
-  function elStr(el) { return _ser.serializeToString(el); }
-  // herhangi bir "prefix:attr" veya "attr" = "val" kalıbını yakalar
-  function rxAttr(str, localName) {
-    var m = str.match(new RegExp('[\\w:]*' + localName + '="([^"]*)"'));
-    return m ? m[1] : '';
-  }
-  function rxJc(str) {
-    // <w:jc ... val="both"/> içindeki val değerini bul
-    var m = str.match(/<[^>]*:jc\b[^>]*\bval="([^"]+)"/);
+  function rxJc(s) {
+    var m = s.match(/<w:jc\b[^>]*\bval="([^"]+)"/);
     return m ? jcToAlign(m[1]) : -1;
   }
+  function decEnt(s) {
+    return s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'");
+  }
 
-  // styles.xml'den stil → hizalama haritası
+  // styles.xml — string regex ile
   var styleAlignMap = {};
   var docDefaultAlign = 0;
   try {
     var stylesFile = zip.file('word/styles.xml');
     if (stylesFile) {
-      var stylesStr = await stylesFile.async('string');
-
-      // Belge varsayılanı
-      var ddM = stylesStr.match(/<w:docDefaults\b[\s\S]*?<\/w:docDefaults>/);
+      var sStr = await stylesFile.async('string');
+      var ddM = sStr.match(/<w:docDefaults\b[\s\S]*?<\/w:docDefaults>/);
       if (ddM) { var da = rxJc(ddM[0]); if (da !== -1) docDefaultAlign = da; }
-
-      // Her stil bloğu: <w:style ...>...</w:style>
-      var stRe = /<w:style\b[\s\S]*?<\/w:style>/g;
-      var sm;
-      while ((sm = stRe.exec(stylesStr)) !== null) {
+      var stRe = /<w:style\b[\s\S]*?<\/w:style>/g, sm;
+      while ((sm = stRe.exec(sStr)) !== null) {
         var sb = sm[0];
         var idM = sb.match(/\bstyleId="([^"]+)"/);
         if (!idM) continue;
         var sid = idM[1];
-        // pPr içindeki jc
-        var pPrM = sb.match(/<w:pPr\b[\s\S]*?<\/w:pPr>/);
-        if (pPrM) { var a = rxJc(pPrM[0]); if (a !== -1) styleAlignMap[sid] = a; }
-        // basedOn
+        var pM = sb.match(/<w:pPr\b[\s\S]*?<\/w:pPr>/);
+        if (pM) { var a = rxJc(pM[0]); if (a !== -1) styleAlignMap[sid] = a; }
         var boM = sb.match(/<w:basedOn\b[^>]*\bval="([^"]+)"/);
         if (boM) styleAlignMap['__bo__' + sid] = boM[1];
       }
-
-      // basedOn kalıtımını çöz (iki tur — zincir olabilir)
       for (var pass = 0; pass < 2; pass++) {
         Object.keys(styleAlignMap).forEach(function (k) {
           if (k.indexOf('__bo__') === 0 || typeof styleAlignMap[k] === 'number') return;
@@ -193,81 +175,66 @@ async function udfdWordToUdf(file, onProgress) {
         });
       }
     }
-  } catch (e) { /* styles.xml okunamazsa varsayılan kullanılır */ }
+  } catch (e) {}
 
-  // document.xml DOM parse
-  var xDoc = new DOMParser().parseFromString(docXmlStr, 'application/xml');
-  if (xDoc.querySelector('parsererror')) throw new Error('Word belgesi okunamadı (XML bozuk)');
+  // Body içeriğini al
+  var bodyM = docXmlStr.match(/<w:body\b[^>]*>([\s\S]*)<\/w:body>/);
+  if (!bodyM) throw new Error('Word belgesi gövdesi bulunamadı');
+  var bodyStr = bodyM[1];
 
-  function parseRun(rEl) {
-    var rPrEl = rEl.getElementsByTagNameNS(W, 'rPr')[0];
-    var bold = false, italic = false, underline = false, size = 12;
-    if (rPrEl) {
-      var rs = elStr(rPrEl);
-      bold = /<[^>]*:b\b(?!old|Cs)[^/>]*(\/?>|>)/.test(rs) && !/\bb\b[^>]*val="0"/.test(rs);
-      italic = /<[^>]*:i\b(?!talic)[^/>]*(\/?>|>)/.test(rs) && !/\bi\b[^>]*val="0"/.test(rs);
-      var uM = rs.match(/<[^>]*:u\b[^>]*>/);
-      underline = uM ? !/val="none"/.test(uM[0]) : false;
-      var szM = rs.match(/<[^>]*:sz\b(?!Cs)[^>]*\bval="(\d+)"/);
-      if (szM) size = Math.round(parseInt(szM[1]) / 2) || 12;
-    }
-    var text = Array.from(rEl.getElementsByTagNameNS(W, 't')).map(function (t) { return t.textContent; }).join('');
-    return text ? { text: text, bold: bold, italic: italic, underline: underline, size: size } : null;
-  }
-
-  function parsePara(pEl) {
-    var pPrEl = pEl.getElementsByTagNameNS(W, 'pPr')[0];
-    var align = -1, numbered = false, leftIndent = 0, styleId = '';
-    if (pPrEl) {
-      var ps = elStr(pPrEl);
-      // Paragrafın kendi hizalaması
-      align = rxJc(ps);
-      // Stil adı
-      var pstM = ps.match(/<[^>]*:pStyle\b[^>]*\bval="([^"]+)"/);
-      if (pstM) styleId = pstM[1];
-      // Liste
-      if (/<[^>]*:numPr\b/.test(ps)) numbered = true;
-      // Girinti
-      var indM = ps.match(/<[^>]*:ind\b[^>]*\bleft="(\d+)"/);
-      if (indM) leftIndent = Math.round(parseInt(indM[1]) * 0.053) || 0;
-    }
-    // Paragrafta jc yoksa: stile bak → belge varsayılanı
-    if (align === -1) {
-      align = (styleId && typeof styleAlignMap[styleId] === 'number') ? styleAlignMap[styleId] : docDefaultAlign;
-    }
-
-    var runs = [];
-    Array.from(pEl.childNodes).forEach(function (child) {
-      if (child.namespaceURI !== W) return;
-      if (child.localName === 'r') {
-        var run = parseRun(child);
-        if (run) runs.push(run);
-      } else if (child.localName === 'hyperlink') {
-        Array.from(child.getElementsByTagNameNS(W, 'r')).forEach(function (r) {
-          var run = parseRun(r);
-          if (run) { run.underline = true; runs.push(run); }
-        });
-      }
-    });
-    if (!runs.length) runs.push({ text: '', bold: false, italic: false, underline: false, size: 12 });
-    return { align: align, numbered: numbered, leftIndent: leftIndent, runs: runs };
-  }
-
-  var wBody = xDoc.getElementsByTagNameNS(W, 'body')[0];
-  if (!wBody) throw new Error('Word belgesi gövdesi bulunamadı');
+  // Her paragrafı string regex ile parse et
   var paragraphs = [];
-  Array.from(wBody.childNodes).forEach(function (node) {
-    if (node.namespaceURI !== W) return;
-    if (node.localName === 'p') {
-      paragraphs.push(parsePara(node));
-    } else if (node.localName === 'tbl') {
-      Array.from(node.getElementsByTagNameNS(W, 'p')).forEach(function (p) {
-        paragraphs.push(parsePara(p));
-      });
-    }
-  });
-  if (!paragraphs.length) throw new Error('Word belgesinde paragraf bulunamadı');
+  var paraRe = /<w:p\b[^>]*>([\s\S]*?)<\/w:p>/g, pm;
+  while ((pm = paraRe.exec(bodyStr)) !== null) {
+    var pb = pm[1];
 
+    // pPr
+    var pPrM = pb.match(/<w:pPr\b[^>]*>([\s\S]*?)<\/w:pPr>/);
+    var pPrStr = pPrM ? pPrM[0] : '';
+    var align = rxJc(pPrStr);
+    var styleId = '';
+    var psM = pPrStr.match(/<w:pStyle\b[^>]*\bval="([^"]+)"/);
+    if (psM) styleId = psM[1];
+    if (align === -1) align = (styleId && typeof styleAlignMap[styleId] === 'number') ? styleAlignMap[styleId] : docDefaultAlign;
+    var numbered = /<w:numPr\b/.test(pPrStr);
+    var indM = pPrStr.match(/<w:ind\b[^>]*\bleft="(\d+)"/);
+    var leftIndent = indM ? (Math.round(parseInt(indM[1]) * 0.053) || 0) : 0;
+
+    // Runs
+    var runs = [];
+    var runRe = /<w:r\b[^>]*>([\s\S]*?)<\/w:r>/g, rm;
+    while ((rm = runRe.exec(pb)) !== null) {
+      var rb = rm[1];
+      var rPrM = rb.match(/<w:rPr\b[^>]*>([\s\S]*?)<\/w:rPr>/);
+      var rp = rPrM ? rPrM[1] : '';
+      var bold = /<w:b\b/.test(rp) && !/<w:b\b[^>]*\bval="0"/.test(rp);
+      var italic = /<w:i\b(?!Cs)/.test(rp) && !/<w:i\b[^>]*\bval="0"/.test(rp);
+      var uTag = rp.match(/<w:u\b[^>]*/);
+      var underline = uTag ? !/\bval="none"/.test(uTag[0]) : false;
+      var szM = rp.match(/<w:sz\b(?!Cs)[^>]*\bval="(\d+)"/);
+      var size = szM ? (Math.round(parseInt(szM[1]) / 2) || 12) : 12;
+      var tRe2 = /<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g, tm;
+      var txt = '';
+      while ((tm = tRe2.exec(rb)) !== null) txt += decEnt(tm[1]);
+      if (txt) runs.push({ text: txt, bold: bold, italic: italic, underline: underline, size: size });
+    }
+    // Hyperlink runs
+    var hlRe = /<w:hyperlink\b[^>]*>([\s\S]*?)<\/w:hyperlink>/g, hlm;
+    while ((hlm = hlRe.exec(pb)) !== null) {
+      var hrRe = /<w:r\b[^>]*>([\s\S]*?)<\/w:r>/g, hrm;
+      while ((hrm = hrRe.exec(hlm[1])) !== null) {
+        var tRe3 = /<w:t\b[^>]*>([\s\S]*?)<\/w:t>/g, tm2;
+        var htxt = '';
+        while ((tm2 = tRe3.exec(hrm[1])) !== null) htxt += decEnt(tm2[1]);
+        if (htxt) runs.push({ text: htxt, bold: false, italic: false, underline: true, size: 12 });
+      }
+    }
+
+    if (!runs.length) runs.push({ text: '', bold: false, italic: false, underline: false, size: 12 });
+    paragraphs.push({ align: align, numbered: numbered, leftIndent: leftIndent, runs: runs });
+  }
+
+  if (!paragraphs.length) throw new Error('Word belgesinde paragraf bulunamadı');
   onProgress && onProgress('.udf paketleniyor…');
   return await udfdBuildBlob(paragraphs);
 }
