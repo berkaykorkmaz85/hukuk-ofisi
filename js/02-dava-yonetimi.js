@@ -202,9 +202,9 @@ function renderDavaDash() {
   var _ayNow = new Date().getMonth();
   var _yilNow = new Date().getFullYear();
   var filtFinansAylik = filtFinans.filter(function(f){ return new Date(f.tarih).getMonth()===_ayNow && new Date(f.tarih).getFullYear()===_yilNow; });
-  var topTah = filtFinansAylik.filter(function(f){return GELIR_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
-  var topMas = filtFinansAylik.filter(function(f){return MASRAF_T.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
-  var masOde = filtFinansAylik.filter(function(f){return f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+Number(b.tutar);},0);
+  var topTah = filtFinansAylik.filter(function(f){return GELIR_T.includes(f.tur);}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
+  var topMas = filtFinansAylik.filter(function(f){return MASRAF_T.includes(f.tur);}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
+  var masOde = filtFinansAylik.filter(function(f){return f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
   var netBakiye = topTah - topMas + masOde;
 
   var yaklasan = davalar0.filter(function(d){return d.sonraki&&d.durum==='Aktif';})
@@ -1127,7 +1127,7 @@ function deleteContactItem(contactId, accountId, accountType) {
 // Burada sadece referans alıyoruz (module script önce çalışmazsa fallback):
 if (typeof DB === 'undefined') {
   var DB = window.DB || {
-    genId: () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2,5)),
+    genId: () => (window._uuidV4 ? window._uuidV4() : (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2,5))),
     get: (key) => JSON.parse(localStorage.getItem('hukuk_' + key) || '[]'),
     set: (key, val) => localStorage.setItem('hukuk_' + key, JSON.stringify(val))
   };
@@ -1766,13 +1766,13 @@ function renderDashboard() {
   const buAy = new Date().getMonth();
   const buYil = new Date().getFullYear();
   const ayFiltre = function(f){ return new Date(f.tarih).getMonth()===buAy && new Date(f.tarih).getFullYear()===buYil; };
-  const tahsilat = finans.filter(f=>GELIR_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masraf = finans.filter(f=>MASRAF_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masrafOdemesi = finans.filter(f=>f.tur==='Masraf Ödemesi'&&ayFiltre(f)).reduce((a,b)=>a+Number(b.tutar),0);
+  const tahsilat = finans.filter(f=>GELIR_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masraf = finans.filter(f=>MASRAF_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masrafOdemesi = finans.filter(f=>f.tur==='Masraf Ödemesi'&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const netBakiyeDash = tahsilat - masraf + masrafOdemesi;
   // Duruşmalar görev sayısına dahil edilmez
   const bekleyen = tasks.filter(t=>!t.done && t.tip !== 'durusma').length;
-  const icraToplamAlacak = icralar.filter(i=>i.durum==='Aktif').reduce((a,b)=>a+Number(b.alacak),0);
+  const icraToplamAlacak = icralar.filter(i=>i.durum==='Aktif').reduce((a,b)=>a+(Number(b.alacak)||0),0);
 
   document.getElementById('task-badge').textContent = bekleyen;
   if(typeof updateMbnTaskBadge==='function') updateMbnTaskBadge();
@@ -1837,8 +1837,8 @@ function renderDashboard() {
       months.push(label);
       const GELIR_TURLER = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
       const MASRAF_TURLER = ['Masraf','Masraf (Ofis Avansı)','Dava Masrafı','Harç'];
-      var tVal = finans.filter(f=>GELIR_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+Number(b.tutar),0);
-      var mVal = finans.filter(f=>MASRAF_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+Number(b.tutar),0);
+      var tVal = finans.filter(f=>GELIR_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+      var mVal = finans.filter(f=>MASRAF_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
       tahArr.push(tVal);
       masArr.push(mVal);
     }
@@ -2403,9 +2403,9 @@ function renderDavaTab(id, sekme) {
   const MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
   // Fix 4: Filter finans strictly by this case only (davaId or ilgili matching case no)
   const finans = DB.get('finans').filter(f => f.davaId === id || f.ilgili === d.no);
-  const tahsilat = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masraf   = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masrafOd = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
+  const tahsilat = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masraf   = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masrafOd = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+(Number(b.tutar)||0),0);
   // Fix 5: Exclude duruşmalar from tasks (they have their own tab)
   const tasks  = DB.get('tasks').filter(t => t.ilgili && (t.ilgili === d.no || t.ilgili === id) && t.tip !== 'durusma');
   const belgeler = (DB.get('belgeler')||[]).filter(b => b.davaId === id);
@@ -2763,11 +2763,11 @@ function _ddpRenderMasraflar(id, d) {
   var tumMasraflar = (DB.get('dava_masraflar')||[]);
   var muvekkilAd = d.muvekkil||'';
   var avansAlinan = finans.filter(function(f){return f.muvekkil===muvekkilAd&&f.tur==='Masraf Ödemesi';})
-    .reduce(function(a,b){return a+Number(b.tutar);},0);
+    .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
   var tumHarcanan = tumMasraflar.filter(function(m){return m.muvekkilAd===muvekkilAd;})
     .reduce(function(a,b){return a+Number(b.tutar||0);},0)
     + finans.filter(function(f){return f.muvekkil===muvekkilAd&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);})
-    .reduce(function(a,b){return a+Number(b.tutar);},0);
+    .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
   var bakiye = avansAlinan - tumHarcanan;
 
   var el = document.getElementById('ddp-info');

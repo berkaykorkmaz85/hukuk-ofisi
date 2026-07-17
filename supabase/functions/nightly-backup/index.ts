@@ -19,7 +19,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const YEDEKLENECEK_TABLOLAR = [
   'muvekkiller', 'davalar', 'icralar', 'kisiler', 'contacts',
   'finans', 'odeme_planlari', 'tasks', 'belgeler', 'icra_belgeler',
-  'icra_masraflar', 'notlar', 'cari', 'uets_kayitlar', 'dosya_chatter',
+  'icra_masraflar', 'dava_masraflar', 'notlar', 'cari', 'uets_kayitlar', 'dosya_chatter',
 ];
 
 const BACKUP_BUCKET = 'backups';

@@ -622,8 +622,8 @@ function renderCari() {
   const sorted = [...kayitlar].sort((a, b) => new Date(a.tarih) - new Date(b.tarih));
 
   let bakiye = 0;
-  const toplamAlacak = sorted.filter(c => c.tur === 'Alacak').reduce((a, b) => a + Number(b.tutar), 0);
-  const toplamBorc = sorted.filter(c => c.tur === 'Borç').reduce((a, b) => a + Number(b.tutar), 0);
+  const toplamAlacak = sorted.filter(c => c.tur === 'Alacak').reduce((a, b) => a + (Number(b.tutar)||0), 0);
+  const toplamBorc = sorted.filter(c => c.tur === 'Borç').reduce((a, b) => a + (Number(b.tutar)||0), 0);
   const netBakiye = toplamAlacak - toplamBorc;
 
   document.getElementById('cari-summary-boxes').innerHTML = `
@@ -868,7 +868,7 @@ function tsSave() {
 
   const data = JSON.parse(localStorage.getItem('icra_haciz_' + tsIcraId) || '{}');
   if (!data.tasinmazlar_list) data.tasinmazlar_list = [];
-  data.tasinmazlar_list.push({ id: Date.now().toString(36), adres, tur, tarih, aciklama });
+  data.tasinmazlar_list.push({ id: (window._uuidV4 ? _uuidV4() : Date.now().toString(36) + Math.random().toString(36).slice(2,7)), adres, tur, tarih, aciklama });
   // Metin alanını da güncelle
   data.tasinmazlar = data.tasinmazlar_list.map(t => `[${t.tur}] ${t.adres}${t.tarih?' ('+t.tarih+')':''}`).join('\n');
   localStorage.setItem('icra_haciz_' + tsIcraId, JSON.stringify(data));
@@ -911,7 +911,7 @@ function saKaydet() {
     : document.getElementById('sa-arac-plaka').value;
   const data = JSON.parse(localStorage.getItem('icra_haciz_' + saIcraId) || '{}');
   if (!data.satisAvanslari) data.satisAvanslari = [];
-  data.satisAvanslari.push({ id: Date.now().toString(36), tur, varlık, tarih, tutar });
+  data.satisAvanslari.push({ id: (window._uuidV4 ? _uuidV4() : Date.now().toString(36) + Math.random().toString(36).slice(2,7)), tur, varlık, tarih, tutar });
   localStorage.setItem('icra_haciz_' + saIcraId, JSON.stringify(data));
   closeModal('modal-satis-avansi');
   showIcraDetail(saIcraId);
@@ -1002,12 +1002,25 @@ function parseTarih(d) {
   return new Date(d); // datetime-local zaten yerel
 }
 
-function filterTable(tableId, q) {
+// Genel amaçlı debounce — art arda çağrılarda yalnız sonuncusu (ms sonra) çalışır
+function _debounce(fn, ms) {
+  var t;
+  return function () {
+    var ctx = this, args = arguments;
+    clearTimeout(t);
+    t = setTimeout(function () { fn.apply(ctx, args); }, ms);
+  };
+}
+function _filterTableCore(tableId, q) {
   const rows = document.querySelectorAll('#'+tableId+' tbody tr');
+  const ql = (q || '').toLowerCase();
   rows.forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+    row.style.display = row.textContent.toLowerCase().includes(ql) ? '' : 'none';
   });
 }
+// Canlı aramada her tuş vuruşunda tüm satırları gezmemek için 140ms debounce.
+var filterTable = _debounce(_filterTableCore, 140);
+window.filterTable = filterTable;
 
 function filterByStatus(tableId, val) {
   const rows = document.querySelectorAll('#'+tableId+' tbody tr');
@@ -2356,8 +2369,8 @@ function finasModalMvCari() {
 
   const finans = DB.get('finans');
   const mvFinans = finans.filter(f => f.muvekkil === mv);
-  const tahsilat = mvFinans.filter(f=>f.tur==='Tahsilat'||f.tur==='Vekalet Ücreti Tahsilatı'||f.tur==='İcra Vekalet Ücreti').reduce((a,b)=>a+Number(b.tutar),0);
-  const masraf = mvFinans.filter(f=>['Masraf','Masraf (Ofis Avansı)','Masraf (Müvekkil Öder)','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const tahsilat = mvFinans.filter(f=>f.tur==='Tahsilat'||f.tur==='Vekalet Ücreti Tahsilatı'||f.tur==='İcra Vekalet Ücreti').reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masraf = mvFinans.filter(f=>['Masraf','Masraf (Ofis Avansı)','Masraf (Müvekkil Öder)','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const net = tahsilat - masraf;
 
   // Dava vekalet
@@ -2408,8 +2421,8 @@ function finansMvCarisi() {
   if (!mv) { cariDiv.style.display='none'; return; }
 
   const finans = DB.get('finans').filter(f=>f.muvekkil===mv);
-  const tahsilat = finans.filter(f=>['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const masraf = finans.filter(f=>['Masraf','Masraf (Ofis Avansı)','Masraf (Müvekkil Öder)','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const tahsilat = finans.filter(f=>['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masraf = finans.filter(f=>['Masraf','Masraf (Ofis Avansı)','Masraf (Müvekkil Öder)','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const net = tahsilat - masraf;
 
   const davalar = DB.get('davalar').filter(d=>d.muvekkil===mv);

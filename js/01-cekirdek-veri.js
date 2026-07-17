@@ -138,11 +138,9 @@ function autoFormatDateInput(el) {
 // Bu anahtarları .env dosyasına veya derleme zamanı ortam değişkenlerine taşımayı değerlendirin.
 const _HUKUK_CONFIG = Object.freeze({
   supabaseUrl: 'https://cbxgdnwunvjndiwwzcfn.supabase.co',
-  supabaseAnonKey: 'sb_publishable_VIs6hBcJMFYONt-VrILUrA_t8bxfKXv',
-  // Giriş ekranında '@' içermeyen kısa kullanıcı adı yazılırsa bu e-posta
-  // kullanılır (tek kullanıcılı kurulum kolaylığı). Yeni kuruluma taşırken
-  // burayı güncelleyin.
-  varsayilanEposta: 'berkaykorkmaz853@gmail.com'
+  supabaseAnonKey: 'sb_publishable_VIs6hBcJMFYONt-VrILUrA_t8bxfKXv'
+  // NOT: Kişisel e-posta artık koda gömülü değil (PII sızıntısı önlemi).
+  // Giriş için tam e-posta adresi girilir; "Beni hatırla" ile otomatik dolar.
 });
 const SUPABASE_URL = _HUKUK_CONFIG.supabaseUrl;
 const SUPABASE_ANON_KEY = _HUKUK_CONFIG.supabaseAnonKey;
@@ -600,10 +598,14 @@ async function _sbDiffSyncCalistir(key, yeniArr) {
 // davalar/icralar diff-sync kapsamında OLMADIĞINDAN DB.set tek başına yalnız
 // bellek cache'ini günceller; bu yardımcı çağrılmazsa değişiklik sayfa
 // yenilenince kaybolur.
+const _TEK_KAYIT_TO_ROW = {
+  davalar: _sbDavaToRow, icralar: _sbIcraToRow,
+  muvekkiller: _sbMuvekkilToRow, kisiler: _sbKisiToRow, contacts: _sbContactToRow
+};
 async function _sbTekKayitYaz(tablo, obj) {
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!window._currentUserId || !obj || !UUID_RE.test(obj.id)) return;
-  const toRow = tablo === 'davalar' ? _sbDavaToRow : tablo === 'icralar' ? _sbIcraToRow : null;
+  const toRow = _TEK_KAYIT_TO_ROW[tablo];
   if (!toRow) return;
   const { error } = await _supabaseClient.from(tablo).upsert(toRow(obj));
   if (error) {
@@ -730,8 +732,30 @@ async function _sbYukleChatter(dosyaTipi, dosyaId) {
   }
 }
 
+// RFC4122 v4 UUID üretir. crypto.randomUUID yoksa (güvenli olmayan bağlam /
+// eski tarayıcı) crypto.getRandomValues ile GEÇERLİ bir UUID üretiriz — böylece
+// üretilen id her zaman Supabase senkron filtresinden (UUID_RE) geçer ve kayıt
+// sessizce yerelde kalıp kaybolmaz. Son çare (crypto hiç yoksa) yine UUID biçimli.
+function _uuidV4() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  var buf = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(buf);
+  } else {
+    for (var i = 0; i < 16; i++) buf[i] = Math.floor(Math.random() * 256);
+  }
+  buf[6] = (buf[6] & 0x0f) | 0x40; // sürüm 4
+  buf[8] = (buf[8] & 0x3f) | 0x80; // varyant
+  var hex = [];
+  for (var j = 0; j < 256; j++) hex[j] = (j + 0x100).toString(16).slice(1);
+  return hex[buf[0]] + hex[buf[1]] + hex[buf[2]] + hex[buf[3]] + '-' +
+         hex[buf[4]] + hex[buf[5]] + '-' + hex[buf[6]] + hex[buf[7]] + '-' +
+         hex[buf[8]] + hex[buf[9]] + '-' + hex[buf[10]] + hex[buf[11]] +
+         hex[buf[12]] + hex[buf[13]] + hex[buf[14]] + hex[buf[15]];
+}
+window._uuidV4 = _uuidV4;
 window.DB = {
-  genId: () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2,5)),
+  genId: () => _uuidV4(),
   get: (key) => {
     // KRİTİK: array'in bir KOPYASI döndürülür, referansı değil. Aksi halde
     // çağıran kod (örn. arr.push(...)) cache'in kendisini de mutasyona uğratır;
@@ -747,7 +771,31 @@ window.DB = {
     return JSON.parse(r);
   },
   set: (key, val) => {
-    if (_SB_TABLES[key]) { window._sbCache[key] = (val || []).slice(); return; }  // Supabase senkronu kaydet fonksiyonlarında yapılır
+    if (_SB_TABLES[key]) {
+      // Ana tablolar (davalar/icralar/muvekkiller/kisiler/contacts) diff-kuyruğunda
+      // değil; kaydet/sil fonksiyonları senkronu ayrıca yapar. Ancak satır-içi bir
+      // düzenlemede _sbTekKayitYaz çağrısı unutulursa değişiklik sayfa yenilenince
+      // kaybolurdu. Bu yüzden DB.set burada eski cache ile karşılaştırıp DEĞİŞEN/EKLENEN
+      // kayıtları otomatik upsert eder (idempotent — açık çağrılarla çakışmaz).
+      // Silme burada YAPILMAZ; o her zaman açık sil akışında (supabase delete) yapılır,
+      // böylece hatalı bir diff asla veri silemez.
+      const _eski = window._sbCache[key] || [];
+      const _yeni = (val || []).slice();
+      window._sbCache[key] = _yeni;
+      if (window._currentUserId) {
+        try {
+          const _eskiJson = {};
+          _eski.forEach(x => { if (x && x.id) _eskiJson[x.id] = JSON.stringify(x); });
+          _yeni.forEach(x => {
+            if (!x || !x.id) return;
+            if (_eskiJson[x.id] !== JSON.stringify(x)) {
+              _sbTekKayitYaz(key, x).catch(e => console.error('[' + key + '] otomatik senkron:', e));
+            }
+          });
+        } catch (e) { console.warn('[' + key + '] otomatik senkron atlandı:', e); }
+      }
+      return;
+    }
     if (_SB_DIFF_TABLES[key]) {
       // Cache'i hemen güncelle (senkron okuma davranışı korunur),
       // Supabase senkronunu arka planda, kuyruğa girerek (fire-and-forget) başlat.
@@ -845,8 +893,15 @@ async function doLogin() {
   const plLoadingText = document.getElementById('post-login-loading-text');
   let plLoadingGosterildi = false;
   try {
-    const email = emailOrUser.includes('@') ? emailOrUser : _HUKUK_CONFIG.varsayilanEposta;
-        const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
+    // Tam e-posta adresi gerekli — kısa kullanıcı adı kısayolu kaldırıldı
+    // (kişisel e-posta artık koda gömülü değil).
+    if (!emailOrUser.includes('@')) {
+      if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = loginBtnOrijinalMetin; }
+      errEl.textContent = 'Lütfen tam e-posta adresinizi girin.';
+      return;
+    }
+    const email = emailOrUser;
+    const { data, error } = await _supabaseClient.auth.signInWithPassword({ email, password: pw });
     if (error) { _loginRecordFail(); errEl.textContent = '❌ Hatalı e-posta veya şifre.' + (window._loginAttempts.count >= 3 ? ' (' + (LOGIN_MAX_ATTEMPTS - window._loginAttempts.count) + ' deneme kaldı)' : ''); document.getElementById('login-pw').value = ''; return; }
     _loginResetAttempts();
     window._supabaseToken = data.session.access_token;
@@ -1156,8 +1211,8 @@ function renderRaporlarPage() {
   const today   = new Date(); today.setHours(0,0,0,0);
 
   const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
-  const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-  const topMas  = finans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const topMas  = finans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const mvOpts  = muvekkiller.map(m=>`<option value="${escAttr(m.ad)}">${escHtml(m.ad)}</option>`).join('');
 
   const el = document.getElementById('raporlar-grid');
@@ -2112,7 +2167,7 @@ function resetAllData() {
     // Önce bağlı kayıtlar, sonra ana kayıtlar (olası FK kısıtları için sıra önemli).
     // RLS sayesinde yalnız bu kullanıcının satırları silinir.
     // NOT: Storage'daki (chatter-files) dosyalar burada silinmez.
-    const tablolar = ['dosya_chatter','uets_kayitlar','cari','notlar','icra_masraflar','icra_belgeler','belgeler','tasks','odeme_planlari','finans','contacts','kisiler','icralar','davalar','muvekkiller'];
+    const tablolar = ['dosya_chatter','uets_kayitlar','cari','notlar','dava_masraflar','icra_masraflar','icra_belgeler','belgeler','tasks','odeme_planlari','finans','contacts','kisiler','icralar','davalar','muvekkiller'];
     const hatali = [];
     for (const t of tablolar) {
       const { error } = await _supabaseClient.from(t).delete().neq('id', '00000000-0000-0000-0000-000000000000');

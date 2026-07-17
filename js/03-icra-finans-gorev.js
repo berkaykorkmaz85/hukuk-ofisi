@@ -207,6 +207,20 @@ function escAttr(str) {
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
+// Inline onclick gibi HTML attribute İÇİNDEKİ bir JS string literaline gömülecek
+// değerler için. Değer iki kez çözülür: önce HTML attribute decode, sonra JS parse.
+// Bu yüzden ' ve \ JS-kaçışlı bırakılır (HTML entity YAPILMAZ, yoksa decode sonrası
+// string kırılır); " ve <> ise attribute/enjeksiyon güvenliği için HTML-entity yapılır.
+// escHtml/escAttr bu bağlamda YETERSİZDİR (&#39; HTML-decode ile ' olur ve kırar).
+function escJs(str) {
+  return String(str == null ? '' : str)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/[\r\n]+/g, ' ');
+}
+window.escJs = escJs;
 
 // Eski showDavaDetail — dashboard'dan çağrılanlar için yönlendir
 function showDavaDetail(id) { openDavaDetailPage(id); }
@@ -615,10 +629,10 @@ function renderIcralar() {
   document.getElementById('icra-tbody').innerHTML = icralar.length ? icralar.map(i=>{
     const tp = _icraTarafPair(i);
     const alacakliPart = i.taraf!=='borclu'
-      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.alacakli||'—')}</span>`
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escJs(i.muvekkil)}')">${escHtml(tp.alacakli||'—')}</span>`
       : escHtml(tp.alacakli||'—');
     const borcluPart = i.taraf==='borclu'
-      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escHtml(i.muvekkil)}')">${escHtml(tp.borclu||'—')}</span>`
+      ? `<span style="color:var(--gold);cursor:pointer" onclick="event.stopPropagation();gotoMuvekkilFromFinans('${escJs(i.muvekkil)}')">${escHtml(tp.borclu||'—')}</span>`
       : escHtml(tp.borclu||'—');
     return `
     <tr oncontextmenu="itemContextMenu(event,'icra','${i.id}','${escHtml(i.borclu||i.no)}')" style="cursor:pointer" onclick="showIcraDetail('${i.id}')">
@@ -988,13 +1002,13 @@ function _idpRenderMasraflar(id, i, masraflar) {
   var tumMasraflar = DB.get('icra_masraflar')||[];
   var muvekkilAd = i.muvekkil||'';
   var avansAlinan = finans.filter(function(f){return f.muvekkil===muvekkilAd&&f.tur==='Masraf Ödemesi';})
-    .reduce(function(a,b){return a+Number(b.tutar);},0);
+    .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
   var tumHarcanan = tumMasraflar.filter(function(m){return m.muvekkilAd===muvekkilAd;})
     .reduce(function(a,b){return a+Number(b.tutar||0);},0)
     + (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===muvekkilAd;})
     .reduce(function(a,b){return a+Number(b.tutar||0);},0)
     + finans.filter(function(f){return f.muvekkil===muvekkilAd&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);})
-    .reduce(function(a,b){return a+Number(b.tutar);},0);
+    .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
   var bakiye = avansAlinan - tumHarcanan;
 
   var el = document.getElementById('idp-info');
@@ -1826,18 +1840,18 @@ function showMuvekkilDetail(id) {
   const AVANS_T = ['Masraf Ödemesi','Masraf (Ofis Avansı)'];
 
   // Finans modülünden tahsilat ve masraf
-  const topTah  = finans.filter(f=>UCRET_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topTah  = finans.filter(f=>UCRET_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   // Karşı vekalet — tahsil edilmiş ve edilmemiş
   const kvTumKayitlar = DB.get('finans').filter(f => f.muvekkil === mv.ad && f.tur === 'Karşı Vekalet Ücreti');
   const kvTahsil = kvTumKayitlar.filter(f => f.karsiVekaletDurum === 'tamam');
   const kvBekleyen = kvTumKayitlar.filter(f => f.karsiVekaletDurum !== 'tamam');
-  const kvTahsilatToplam = kvTahsil.reduce((a,b)=>a+Number(b.tutar),0);
-  const kvBekleyenToplam = kvBekleyen.reduce((a,b)=>a+Number(b.tutar),0);
-  const topMasFinans = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const kvTahsilatToplam = kvTahsil.reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const kvBekleyenToplam = kvBekleyen.reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const topMasFinans = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const topMasDava   = (DB.get('dava_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
   const topMasIcra   = (DB.get('icra_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
   const topMas  = topMasFinans + topMasDava + topMasIcra;
-  const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
 
   // Anlaşılan: ucretAnlasmalari VEYA dava+icra dosyalarındaki akdiUcret toplamı
   const ucretAnlasToplam = (mv.ucretAnlasmalari||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
@@ -1989,8 +2003,8 @@ function showMuvekkilDetail(id) {
       davalar.forEach(function(dv){
         var dFinans = allFinans.filter(function(f){return f.davaId===dv.id||f.ilgili===dv.no;});
         var dAnl = Number(dv.akdiUcret||0);
-        var dTah = dFinans.filter(function(f){return GELIR_T2.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
-        var dMas = dFinans.filter(function(f){return MASRAF_T2.includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
+        var dTah = dFinans.filter(function(f){return GELIR_T2.includes(f.tur);}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
+        var dMas = dFinans.filter(function(f){return MASRAF_T2.includes(f.tur);}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
         var dNet = dTah - dMas;
         gtAnl+=dAnl; gtTah+=dTah; gtMas+=dMas; gtNet+=dNet;
         rows.push({no:dv.no, id:dv.id, durum:dv.durum, anl:dAnl, tah:dTah, mas:dMas, net:dNet});
@@ -2065,7 +2079,7 @@ function showMuvekkilDetail(id) {
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:14px;font-weight:700;color:var(--text)">📁 Dava Dosyaları <span style="font-size:12px;font-weight:400;color:var(--text3)">${davalar.filter(d=>d.durum==='Aktif').length} aktif</span></div>
-        <button class="btn btn-gold" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-dava');document.getElementById('d-davaci').value='${escHtml(mv.ad)}'">+ Yeni Dava</button>
+        <button class="btn btn-gold" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-dava');document.getElementById('d-davaci').value='${escJs(mv.ad)}'">+ Yeni Dava</button>
       </div>
       ${davalar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">Dava dosyası yok</div>'
@@ -2082,7 +2096,7 @@ function showMuvekkilDetail(id) {
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:14px;font-weight:700;color:var(--text)">⚡ İcra Dosyaları <span style="font-size:12px;font-weight:400;color:var(--text3)">${icralar.filter(i=>i.durum==='Aktif').length} aktif</span></div>
-        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-icra');document.getElementById('i-alacakli').value='${escHtml(mv.ad)}'">+ Yeni İcra</button>
+        <button class="btn btn-outline" style="font-size:12px;padding:5px 12px" onclick="openModal('modal-icra');document.getElementById('i-alacakli').value='${escJs(mv.ad)}'">+ Yeni İcra</button>
       </div>
       ${icralar.length===0
         ? '<div style="padding:16px;color:var(--text3);font-size:13px;text-align:center">İcra dosyası yok</div>'
@@ -2466,7 +2480,7 @@ function renderOdemePlanlari() {
     var taksitler = finansTaksitler.filter(function(f){ return f.planId === planId; })
       .sort(function(a,b){ return a.taksitNo - b.taksitNo; });
     var ilk = taksitler[0];
-    var toplam = taksitler.reduce(function(a,b){ return a + Number(b.tutar); }, 0);
+    var toplam = taksitler.reduce(function(a,b){ return a + (Number(b.tutar)||0); }, 0);
     return {
       id: planId, tip: 'finans',
       muvekkil: ilk ? ilk.muvekkil : '',
@@ -2501,12 +2515,12 @@ function renderOdemePlanlari() {
     html += planlar.map(function(plan){
     var bekleyen = plan.taksitler.filter(function(t){return t.durum==='bekliyor';});
     var gecikmiş = bekleyen.filter(function(t){return new Date(t.tarih)<today;});
-    var toplamOdenen = plan.taksitler.filter(function(t){return t.durum==='odendi';}).reduce(function(a,b){return a+b.tutar;},0);
+    var toplamOdenen = plan.taksitler.filter(function(t){return t.durum==='odendi';}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
     var pct = plan.toplam>0 ? Math.min(Math.round(toplamOdenen/plan.toplam*100),100) : 0;
 
     return '<div style="background:var(--bg2);border:1px solid '+(gecikmiş.length?'rgba(192,83,58,0.4)':'var(--border)')+';border-radius:14px;overflow:hidden;margin-bottom:14px">'
       +'<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
-      +'<div><div style="font-size:14px;font-weight:700;color:var(--text)"><span style="cursor:pointer;color:var(--gold)" onclick="gotoMuvekkilFromFinans(\''+escHtml(plan.muvekkil)+'\')">'+escHtml(plan.muvekkil)+'</span>'+(plan.dosya?' — <span style="color:var(--gold);font-family:monospace">'+escHtml(plan.dosya)+'</span>':'')+'</div>'
+      +'<div><div style="font-size:14px;font-weight:700;color:var(--text)"><span style="cursor:pointer;color:var(--gold)" onclick="gotoMuvekkilFromFinans(\''+escJs(plan.muvekkil)+'\')">'+escHtml(plan.muvekkil)+'</span>'+(plan.dosya?' — <span style="color:var(--gold);font-family:monospace">'+escHtml(plan.dosya)+'</span>':'')+'</div>'
       +'<div style="font-size:12px;color:var(--text3);margin-top:2px">Toplam: ₺'+fmt(plan.toplam)+' · '+plan.taksitler.length+' taksit'+(gecikmiş.length?'<span style="color:var(--red);font-weight:700;margin-left:8px">⚠ '+gecikmiş.length+' gecikmiş</span>':'')+'</div></div>'
       +'<button class="btn btn-ghost" style="color:var(--red);font-size:12px" data-del-plan="'+plan.id+'">🗑</button>'
       +'</div>'
@@ -2542,10 +2556,10 @@ function renderOdemePlanlari() {
       +'</div>'
       +'<div style="display:none">';
     html += tamamlananPlanlar.map(function(plan){
-      var toplamOdenen = plan.taksitler.reduce(function(a,b){return a+b.tutar;},0);
+      var toplamOdenen = plan.taksitler.reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
       return '<div style="background:var(--bg2);border:1px solid rgba(74,140,92,0.25);border-radius:14px;overflow:hidden;margin-top:10px;opacity:0.85">'
         +'<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
-        +'<div><div style="font-size:14px;font-weight:700;color:var(--text)"><span style="color:var(--green)">✅</span> <span style="cursor:pointer;color:var(--gold)" onclick="gotoMuvekkilFromFinans(\''+escHtml(plan.muvekkil)+'\')">'+escHtml(plan.muvekkil)+'</span>'+(plan.dosya?' — <span style="color:var(--gold);font-family:monospace">'+escHtml(plan.dosya)+'</span>':'')+'</div>'
+        +'<div><div style="font-size:14px;font-weight:700;color:var(--text)"><span style="color:var(--green)">✅</span> <span style="cursor:pointer;color:var(--gold)" onclick="gotoMuvekkilFromFinans(\''+escJs(plan.muvekkil)+'\')">'+escHtml(plan.muvekkil)+'</span>'+(plan.dosya?' — <span style="color:var(--gold);font-family:monospace">'+escHtml(plan.dosya)+'</span>':'')+'</div>'
         +'<div style="font-size:12px;color:var(--green);margin-top:2px;font-weight:600">Tamamlandı · Toplam: ₺'+fmt(toplamOdenen)+' · '+plan.taksitler.length+' taksit</div></div>'
         +'</div>'
         +'<div>'
@@ -2716,8 +2730,8 @@ function renderKarsiVekalet() {
   if(!el) return;
   var finans = DB.get('finans')||[];
   var kvlar = finans.filter(function(f){return f.tur==='Karşı Vekalet Ücreti';}).sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
-  var toplamHukmedilen = kvlar.reduce(function(a,b){return a+Number(b.tutar);},0);
-  var toplamTahsil = kvlar.filter(function(f){return f.karsiVekaletDurum==='tamam';}).reduce(function(a,b){return a+Number(b.tutar);},0);
+  var toplamHukmedilen = kvlar.reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
+  var toplamTahsil = kvlar.filter(function(f){return f.karsiVekaletDurum==='tamam';}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
 
   el.innerHTML = '<div class="kpi-3col" style="gap:10px;margin-bottom:16px">'
     +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:6px">Toplam Hükmedilen</div><div style="font-size:18px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(toplamHukmedilen)+'</div></div>'
@@ -2744,7 +2758,7 @@ function renderKarsiVekalet() {
               else if (kvIcra && kvIcra.borclu) karsiTaraf = kvIcra.borclu;
             }
           }
-          return '<tr><td data-label="Tarih" style="font-family:monospace;font-size:12px;color:var(--text3)">'+fmtDate(f.tarih)+'</td><td data-label="Ödeyen (Karşı Taraf)"><div style="font-weight:600;color:var(--text)">'+escHtml(karsiTaraf||'—')+'</div></td><td data-label="Dosya / Müvekkil"><div style="font-size:12px;color:var(--gold);cursor:pointer" onclick="gotoMuvekkilFromFinans(\'' + (f.muvekkil||'') + '\')">'+escHtml(f.muvekkil||'')+'</div><div style="font-size:11px;color:var(--text3)">'+escHtml(f.karsiDosya||f.ilgili||'')+'</div></td><td data-label="Durum"><span style="font-size:11px;font-weight:600;color:'+durumClr+'">'+durumLabel+'</span></td><td data-label="Tutar" style="text-align:right;font-family:monospace;font-weight:700;color:var(--gold)">₺'+fmt(f.tutar)+'</td><td style="white-space:nowrap">'+odeBtn+'<button class="btn btn-ghost" style="font-size:11px" data-edit-finans="'+f.id+'">✏</button><button class="btn btn-ghost" style="font-size:11px;color:var(--red)" data-delete-finans="'+f.id+'">🗑</button></td></tr>';
+          return '<tr><td data-label="Tarih" style="font-family:monospace;font-size:12px;color:var(--text3)">'+fmtDate(f.tarih)+'</td><td data-label="Ödeyen (Karşı Taraf)"><div style="font-weight:600;color:var(--text)">'+escHtml(karsiTaraf||'—')+'</div></td><td data-label="Dosya / Müvekkil"><div style="font-size:12px;color:var(--gold);cursor:pointer" onclick="gotoMuvekkilFromFinans(\'' + escJs(f.muvekkil||'') + '\')">'+escHtml(f.muvekkil||'')+'</div><div style="font-size:11px;color:var(--text3)">'+escHtml(f.karsiDosya||f.ilgili||'')+'</div></td><td data-label="Durum"><span style="font-size:11px;font-weight:600;color:'+durumClr+'">'+durumLabel+'</span></td><td data-label="Tutar" style="text-align:right;font-family:monospace;font-weight:700;color:var(--gold)">₺'+fmt(f.tutar)+'</td><td style="white-space:nowrap">'+odeBtn+'<button class="btn btn-ghost" style="font-size:11px" data-edit-finans="'+f.id+'">✏</button><button class="btn btn-ghost" style="font-size:11px;color:var(--red)" data-delete-finans="'+f.id+'">🗑</button></td></tr>';
         }).join('')
         +'</tbody></table></div></div>');
 }
@@ -2757,8 +2771,8 @@ function renderAvansKasa() {
 
   // Müvekkillerle avans bakiyesi hesapla
   var mvBakiyeler = muvekkiller.map(function(mv){
-    var alinan = finans.filter(function(f){return f.muvekkil===mv.ad&&f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+Number(b.tutar);},0);
-    var harcananFinans = finans.filter(function(f){return f.muvekkil===mv.ad&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);}).reduce(function(a,b){return a+Number(b.tutar);},0);
+    var alinan = finans.filter(function(f){return f.muvekkil===mv.ad&&f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
+    var harcananFinans = finans.filter(function(f){return f.muvekkil===mv.ad&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
     var harcananDavaMasraf = (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
     var harcananIcraMasraf = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
     var harcanan = harcananFinans + harcananDavaMasraf + harcananIcraMasraf;
@@ -2855,7 +2869,7 @@ function renderOfisGider() {
   var finans = DB.get('finans')||[];
   var OFIS = ['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
   var ofisler = finans.filter(function(f){return OFIS.includes(f.tur);}).sort(function(a,b){return new Date(b.tarih)-new Date(a.tarih);});
-  var toplam = ofisler.reduce(function(a,b){return a+Number(b.tutar);},0);
+  var toplam = ofisler.reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
 
   // Aya göre grupla
   var aylar = {};
@@ -2947,7 +2961,7 @@ function renderFinans() {
   const allFinans = DB.get('finans')||[];
 
   // 1. Tahsil Edilen — tüm gelir türleri (gerçekleşen tahsilatlar)
-  const topTah = allFinans.filter(f => GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topTah = allFinans.filter(f => GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
 
   // 4. Toplam Tahsilat (Toplam Anlaşılan Ücret) — tüm dava + icra dosyalarındaki akdi ücret toplamı
   const allDavalar = DB.get('davalar')||[];
@@ -2961,15 +2975,15 @@ function renderFinans() {
   // Avans Kasası'ndaki "Kalan Avans" ile birebir aynı mantık: müvekkilden alınan avans,
   // o müvekkil adına yapılan masraflarla (finans + dava_masraflar + icra_masraflar) düşülür.
   // Örn: A müvekkili -400, B müvekkili -300, C müvekkili +1000 avans → net bakiye +300.
-  const topMasFinans = allFinans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topMasFinans = allFinans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const topMasDava = (DB.get('dava_masraflar')||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
   const topMasIcra = (DB.get('icra_masraflar')||[]).reduce((a,b)=>a+Number(b.tutar||0),0);
   const topMasHarcanan = topMasFinans + topMasDava + topMasIcra;
-  const topAvansAlinan = allFinans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+Number(b.tutar),0);
+  const topAvansAlinan = allFinans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const topMas = topAvansAlinan - topMasHarcanan;
 
   // Ofis giderleri (grafik için korunuyor)
-  const topOfis = allFinans.filter(f=>OFIS_GID.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+  const topOfis = allFinans.filter(f=>OFIS_GID.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
 
   const summary = document.getElementById('finance-summary');
   if (summary) {
@@ -2997,8 +3011,8 @@ function renderFinans() {
       const d = new Date(today.getFullYear(), today.getMonth()-i, 1);
       const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
       const label = d.toLocaleString('tr-TR',{month:'short'});
-      const ayTah = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&GELIR_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
-      const ayMas = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)).reduce((a,b)=>a+Number(b.tutar),0);
+      const ayTah = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+      const ayMas = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
       aylar.push({key, label, tah:ayTah, mas:ayMas});
     }
     const maxVal = Math.max(...aylar.map(a=>Math.max(a.tah,a.mas)), 1);
@@ -3079,7 +3093,7 @@ function renderFinans() {
       <td data-label="Tarih" style="font-family:monospace;font-size:12px;color:var(--text3)">${fmtDate(f.tarih)}</td>
       <td data-label="Tür / Müvekkil">
         <div style="font-size:13px;font-weight:600;color:var(--text)">${escHtml(f.tur)}</div>
-        ${f.muvekkil ? `<div style="font-size:11px;color:var(--gold);cursor:pointer" onclick="gotoMuvekkilFromFinans('${f.muvekkil}')">${escHtml(f.muvekkil)}</div>` : ''}
+        ${f.muvekkil ? `<div style="font-size:11px;color:var(--gold);cursor:pointer" onclick="gotoMuvekkilFromFinans('${escJs(f.muvekkil)}')">${escHtml(f.muvekkil)}</div>` : ''}
       </td>
       <td data-label="Açıklama" style="font-size:12px;color:var(--text3)">${escHtml(f.aciklama||'')}</td>
       <td data-label="Tutar" style="text-align:right;font-family:monospace;font-weight:700;font-size:14px;color:${isG(f)?'var(--green)':'var(--red)'}">
