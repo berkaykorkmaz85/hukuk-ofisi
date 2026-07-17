@@ -126,6 +126,29 @@ async function udfdBuildBlob(paragraphs) {
 // ── 1) WORD → UDF (mammoth.js) ──────────────────────────────
 async function udfdWordToUdf(file, onProgress) {
   onProgress && onProgress('Word dosyası okunuyor…');
+
+  // Hizalama bilgisini ham docx XML'inden al (mammoth bunu çıktıya yansıtmaz)
+  var docxParaAligns = [];
+  try {
+    var alignBuf = await file.arrayBuffer();
+    var docxZip = await JSZip.loadAsync(alignBuf);
+    var docXmlFile = docxZip.file('word/document.xml');
+    if (docXmlFile) {
+      var docXmlText = await docXmlFile.async('string');
+      var paraRegex = /<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>/g;
+      var pm;
+      while ((pm = paraRegex.exec(docXmlText)) !== null) {
+        var jcMatch = pm[0].match(/<w:jc\s+w:val="([^"]+)"/);
+        var val = jcMatch ? jcMatch[1] : '';
+        var a = 0;
+        if (val === 'center') a = 1;
+        else if (val === 'right') a = 2;
+        else if (val === 'both' || val === 'distribute') a = 3;
+        docxParaAligns.push(a);
+      }
+    }
+  } catch (e) { /* hizalama alınamazsa varsayılan (sol) kullanılır */ }
+
   var buf = await file.arrayBuffer();
   var result = await mammoth.convertToHtml({ arrayBuffer: buf });
   onProgress && onProgress('Biçimlendirme ayrıştırılıyor…');
@@ -148,6 +171,7 @@ async function udfdWordToUdf(file, onProgress) {
   }
 
   var paragraphs = [];
+  var paraIndex = 0;
   var blocks = doc.body.querySelectorAll('p, h1, h2, h3, h4, li');
   if (!blocks.length) blocks = [doc.body];
   blocks.forEach(function (block) {
@@ -160,11 +184,17 @@ async function udfdWordToUdf(file, onProgress) {
     var isOrdered = isListItem && block.parentElement && block.parentElement.tagName.toLowerCase() === 'ol';
     if (isListItem && !isOrdered) runs.unshift({ text: '• ', bold: false, italic: false, underline: false, size: 12 });
 
-    var styleAttr = block.getAttribute('style') || '';
+    // Hizalamayı önce docx XML'inden al; yoksa CSS fallback
     var align = 0;
-    if (/text-align:\s*center/.test(styleAttr)) align = 1;
-    else if (/text-align:\s*right/.test(styleAttr)) align = 2;
-    else if (/text-align:\s*justify/.test(styleAttr)) align = 3;
+    if (paraIndex < docxParaAligns.length) {
+      align = docxParaAligns[paraIndex];
+    } else {
+      var styleAttr = block.getAttribute('style') || '';
+      if (/text-align:\s*center/.test(styleAttr)) align = 1;
+      else if (/text-align:\s*right/.test(styleAttr)) align = 2;
+      else if (/text-align:\s*justify/.test(styleAttr)) align = 3;
+    }
+    paraIndex++;
 
     paragraphs.push({ align: align, numbered: isOrdered, leftIndent: isListItem ? 25 : 0, runs: runs });
   });
