@@ -602,7 +602,13 @@ function renderDavaDash() {
     +(mhkD.length?mhkD.map(function(e){var pct=Math.round(e[1]/mhkMax*100);return '<div style="padding:7px 16px 3px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="color:var(--text2)">'+escHtml(e[0])+'</span><span style="font-weight:700;color:var(--gold)">'+e[1]+'</span></div><div style="background:var(--bg3);border-radius:4px;height:4px;margin-bottom:4px"><div style="height:100%;width:'+pct+'%;background:var(--gold);border-radius:4px"></div></div></div>';}).join(''):'<div style="padding:12px 16px;color:var(--text3);font-size:12px">Dava yok</div>');
   altGrid.appendChild(mc);
   // Müvekkil dağılım
-  var mvDagilim=muvekkiller.map(function(m){return {ad:m.ad,dava:davalar0.filter(function(d){return d.muvekkil===m.ad;}).length,icra:icralar0.filter(function(i){return i.muvekkil===m.ad;}).length};}).filter(function(m){return m.dava+m.icra>0;}).sort(function(a,b){return b.dava+b.icra-a.dava-a.icra;});
+  var _naD = (typeof _normAd === 'function') ? _normAd : function(s){return String(s||'').trim().toLowerCase();};
+  var mvDagilim=muvekkiller.map(function(m){
+    var mn=_naD(m.ad);
+    var davaAd=function(d){ if(typeof _davaTarafPair==='function'){var tp=_davaTarafPair(d);var a=d.taraf==='davali'?tp.davali:tp.davaci;if(a)return a;} return d.muvekkil||''; };
+    var icraAd=function(i){ if(typeof _icraTarafPair==='function'){var tp=_icraTarafPair(i);var a=i.taraf==='borclu'?tp.borclu:tp.alacakli;if(a)return a;} return i.muvekkil||''; };
+    return {ad:m.ad,dava:davalar0.filter(function(d){return _naD(davaAd(d))===mn;}).length,icra:icralar0.filter(function(i){return _naD(icraAd(i))===mn;}).length};
+  }).filter(function(m){return m.dava+m.icra>0;}).sort(function(a,b){return b.dava+b.icra-a.dava-a.icra;});
   var mvc=document.createElement('div');mvc.style.cssText='background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column';
   mvc.innerHTML='<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)">👤 Müvekkil Dağılımı</div>'
     +(mvDagilim.length?mvDagilim.slice(0,6).map(function(m){return '<div style="display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,0.04)"><div style="flex:1;font-size:13px;font-weight:600;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(m.ad)+'</div><div style="display:flex;gap:4px">'+(m.dava?'<span style="font-size:11px;font-weight:700;color:var(--text3);background:rgba(255,255,255,0.07);padding:2px 8px;border-radius:4px">📁 '+m.dava+'</span>':'')+(m.icra?'<span style="font-size:11px;font-weight:700;color:#7ab5d4;background:rgba(58,107,140,0.15);padding:2px 8px;border-radius:4px">⚡ '+m.icra+'</span>':'')+'</div></div>';}).join(''):'<div style="padding:12px 16px;color:var(--text3);font-size:12px">Veri yok</div>');
@@ -1868,9 +1874,10 @@ function renderDashboard() {
       }
       return i.muvekkil || '';
     };
+    const _na = (typeof _normAd === 'function') ? _normAd : (s => String(s||'').trim().toLowerCase());
     const mvDava = muvekkiller.map(m=>({
       ad: m.ad.split(' ')[0] + (m.ad.split(' ')[1]?' '+m.ad.split(' ')[1][0]+'.':''),
-      count: davalar.filter(d=>davaMuvekkilAdi(d)===m.ad).length + icralar.filter(i=>icraMuvekkilAdi(i)===m.ad).length
+      count: davalar.filter(d=>_na(davaMuvekkilAdi(d))===_na(m.ad)).length + icralar.filter(i=>_na(icraMuvekkilAdi(i))===_na(m.ad)).length
     })).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
     if (mvDava.length) makeHBar('chart-muvekkil-dava', mvDava.map(x=>x.ad), mvDava.map(x=>x.count));
     else {

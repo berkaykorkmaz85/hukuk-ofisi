@@ -311,6 +311,16 @@ function _davaTarafPair(d) {
   return { davaci: davaci, davali: davali };
 }
 
+// İsim eşleştirme normalizasyonu. Dava/icra taraf adları serbest metin
+// girildiğinden müvekkil kaydının adıyla birebir tutmayabilir (büyük/küçük
+// harf, baştaki/sondaki veya çift boşluk). Bu yüzden isimleri Türkçe yerelde
+// küçük harfe çevirip boşlukları sadeleştirerek karşılaştırıyoruz — aksi halde
+// "Müvekkil Başına Dava" gibi eşleştirmeler sessizce boş kalıyordu.
+function _normAd(s) {
+  return String(s == null ? '' : s).trim().toLocaleLowerCase('tr').replace(/\s+/g, ' ');
+}
+window._normAd = _normAd;
+
 // Alacaklı/Borçlu isimlerini üretir. Eski icra kayıtlarında i.muvekkil her
 // zaman alacaklı tarafı temsil ediyordu (form her zaman öyle çalışıyordu),
 // bu yüzden geriye dönük varsayılan taraf 'alacakli'dir.
