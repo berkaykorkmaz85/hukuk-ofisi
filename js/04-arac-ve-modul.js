@@ -2421,7 +2421,7 @@ function finansMvCarisi() {
   if (!mv) { cariDiv.style.display='none'; return; }
 
   const finans = DB.get('finans').filter(f=>f.muvekkil===mv);
-  const tahsilat = finans.filter(f=>['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const tahsilat = finans.filter(f=>HUKUK_GELIR_TURLERI.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const masraf = finans.filter(f=>['Masraf','Masraf (Ofis Avansı)','Masraf (Müvekkil Öder)','Dava Masrafı','Harç'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const net = tahsilat - masraf;
 
@@ -2457,7 +2457,7 @@ function finansMvCarisi() {
             <span style="font-size:10px;color:var(--text3);width:80px;flex-shrink:0">${fmtDate(f.tarih)}</span>
             <span style="font-size:11px;color:${f.tur==='Tahsilat'||f.tur==='Vekalet Ücreti Tahsilatı'?'var(--green)':'var(--red)'}">${f.tur==='Tahsilat'||f.tur==='Vekalet Ücreti Tahsilatı'?'↗':'↘'} ${f.tur}</span>
             <span style="flex:1;font-size:12px;color:var(--text3)">${f.aciklama||'—'}</span>
-            <span style="font-size:13px;font-weight:600;color:${['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur)?'var(--green)':'var(--red)'};font-family:'DM Mono',monospace">₺${fmt(f.tutar)}</span>
+            <span style="font-size:13px;font-weight:600;color:${HUKUK_GELIR_TURLERI.includes(f.tur)?'var(--green)':'var(--red)'};font-family:'DM Mono',monospace">₺${fmt(f.tutar)}</span>
           </div>`).join('') || '<div style="color:var(--text3);font-size:12px">İşlem bulunamadı</div>'}
       </div>
     </div>`;
@@ -3889,3 +3889,97 @@ window._lqInterval = setInterval(_loginQuoteRotate, 6000);
 
 
 
+
+
+// ========== GLOBAL ARAMA (⌘/Ctrl+K) ==========
+// index.html'deki #global-search-overlay ve .gs-* stilleri hazır olduğu halde
+// bu fonksiyonlar tanımsızdı; özellik tamamen çalışmıyordu. Burada uygulanıyor.
+function openGlobalSearch() {
+  var ov = document.getElementById('global-search-overlay');
+  if (!ov) return;
+  ov.classList.add('open');
+  var inp = document.getElementById('global-search-input');
+  if (inp) { inp.value = ''; setTimeout(function () { inp.focus(); }, 30); }
+  var res = document.getElementById('global-search-results');
+  if (res) res.innerHTML = '<div class="gs-empty">Aramak istediğinizi yazın…<br><span style="font-size:11px;margin-top:4px;display:block;color:var(--text3)">Davalar · İcralar · Müvekkiller · Görevler · Notlar</span></div>';
+}
+function closeGlobalSearch() {
+  var ov = document.getElementById('global-search-overlay');
+  if (ov) ov.classList.remove('open');
+}
+function gsGo(type, id) {
+  closeGlobalSearch();
+  try {
+    if (type === 'dava') openDavaDetailPage(id);
+    else if (type === 'icra') showIcraDetail(id);
+    else if (type === 'muvekkil') tabMuvekkilAc(id);
+    else if (type === 'gorev') editTask(id);
+    else if (type === 'not') showPage('notlar');
+  } catch (e) { console.warn('Global arama yönlendirme hatası:', e); }
+}
+function runGlobalSearch(q) {
+  var res = document.getElementById('global-search-results');
+  if (!res) return;
+  var ql = (q || '').trim().toLowerCase();
+  if (ql.length < 1) {
+    res.innerHTML = '<div class="gs-empty">Aramak istediğinizi yazın…</div>';
+    return;
+  }
+  function eslesir() {
+    for (var i = 1; i < arguments.length; i++) {
+      var v = arguments[i];
+      if (v && String(v).toLowerCase().indexOf(arguments[0]) !== -1) return true;
+    }
+    return false;
+  }
+  var out = [];
+  var LIMIT = 6;
+  (DB.get('davalar') || []).filter(function (d) { return eslesir(ql, d.ad, d.no, d.muvekkil, d.karsi, d.konu, d.esas); }).slice(0, LIMIT).forEach(function (d) {
+    var tp = (typeof _davaTarafPair === 'function') ? _davaTarafPair(d) : { davaci: d.muvekkil, davali: d.karsi };
+    out.push({ type: 'dava', id: d.id, icon: '📁', title: (tp.davaci || '—') + ' / ' + (tp.davali || '—'), sub: 'Dava' + (d.no ? ' · ' + d.no : '') + (d.konu ? ' · ' + d.konu : '') });
+  });
+  (DB.get('icralar') || []).filter(function (i) { return eslesir(ql, i.no, i.borclu, i.muvekkil, i.esas); }).slice(0, LIMIT).forEach(function (i) {
+    out.push({ type: 'icra', id: i.id, icon: '⚡', title: (i.muvekkil || '—') + ' / ' + (i.borclu || '—'), sub: 'İcra' + (i.no ? ' · ' + i.no : '') });
+  });
+  (DB.get('muvekkiller') || []).filter(function (m) { return eslesir(ql, m.ad, m.tc, m.tel, m.email); }).slice(0, LIMIT).forEach(function (m) {
+    out.push({ type: 'muvekkil', id: m.id, icon: '👤', title: m.ad, sub: 'Müvekkil' + (m.tel ? ' · ' + m.tel : '') });
+  });
+  (DB.get('tasks') || []).filter(function (t) { return eslesir(ql, t.baslik, t.ilgili); }).slice(0, LIMIT).forEach(function (t) {
+    out.push({ type: 'gorev', id: t.id, icon: '✅', title: t.baslik, sub: 'Görev' + (t.ilgili ? ' · ' + t.ilgili : '') });
+  });
+  (DB.get('notlar') || []).filter(function (n) { return eslesir(ql, n.baslik, n.icerik, n.ilgili); }).slice(0, LIMIT).forEach(function (n) {
+    out.push({ type: 'not', id: n.id, icon: '📝', title: n.baslik || '(başlıksız not)', sub: 'Not' });
+  });
+
+  if (!out.length) { res.innerHTML = '<div class="gs-empty">Sonuç bulunamadı</div>'; return; }
+  res.innerHTML = out.map(function (r, idx) {
+    return '<div class="gs-item' + (idx === 0 ? ' gs-active' : '') + '" onclick="gsGo(\'' + r.type + '\',\'' + escAttr(r.id) + '\')">'
+      + '<span class="gs-item-icon">' + r.icon + '</span>'
+      + '<div class="gs-item-main"><div class="gs-item-title">' + escHtml(r.title) + '</div><div class="gs-item-sub">' + escHtml(r.sub) + '</div></div>'
+      + '</div>';
+  }).join('');
+}
+function gsKeyNav(e) {
+  var res = document.getElementById('global-search-results');
+  if (!res) return;
+  if (e.key === 'Escape') { closeGlobalSearch(); return; }
+  var items = Array.prototype.slice.call(res.querySelectorAll('.gs-item'));
+  if (!items.length) return;
+  var cur = items.findIndex(function (el) { return el.classList.contains('gs-active'); });
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (cur >= 0) items[cur].classList.remove('gs-active');
+    var n = (cur + 1) % items.length; items[n].classList.add('gs-active'); items[n].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (cur >= 0) items[cur].classList.remove('gs-active');
+    var p = (cur - 1 + items.length) % items.length; items[p].classList.add('gs-active'); items[p].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    var a = cur >= 0 ? items[cur] : items[0]; if (a) a.click();
+  }
+}
+// ⌘/Ctrl+K kısayolu ile aç
+document.addEventListener('keydown', function (e) {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); openGlobalSearch(); }
+});

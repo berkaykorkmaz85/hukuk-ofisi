@@ -142,6 +142,16 @@ const _HUKUK_CONFIG = Object.freeze({
   // NOT: Kişisel e-posta artık koda gömülü değil (PII sızıntısı önlemi).
   // Giriş için tam e-posta adresi girilir; "Beni hatırla" ile otomatik dolar.
 });
+// ── Finans tür sabitleri (tek kaynak) ──────────────────────────────
+// Bu listeler eskiden ~8 ayrı yerde tekrar tanımlıydı; yeni bir gelir türü
+// eklenince bir yer unutulursa toplamlar sessizce yanlış çıkıyordu. Artık
+// birebir aynı olan iki kanonik liste burada. (Bağlama göre farklılaşan kısa
+// masraf listeleri — ör. yalnız icra dosya masrafı — bilinçli olarak yerelde kalır.)
+const HUKUK_GELIR_TURLERI = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
+const HUKUK_MASRAF_TUM = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
+window.HUKUK_GELIR_TURLERI = HUKUK_GELIR_TURLERI;
+window.HUKUK_MASRAF_TUM = HUKUK_MASRAF_TUM;
+
 const SUPABASE_URL = _HUKUK_CONFIG.supabaseUrl;
 const SUPABASE_ANON_KEY = _HUKUK_CONFIG.supabaseAnonKey;
 const _supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1045,10 +1055,17 @@ function renderTasksByPerson() {
     return;
   }
 
+  // O(1) arama için tek seferde indeksle (döngü içi .find yerine) —
+  // eskiden her grup anahtarı için tüm davalar+icralar taranıyordu (O(n·m)).
+  const _davaByKey = new Map();
+  davalar.forEach(d => { if (d.ad && !_davaByKey.has(d.ad)) _davaByKey.set(d.ad, d); if (d.no && !_davaByKey.has(d.no)) _davaByKey.set(d.no, d); });
+  const _icraByKey = new Map();
+  icralar.forEach(i => { if (i.no) _icraByKey.set(i.no, i); if (i.bki && !_icraByKey.has(i.bki)) _icraByKey.set(i.bki, i); });
+
   el.innerHTML = sirali.map(key => {
     const grup = gruplar[key];
-    const dava = davalar.find(d => d.ad === key || d.no === key);
-    const icra = !dava ? icralar.find(i => i.no === key || i.bki === key) : null;
+    const dava = _davaByKey.get(key);
+    const icra = !dava ? _icraByKey.get(key) : null;
     let davaAdi = '';
     if (dava) {
       const dtp = (typeof _davaTarafPair === 'function') ? _davaTarafPair(dava) : { davaci: dava.muvekkil, davali: dava.karsi };
@@ -1210,9 +1227,9 @@ function renderRaporlarPage() {
   const tasks   = DB.get('tasks') || [];
   const today   = new Date(); today.setHours(0,0,0,0);
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
+  const GELIR_T = HUKUK_GELIR_TURLERI;
   const topTah  = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
-  const topMas  = finans.filter(f=>['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'].includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const topMas  = finans.filter(f=>HUKUK_MASRAF_TUM.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const mvOpts  = muvekkiller.map(m=>`<option value="${escAttr(m.ad)}">${escHtml(m.ad)}</option>`).join('');
 
   const el = document.getElementById('raporlar-grid');
@@ -1291,7 +1308,7 @@ function renderRaporlarPage() {
       <div class="form-group" style="margin:0"><label>Tür (çoklu seçim)</label>
         <div id="r-finans-tur-wrap" style="background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px;max-height:180px;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;gap:0">
           ${[
-            {g:'Gelirler', items:['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı']},
+            {g:'Gelirler', items:HUKUK_GELIR_TURLERI},
             {g:'Dosya Masrafları', items:['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Masraf Ödemesi']},
             {g:'Ofis Giderleri', items:['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri']},
             {g:'Diğer', items:['Karşı Vekalet Ücreti','Taksit Planı']}

@@ -1996,8 +1996,8 @@ function showMuvekkilDetail(id) {
     <!-- Dava Bazlı Finansal Özet -->
     ${davalar.length>0?(function(){
       var allFinans = DB.get('finans')||[];
-      var GELIR_T2 = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
-      var MASRAF_T2 = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
+      var GELIR_T2 = HUKUK_GELIR_TURLERI;
+      var MASRAF_T2 = HUKUK_MASRAF_TUM;
       var rows = [];
       var gtAnl=0, gtTah=0, gtMas=0, gtNet=0;
       davalar.forEach(function(dv){
@@ -2157,7 +2157,7 @@ function showMuvekkilDetail(id) {
     ${finans.length?`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text)">💸 Son İşlemler</div>
       ${finans.filter(f=>f.tur!=='Karşı Vekalet Ücreti'&&f.tur!=='Taksit Planı').sort((a,b)=>new Date(b.tarih)-new Date(a.tarih)).slice(0,5).map(f=>{
-        const isG=['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur);
+        const isG=HUKUK_GELIR_TURLERI.includes(f.tur);
         return `<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,0.04)">
           <div style="width:30px;height:30px;border-radius:7px;background:${isG?'rgba(74,140,92,0.15)':'rgba(192,83,58,0.15)'};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${isG?'↗':'↘'}</div>
           <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text2)">${escHtml(f.tur)}</div><div style="font-size:11px;color:var(--text3)">${fmtDate(f.tarih)}${f.aciklama?' · '+escHtml(f.aciklama):''}</div></div>
@@ -2514,7 +2514,7 @@ function renderOdemePlanlari() {
   if (planlar.length) {
     html += planlar.map(function(plan){
     var bekleyen = plan.taksitler.filter(function(t){return t.durum==='bekliyor';});
-    var gecikmiş = bekleyen.filter(function(t){return new Date(t.tarih)<today;});
+    var gecikmiş = bekleyen.filter(function(t){return t.tarih && _yerelTarih(t.tarih)<today;});
     var toplamOdenen = plan.taksitler.filter(function(t){return t.durum==='odendi';}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
     var pct = plan.toplam>0 ? Math.min(Math.round(toplamOdenen/plan.toplam*100),100) : 0;
 
@@ -2954,8 +2954,8 @@ function renderFinans() {
   if (mvFilt) finans = finans.filter(f => f.muvekkil === mvFilt);
   if (turFilt) finans = finans.filter(f => f.tur === turFilt);
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
-  const MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
+  const GELIR_T = HUKUK_GELIR_TURLERI;
+  const MASRAF_T = HUKUK_MASRAF_TUM;
   const OFIS_GID = ['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
 
   const allFinans = DB.get('finans')||[];
@@ -3087,7 +3087,7 @@ function renderFinans() {
   const tbody = document.getElementById('finans-tbody');
   if (!tbody) return;
   const sorted = finans.slice().sort((a,b)=>new Date(b.tarih)-new Date(a.tarih));
-  const isG = f => ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'].includes(f.tur);
+  const isG = f => HUKUK_GELIR_TURLERI.includes(f.tur);
   tbody.innerHTML = sorted.length ? sorted.map(f=>`
     <tr>
       <td data-label="Tarih" style="font-family:monospace;font-size:12px;color:var(--text3)">${fmtDate(f.tarih)}</td>

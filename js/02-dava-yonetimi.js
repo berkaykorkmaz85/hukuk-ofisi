@@ -197,7 +197,7 @@ function renderDavaDash() {
   var mahkemeler = [...new Set(davalar0.map(function(d){return d.mahkeme;}).filter(Boolean))].sort();
   var filtFinans = (mvF ? finans.filter(function(f){return f.muvekkil===mvF;}) : finans.slice()).filter(function(f){ return f.tur !== 'Karşı Vekalet Ücreti' && f.tur !== 'Taksit Planı'; });
 
-  var GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
+  var GELIR_T = HUKUK_GELIR_TURLERI;
   var MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
   var _ayNow = new Date().getMonth();
   var _yilNow = new Date().getFullYear();
@@ -1761,7 +1761,7 @@ function renderDashboard() {
   const tasks = DB.get('tasks');
   const finans = DB.get('finans');
 
-  const GELIR_TURLER_DASH = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
+  const GELIR_TURLER_DASH = HUKUK_GELIR_TURLERI;
   const MASRAF_TURLER_DASH = ['Masraf','Masraf (Ofis Avansı)','Dava Masrafı','Harç'];
   const buAy = new Date().getMonth();
   const buYil = new Date().getFullYear();
@@ -1835,7 +1835,7 @@ function renderDashboard() {
       const y = d.getFullYear(), mo = d.getMonth();
       const label = d.toLocaleString('tr-TR',{month:'short',year:'2-digit'});
       months.push(label);
-      const GELIR_TURLER = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
+      const GELIR_TURLER = HUKUK_GELIR_TURLERI;
       const MASRAF_TURLER = ['Masraf','Masraf (Ofis Avansı)','Dava Masrafı','Harç'];
       var tVal = finans.filter(f=>GELIR_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
       var mVal = finans.filter(f=>MASRAF_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
@@ -1921,7 +1921,7 @@ function renderDashboard() {
 
   // Görev kaynaklı duruşmalar
   const upcomingTask = tasks
-    .filter(t => t.tip === 'durusma' && !t.done && t.tarih && new Date(t.tarih) >= today && new Date(t.tarih) <= inWeek)
+    .filter(t => t.tip === 'durusma' && !t.done && t.tarih && _yerelTarih(t.tarih) >= today && _yerelTarih(t.tarih) <= inWeek)
     .map(t => ({ tarih: t.tarih, konu: t.baslik, alt: `${t.mahkeme||''} ${t.ilgili ? '· '+t.ilgili : ''}`.trim(), id: t.id, kaynak: 'task' }));
 
   const upcoming = [...upcomingDava, ...upcomingTask].sort((a,b) => new Date(a.tarih) - new Date(b.tarih));
@@ -2360,7 +2360,7 @@ function _ddpDeleteTask(taskId, davaId) {
 function _ddpExportFinansCSV(davaId) {
   var d = DB.get('davalar').find(function(x){return x.id===davaId;});
   if(!d) return;
-  var GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
+  var GELIR_T = HUKUK_GELIR_TURLERI;
   var finans = DB.get('finans').filter(function(f){return f.davaId===davaId||f.ilgili===d.no;});
   var rows = [['Tarih','Tür','Tutar','Yön','Açıklama']];
   finans.forEach(function(f){
@@ -2399,8 +2399,8 @@ function renderDavaTab(id, sekme) {
       <button class="info-edit-btn" onclick="event.stopPropagation();editDavaNotKartInline('${id}','${field}')">✏</button>
     </div>`;
 
-  const GELIR_T = ['Tahsilat','Vekalet Ücreti Tahsilatı','İcra Vekalet Ücreti','Taksit Tahsilatı','Karşı Vekalet Tahsilatı'];
-  const MASRAF_T = ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç','Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
+  const GELIR_T = HUKUK_GELIR_TURLERI;
+  const MASRAF_T = HUKUK_MASRAF_TUM;
   // Fix 4: Filter finans strictly by this case only (davaId or ilgili matching case no)
   const finans = DB.get('finans').filter(f => f.davaId === id || f.ilgili === d.no);
   const tahsilat = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
