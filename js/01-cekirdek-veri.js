@@ -184,7 +184,7 @@ async function _oturumGeriYukle() {
       const rmEl = document.getElementById('remember-me');
       if (rmEl) rmEl.checked = true;
     }
-  } catch(e) {}
+  } catch(e) { console.warn('"Beni hatırla" bilgisi okunamadı:', e); }
   // "Beni hatırla" seçilmemişse ve aynı tarayıcı oturumunda değilsek otomatik giriş yapma
   try {
     const persistLogin = localStorage.getItem('hukuk_persist_login');
@@ -193,7 +193,7 @@ async function _oturumGeriYukle() {
       await _supabaseClient.auth.signOut();
       return false;
     }
-  } catch(e) {}
+  } catch(e) { console.warn('Oturum kalıcılık kontrolü başarısız:', e); }
   // Önce önbelleği kontrol et: oturum muhtemelen açıksa login ekranını gizle
   try {
     const cachedSb = sessionStorage.getItem('sb_session');

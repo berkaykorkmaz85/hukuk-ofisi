@@ -1461,7 +1461,7 @@ function _hacizSbToLocal() {
     if (i.haciz && typeof i.haciz === 'object') {
       try {
         localStorage.setItem('icra_haciz_' + i.id, JSON.stringify(i.haciz));
-      } catch(e) {}
+      } catch(e) { console.warn('Haciz verisi yerele yazılamadı (' + i.id + '):', e); }
     }
     if (i.kapakHesabi && typeof i.kapakHesabi === 'object') {
       try {

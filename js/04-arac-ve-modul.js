@@ -1758,7 +1758,7 @@ function oranGuncelle(elId, label) {
     var kayitliOranlar = JSON.parse(localStorage.getItem('hukuk_faiz_oranlari') || '{}');
     kayitliOranlar[elId] = num;
     localStorage.setItem('hukuk_faiz_oranlari', JSON.stringify(kayitliOranlar));
-  } catch(e) {}
+  } catch(e) { console.warn('Faiz oranı kaydedilemedi:', e); }
   // Virgüllü gösterim
   var display = num % 1 === 0 ? num.toString() : num.toString().replace('.',',');
   el.textContent = '%' + display;
@@ -3528,7 +3528,7 @@ async function chatterTekDosyaYukle(dosya, dosyaId) {
     try {
       var sess = JSON.parse(sessionStorage.getItem('sb_session')||'{}');
       if (sess.access_token) window._supabaseToken = sess.access_token;
-    } catch(e) {}
+    } catch(e) { console.warn('Oturum jetonu okunamadı:', e); }
   }
   if (!window._supabaseToken) { notify('⚠️ Oturum bulunamadı, lütfen yeniden giriş yapın'); return null; }
   var ts = Date.now();
