@@ -3306,19 +3306,25 @@ function gorevDetayAc(id) {
     +'<div><div style="font-size:12px;color:var(--text2)">Görev oluşturuldu</div>'
     +'<div style="font-size:11px;color:var(--text3)">'+fmtDate((t.created||'').slice(0,10))+'</div></div></div>'
 
-    +gecmis.map(g=>{
-      const clr = g.tip==='tamamlandi'?'var(--green)':g.tip==='erteleme'?'var(--gold)':'var(--text3)';
-      const icon = g.tip==='tamamlandi'?'✓':g.tip==='erteleme'?'↻':'↩';
-      let desc = '';
-      if (g.tip==='erteleme') desc = fmtDate((g.eskiTarih||'').slice(0,10)) + ' → ' + fmtDate((g.yeniTarih||'').slice(0,10));
-      else if (g.tip==='tamamlandi') desc = 'Görev tamamlandı';
-      else if (g.tip==='yeniden_acildi') desc = 'Görev yeniden açıldı';
+    // Sadece ERTELEME (tarih değişikliği) olayları gösterilir — eski→yeni tarih ile.
+    // "Görev yeniden açıldı" ve tamamla/aç gel-git gürültüsü gösterilmez; tamamlanma
+    // ise aşağıda tek bir satır olarak (görev şu an tamamsa) eklenir.
+    +gecmis.filter(g=>g.tip==='erteleme').map(g=>{
+      const detay = fmtDate((g.eskiTarih||'').slice(0,10)) + ' → ' + fmtDate((g.yeniTarih||'').slice(0,10));
       return '<div style="display:flex;gap:10px;align-items:start;margin-bottom:8px">'
-        +'<div style="width:8px;height:8px;border-radius:50%;background:'+clr+';flex-shrink:0;margin-top:5px"></div>'
-        +'<div><div style="font-size:12px;color:var(--text2)">'+(g.aciklama||desc)+'</div>'
-        +(desc&&g.aciklama?'<div style="font-size:11px;color:var(--text3)">'+desc+'</div>':'')
+        +'<div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:5px"></div>'
+        +'<div><div style="font-size:12px;color:var(--text2)">Tarih değiştirildi</div>'
+        +'<div style="font-size:11px;color:var(--text3)">'+detay+'</div>'
         +'<div style="font-size:11px;color:var(--text3)">'+fmtDate((g.tarih||'').slice(0,10))+'</div></div></div>';
     }).join('')
+    // Görev şu an tamamlandıysa tek bir "Görev tamamlandı" satırı (tekrarsız)
+    +(t.done
+      ? '<div style="display:flex;gap:10px;align-items:start;margin-bottom:8px">'
+        +'<div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:5px"></div>'
+        +'<div><div style="font-size:12px;color:var(--text2)">Görev tamamlandı</div>'
+        +(t.tamamlanmaTarihi?'<div style="font-size:11px;color:var(--text3)">'+fmtDate((t.tamamlanmaTarihi||'').slice(0,10))+'</div>':'')
+        +'</div></div>'
+      : '')
     +'</div>'
 
     // Alt butonlar
