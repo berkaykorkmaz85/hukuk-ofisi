@@ -317,6 +317,12 @@
   #main {
     margin-left: 220px;
     flex: 1;
+    /* min-width:0 — flex öğesi varsayılan min-width:auto ile içeriğinin (topbar/
+       sekme çubuğu) doğal genişliğinin altına küçülemiyordu; sidebar açıkken
+       tahsis edilen alana sığmayıp sayfayı yatay taşırıyordu ("sağa kayma").
+       0'a çekince geniş içerik kendi kapsayıcısında (#content overflow-x:auto)
+       kayar, sekme çubuğu sıkışır; sayfa taşmaz. */
+    min-width: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
