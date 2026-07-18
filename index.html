@@ -2965,7 +2965,7 @@
       <div class="stat-grid" id="stat-grid"></div>
 
       <!-- CHARTS ROW 1 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px" class="chart-row-1">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px" class="chart-row-1">
         <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('davalar')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">📁 Dava Durumları</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
@@ -2996,7 +2996,7 @@
       </div>
 
       <!-- CHARTS ROW 2 -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px" class="chart-row-2">
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;margin-bottom:16px" class="chart-row-2">
         <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('finans')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">💰 Aylık Finansal Özet</div>
           <div style="height:200px;position:relative">
