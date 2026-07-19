@@ -1282,7 +1282,9 @@
   .ch-more-btn::before { content:''; display:inline-block; width:16px; height:1px; background:var(--border2); }
   .ch-more-btn::after { content:''; display:inline-block; width:16px; height:1px; background:var(--border2); }
   /* INPUT */
-  .chatter-input-area { border-top:1px solid var(--border); padding:10px 14px; flex-shrink:0; background:var(--bg2); }
+  .chatter-input-area { border-top:1px solid var(--border); padding:10px 14px; flex-shrink:0; background:var(--bg2); position:relative; transition:background .12s, box-shadow .12s; }
+  .chatter-input-area.chatter-dragover { background:var(--gold-dim); box-shadow:inset 0 0 0 2px var(--gold); }
+  .chatter-input-area.chatter-dragover::after { content:"📎 Bırakın — dosya yüklenecek"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; color:var(--gold); background:var(--bg2); opacity:.96; pointer-events:none; border-radius:8px; }
   .chatter-reply-banner { font-size:11px; color:var(--gold); padding:6px 10px; background:rgba(108,71,255,0.08); border:1px solid rgba(108,71,255,0.25); border-radius:7px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
   .chatter-textarea { width:100%; background:var(--bg3); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 12px; resize:none; outline:none; min-height:68px; transition:border-color 0.15s; box-sizing:border-box; }
   .chatter-textarea:focus { border-color:var(--gold); }
@@ -3920,7 +3922,7 @@
         <span id="ddp-post-count" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--text3);font-weight:400"></span>
       </div>
       <div class="chatter-feed" id="chatter-feed"></div>
-      <div class="chatter-input-area">
+      <div class="chatter-input-area" data-drop-mod="dava">
         <div id="chatter-reply-banner" style="display:none;background:rgba(108,71,255,0.08);border:1px solid rgba(108,71,255,0.25);border-radius:7px;padding:7px 10px;margin-bottom:8px">
           <div style="font-size:10px;color:var(--gold);font-weight:600;margin-bottom:3px" id="chatter-reply-who"></div>
           <div style="font-size:12px;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical" id="chatter-reply-preview"></div>
@@ -3983,7 +3985,7 @@
         <span id="idp-post-count" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:11px;color:var(--text3);font-weight:400"></span>
       </div>
       <div class="chatter-feed" id="idp-chatter-feed"></div>
-      <div class="chatter-input-area">
+      <div class="chatter-input-area" data-drop-mod="icra">
         <div id="idp-reply-banner" style="display:none;background:rgba(108,71,255,0.08);border:1px solid rgba(108,71,255,0.25);border-radius:7px;padding:7px 10px;margin-bottom:8px">
           <div style="font-size:10px;color:var(--gold);font-weight:600;margin-bottom:3px" id="idp-reply-who"></div>
           <div style="font-size:12px;color:var(--text3);overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical" id="idp-reply-preview"></div>
@@ -5171,7 +5173,7 @@
 <script src="js/01-cekirdek-veri.js?v=20260718a"></script>
 <script src="js/02-dava-yonetimi.js?v=20260718a"></script>
 <script src="js/03-icra-finans-gorev.js?v=20260717l"></script>
-<script src="js/04-arac-ve-modul.js?v=20260718a"></script>
+<script src="js/04-arac-ve-modul.js?v=20260718b"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
 
 <!-- UETS KAYIT MODAL -->

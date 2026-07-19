@@ -3449,6 +3449,12 @@ function chFmtBoyut(bytes) {
 async function chatterFileSec(input, mod) {
   var yeni = Array.from(input.files);
   input.value = '';
+  return chatterDosyalariIsle(yeni, mod);
+}
+
+// Hem "📎 Dosya Ekle" butonundan hem de sürükle-bırak ile gelen dosyaları işler.
+async function chatterDosyalariIsle(fileList, mod) {
+  var yeni = Array.from(fileList || []);
   if (!yeni.length) return;
 
   var dosyaId = mod === 'dava' ? currentDavaId : currentIcraId;
@@ -3525,6 +3531,39 @@ function chatterDosyaTemizle(mod) {
   if (mod === 'dava') { window._chatterEkler.splice(0, window._chatterEkler.length); }
   else { window._idpEkler.splice(0, window._idpEkler.length); }
   chatterPreviewGuncelle(mod);
+}
+
+// ── Chatter'a sürükle-bırak ile dosya yükleme ──────────────────
+// index.html'deki iki compose alanına (dava/icra) drop dinleyicisi bağlar.
+function _chatterDragDropKur() {
+  document.querySelectorAll('.chatter-input-area[data-drop-mod]').forEach(function (area) {
+    if (area._dropKurulu) return;
+    area._dropKurulu = true;
+    var mod = area.getAttribute('data-drop-mod');
+    var sayac = 0; // iç içe dragenter/leave'i doğru saymak için
+    var vurgula = function (on) { area.classList.toggle('chatter-dragover', on); };
+    area.addEventListener('dragenter', function (e) {
+      if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') === -1) return;
+      e.preventDefault(); sayac++; vurgula(true);
+    });
+    area.addEventListener('dragover', function (e) {
+      if (!e.dataTransfer || Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') === -1) return;
+      e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+    });
+    area.addEventListener('dragleave', function () {
+      sayac = Math.max(0, sayac - 1); if (sayac === 0) vurgula(false);
+    });
+    area.addEventListener('drop', function (e) {
+      if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+      e.preventDefault(); sayac = 0; vurgula(false);
+      chatterDosyalariIsle(e.dataTransfer.files, mod);
+    });
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _chatterDragDropKur);
+} else {
+  _chatterDragDropKur();
 }
 
 // Tek dosya yükle (anında yükleme için)
