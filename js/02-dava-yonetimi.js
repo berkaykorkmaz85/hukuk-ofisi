@@ -1875,10 +1875,26 @@ function renderDashboard() {
       return i.muvekkil || '';
     };
     const _na = (typeof _normAd === 'function') ? _normAd : (s => String(s||'').trim().toLowerCase());
-    const mvDava = muvekkiller.map(m=>({
-      ad: m.ad.split(' ')[0] + (m.ad.split(' ')[1]?' '+m.ad.split(' ')[1][0]+'.':''),
-      count: davalar.filter(d=>_na(davaMuvekkilAdi(d))===_na(m.ad)).length + icralar.filter(i=>_na(icraMuvekkilAdi(i))===_na(m.ad)).length
-    })).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
+    // Müvekkil adını dosyanın SADECE bir tarafıyla değil, TÜM taraf adlarıyla
+    // (davacı/davalı/muvekkil ; alacaklı/borçlu/muvekkil) karşılaştırıyoruz.
+    // Eskiden yalnız d.taraf'a göre seçilen tek taraf kontrol ediliyordu; taraf
+    // yanlış kaydedilmiş veya müvekkil diğer tarafta olduğunda eşleşme kaçıp
+    // grafik "Veri yok" gösteriyordu (tekrar eden hata).
+    const davaAdlar = d => {
+      const tp = (typeof _davaTarafPair === 'function') ? _davaTarafPair(d) : { davaci: d.davaci || d.muvekkil, davali: d.davali || d.karsi };
+      return [tp.davaci, tp.davali, d.muvekkil].filter(Boolean).map(_na);
+    };
+    const icraAdlar = i => {
+      const tp = (typeof _icraTarafPair === 'function') ? _icraTarafPair(i) : { alacakli: i.alacakli || i.muvekkil, borclu: i.borclu };
+      return [tp.alacakli, tp.borclu, i.muvekkil].filter(Boolean).map(_na);
+    };
+    const mvDava = muvekkiller.map(m=>{
+      const mn = _na(m.ad);
+      return {
+        ad: m.ad.split(' ')[0] + (m.ad.split(' ')[1]?' '+m.ad.split(' ')[1][0]+'.':''),
+        count: davalar.filter(d=>davaAdlar(d).indexOf(mn)!==-1).length + icralar.filter(i=>icraAdlar(i).indexOf(mn)!==-1).length
+      };
+    }).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
     if (mvDava.length) makeHBar('chart-muvekkil-dava', mvDava.map(x=>x.ad), mvDava.map(x=>x.count));
     else {
       const el = document.getElementById('chart-muvekkil-dava');
