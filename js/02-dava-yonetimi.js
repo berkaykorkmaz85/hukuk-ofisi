@@ -1556,6 +1556,10 @@ function destroyCharts() {
 function makeDonut(id, labels, data, colors, legendId) {
   const ctx = document.getElementById(id);
   if (!ctx) return;
+  // Bu canvas'ta önceki bir Chart varsa önce yok et — aksi halde art arda
+  // render'da "Canvas is already in use" hatası çıkıyor (setTimeout'lu render
+  // yarışında destroyCharts yetişmeyebiliyor).
+  var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
   const total = data.reduce((a,b)=>a+b,0);
   const c = new Chart(ctx, {
     type: 'doughnut',
@@ -1609,6 +1613,7 @@ function makeDonut(id, labels, data, colors, legendId) {
 function makeBar(id, labels, datasets) {
   const ctx = document.getElementById(id);
   if (!ctx) return;
+  var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
   const c = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets },
@@ -1656,6 +1661,7 @@ function makeBar(id, labels, datasets) {
 function makeHBar(id, labels, data) {
   const ctx = document.getElementById(id);
   if (!ctx) return;
+  var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
   const c = new Chart(ctx, {
     type: 'bar',
     data: {
