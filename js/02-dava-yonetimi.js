@@ -1895,10 +1895,19 @@ function renderDashboard() {
         count: davalar.filter(d=>davaAdlar(d).indexOf(mn)!==-1).length + icralar.filter(i=>icraAdlar(i).indexOf(mn)!==-1).length
       };
     }).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
-    if (mvDava.length) makeHBar('chart-muvekkil-dava', mvDava.map(x=>x.ad), mvDava.map(x=>x.count));
-    else {
-      const el = document.getElementById('chart-muvekkil-dava');
-      if (el) el.parentElement.innerHTML = '<div class="empty" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="empty-icon">👤</div><div class="empty-text">Veri yok</div></div>';
+    // Sabit wrapper üzerinden çalış — "Veri yok" durumunda canvas'ı KALICI
+    // silmiyoruz; aksi halde ilk (veri gelmeden) render canvas'ı yok edip
+    // sonraki (veri gelen) render makeHBar için canvas'ı bulamıyor ve grafik
+    // sonsuza dek "Veri yok" kalıyordu (asıl hata buydu — isim eşleşmesi değil).
+    const _mvWrap = document.getElementById('chart-muvekkil-dava-wrap');
+    if (mvDava.length) {
+      // Canvas önceki bir "Veri yok" render'ında silinmişse geri kur
+      if (_mvWrap && !document.getElementById('chart-muvekkil-dava')) {
+        _mvWrap.innerHTML = '<canvas id="chart-muvekkil-dava" style="pointer-events:none"></canvas>';
+      }
+      makeHBar('chart-muvekkil-dava', mvDava.map(x=>x.ad), mvDava.map(x=>x.count));
+    } else if (_mvWrap) {
+      _mvWrap.innerHTML = '<div class="empty" style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center"><div class="empty-icon">👤</div><div class="empty-text">Veri yok</div></div>';
     }
   }, 50);
 
