@@ -2458,8 +2458,13 @@ function renderDavaTab(id, sekme) {
     // G4: Müvekkil link
     var muvekkilLink = '';
     if(d.muvekkil) {
-      var mvk = (DB.get('muvekkiller')||[]).find(function(m){return m.ad===d.muvekkil;});
-      muvekkilLink = mvk ? '<a href="#" onclick="showMuvekkilDetail(\''+mvk.id+'\');event.preventDefault()" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--text3)">'+escHtml(d.muvekkil)+'</a>' : escHtml(d.muvekkil||'—');
+      // Müvekkil kaydını normalize edilmiş isimle bul (birebir eşleşme, isim
+      // farkında link'i kaçırıyordu) ve listeyle aynı çalışan tabMuvekkilAc'ı
+      // kullan — showMuvekkilDetail 'kisiler' sayfasına geçmediği için detay
+      // sayfasından tıklayınca müvekkil açılmıyordu.
+      var _mvnad = (typeof _normAd==='function') ? _normAd(d.muvekkil) : String(d.muvekkil||'').trim().toLowerCase();
+      var mvk = (DB.get('muvekkiller')||[]).find(function(m){var mn=(typeof _normAd==='function')?_normAd(m.ad):String(m.ad||'').trim().toLowerCase();return mn===_mvnad;});
+      muvekkilLink = mvk ? '<a href="#" onclick="tabMuvekkilAc(\''+mvk.id+'\');event.preventDefault()" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--text3);cursor:pointer">'+escHtml(d.muvekkil)+'</a>' : escHtml(d.muvekkil||'—');
     } else { muvekkilLink = '—'; }
     // Davacı/Davalı sırası — müvekkilimiz olan taraf tıklanabilir link olarak kalır
     var _tp = _davaTarafPair(d);

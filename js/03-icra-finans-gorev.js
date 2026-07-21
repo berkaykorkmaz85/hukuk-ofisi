@@ -1092,8 +1092,9 @@ function renderIcraTab(id, sekme) {
   if (sekme === 'genel') {
     // T1: Cover card + Ö7 status + Ö8 age
     var muvekkilLink = escHtml(i.muvekkil||'—');
-    var mvk = (DB.get('muvekkiller')||[]).find(function(m){return m.ad===i.muvekkil;});
-    if(mvk) muvekkilLink = '<a href="#" onclick="showMuvekkilDetail(\''+mvk.id+'\');event.preventDefault()" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--text3)">'+escHtml(i.muvekkil)+'</a>';
+    var _imvnad = (typeof _normAd==='function') ? _normAd(i.muvekkil) : String(i.muvekkil||'').trim().toLowerCase();
+    var mvk = (DB.get('muvekkiller')||[]).find(function(m){var mn=(typeof _normAd==='function')?_normAd(m.ad):String(m.ad||'').trim().toLowerCase();return mn===_imvnad;});
+    if(mvk) muvekkilLink = '<a href="#" onclick="tabMuvekkilAc(\''+mvk.id+'\');event.preventDefault()" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--text3);cursor:pointer">'+escHtml(i.muvekkil)+'</a>';
     // Alacaklı/Borçlu sırası — müvekkilimiz olan taraf tıklanabilir link olarak kalır
     var _itp = _icraTarafPair(i);
     var alacakliDisplay = (i.taraf!=='borclu' && i.muvekkil) ? muvekkilLink : escHtml(_itp.alacakli||'—');
