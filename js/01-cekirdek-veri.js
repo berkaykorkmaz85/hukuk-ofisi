@@ -659,70 +659,43 @@ function _sbPostToChatterRow(post, dosyaTipi, dosyaId) {
   };
 }
 
-// Sayfa açılışında Supabase'den davalar + icralar çek, cache'i doldur
+// Sayfa açılışında Supabase'den tüm tabloları çek, cache'i doldur.
+// HIZLANDIRMA: Eskiden tablolar İKİ ardışık `await Promise.all` grubunda
+// yükleniyordu (önce 7, o bitince 8) → 2 tur gidiş-geliş (RTT). Artık 15
+// tablonun tamamı TEK Promise.all ile aynı anda isteniyor → 1 RTT. Küçük
+// veride baskın maliyet ağ gecikmesi olduğundan açılış beklemesi ~yarıya iner.
 async function _sbYukleDavalarIcralar() {
   if (!window._currentUserId) return;
+  // key: tablo adı, map: satır→obje dönüştürücü, diff: diff-sync "son durum"u init edilsin mi
+  const _TABLOLAR = [
+    { key: 'davalar',        map: _sbRowToObj },
+    { key: 'icralar',        map: _sbRowToObj },
+    { key: 'muvekkiller',    map: _sbRowToObj },
+    { key: 'kisiler',        map: _sbRowToObj },
+    { key: 'contacts',       map: _sbContactRowToObj },
+    { key: 'finans',         map: _sbFinansRowToObj,     diff: true },
+    { key: 'odeme_planlari', map: _sbOdemePlaniRowToObj, diff: true },
+    { key: 'tasks',          map: _sbTaskRowToObj,       diff: true },
+    { key: 'belgeler',       map: _sbBelgeRowToObj,      diff: true },
+    { key: 'icra_belgeler',  map: _sbIcraBelgeRowToObj,  diff: true },
+    { key: 'icra_masraflar', map: _sbIcraMasrafRowToObj, diff: true },
+    { key: 'dava_masraflar', map: _sbDavaMasrafRowToObj, diff: true },
+    { key: 'notlar',         map: _sbNotRowToObj,        diff: true },
+    { key: 'cari',           map: _sbCariRowToObj,       diff: true },
+    { key: 'uets_kayitlar',  map: _sbUetsRowToObj,       diff: true }
+  ];
   try {
-    const [
-      { data: dData, error: dErr },
-      { data: iData, error: iErr },
-      { data: mvData, error: mvErr },
-      { data: kData, error: kErr },
-      { data: ctData, error: ctErr },
-      { data: fData, error: fErr },
-      { data: opData, error: opErr }
-    ] = await Promise.all([
-      _supabaseClient.from('davalar').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('icralar').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('muvekkiller').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('kisiler').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('contacts').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('finans').select('*').order('created_at', { ascending: false }),
-      _supabaseClient.from('odeme_planlari').select('*').order('created_at', { ascending: false })
-    ]);
-    if (dErr) console.error('Davalar yüklenemedi:', dErr);
-    if (iErr) console.error('İcralar yüklenemedi:', iErr);
-    if (mvErr) console.error('Müvekkiller yüklenemedi:', mvErr);
-    if (kErr) console.error('Kişiler yüklenemedi:', kErr);
-    if (ctErr) console.error('Contacts yüklenemedi:', ctErr);
-    if (fErr) console.error('Finans yüklenemedi:', fErr);
-    if (opErr) console.error('Ödeme planları yüklenemedi:', opErr);
-    window._sbCache.davalar = (dData || []).map(_sbRowToObj);
-    window._sbCache.icralar = (iData || []).map(_sbRowToObj);
-    window._sbCache.muvekkiller = (mvData || []).map(_sbRowToObj);
-    window._sbCache.kisiler = (kData || []).map(_sbRowToObj);
-    window._sbCache.contacts = (ctData || []).map(_sbContactRowToObj);
-    window._sbCache.finans = (fData || []).map(_sbFinansRowToObj);
-    window._sbCache.odeme_planlari = (opData || []).map(_sbOdemePlaniRowToObj);
-    // diff-sync'in "son senkronize durum" referansını da Supabase'den gelen
-    // gerçek veriyle başlat — aksi halde ilk DB.set çağrısı tüm kayıtları
-    // "yeni eklenmiş" sanıp gereksiz yere tekrar upsert eder.
-    // DERİN kopya: cache objeleriyle referans paylaşılırsa yerinde mutasyonlar
-    // diff'te görünmez olur (bkz. _sbDiffSyncCalistir'daki not).
-    window._sbDiffLastSynced.finans = JSON.parse(JSON.stringify(window._sbCache.finans));
-    window._sbDiffLastSynced.odeme_planlari = JSON.parse(JSON.stringify(window._sbCache.odeme_planlari));
-
-    // 4. Aşama tabloları — jenerik döngü ile yükleme (kod tekrarını azaltmak için)
-    const _ASAMA4_TABLOLAR = {
-      tasks:          _sbTaskRowToObj,
-      belgeler:       _sbBelgeRowToObj,
-      icra_belgeler:  _sbIcraBelgeRowToObj,
-      icra_masraflar: _sbIcraMasrafRowToObj,
-      dava_masraflar: _sbDavaMasrafRowToObj,
-      notlar:         _sbNotRowToObj,
-      cari:           _sbCariRowToObj,
-      uets_kayitlar:  _sbUetsRowToObj
-    };
-    const _asama4Anahtarlar = Object.keys(_ASAMA4_TABLOLAR);
-    const _asama4Sonuclar = await Promise.all(
-      _asama4Anahtarlar.map(tbl => _supabaseClient.from(tbl).select('*').order('created_at', { ascending: false }))
+    const sonuclar = await Promise.all(
+      _TABLOLAR.map(t => _supabaseClient.from(t.key).select('*').order('created_at', { ascending: false }))
     );
-    _asama4Anahtarlar.forEach((tbl, idx) => {
-      const { data, error } = _asama4Sonuclar[idx];
-      if (error) { console.error(tbl + ' yüklenemedi:', error); return; }
-      const rowToObj = _ASAMA4_TABLOLAR[tbl];
-      window._sbCache[tbl] = (data || []).map(rowToObj);
-      window._sbDiffLastSynced[tbl] = JSON.parse(JSON.stringify(window._sbCache[tbl]));
+    _TABLOLAR.forEach((t, idx) => {
+      const { data, error } = sonuclar[idx];
+      if (error) { console.error(t.key + ' yüklenemedi:', error); return; }
+      window._sbCache[t.key] = (data || []).map(t.map);
+      // diff-sync'in "son senkronize durum" referansını gerçek veriyle başlat —
+      // aksi halde ilk DB.set tüm kayıtları "yeni" sanıp gereksiz upsert eder.
+      // DERİN kopya şart: cache objeleriyle referans paylaşılmamalı.
+      if (t.diff) window._sbDiffLastSynced[t.key] = JSON.parse(JSON.stringify(window._sbCache[t.key]));
     });
     // İcra haciz verilerini Supabase'den localStorage'a kopyala
     // (haciz verileri icra kaydının detaylar.haciz alanında saklanır;
