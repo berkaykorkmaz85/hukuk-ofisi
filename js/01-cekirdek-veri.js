@@ -170,11 +170,64 @@ function checkSession() {
   } catch { return false; }
 }
 
+// ══ OTURUM HAREKETSİZLİK ZAMAN AŞIMI (30 dakika) ══
+// Supabase oturumu kendini süresiz tazelediğinden, kullanıcı çıkış yapmadıkça
+// oturum açık kalıyordu. Güvenlik için 30 dk işlem yapılmazsa otomatik çıkış:
+//  1) Uygulama açıkken periyodik kontrol,
+//  2) Sekme kapatılıp 30 dk sonra açılırsa oturum geri yüklenmez (aşağıda).
+const IDLE_LIMIT_MS = 30 * 60 * 1000; // 30 dakika
+const IDLE_KEY = 'hukuk_last_activity';
+let _idleSonAktivite = Date.now();
+let _idleSonYazma = 0;
+function _idleAktivite() {
+  _idleSonAktivite = Date.now();
+  // localStorage yazımını kısıtla (her fare hareketinde yazma) — 15 sn'de bir yeter
+  if (_idleSonAktivite - _idleSonYazma > 15000) {
+    _idleSonYazma = _idleSonAktivite;
+    try { localStorage.setItem(IDLE_KEY, String(_idleSonAktivite)); } catch (e) {}
+  }
+}
+function _idleZamanAsimi() {
+  try { localStorage.removeItem(IDLE_KEY); } catch (e) {}
+  try { sessionStorage.removeItem('sb_session'); } catch (e) {}
+  try { alert('🔒 30 dakika boyunca işlem yapılmadığı için oturumunuz güvenlik amacıyla kapatıldı.'); } catch (e) {}
+  try { _supabaseClient.auth.signOut().finally(function () { location.reload(); }); }
+  catch (e) { location.reload(); }
+}
+(function _idleBaslat() {
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(function (ev) {
+    document.addEventListener(ev, _idleAktivite, { passive: true, capture: true });
+  });
+  // 30 sn'de bir kontrol et — yalnız giriş yapılmışsa tetikle. Çoklu sekmede
+  // bir sekmedeki işlem diğerlerini de canlı tutsun diye paylaşılan
+  // (localStorage) son-aktivite değerini de hesaba kat.
+  setInterval(function () {
+    if (!window._currentUserId) return;
+    var paylasilan = 0;
+    try { paylasilan = parseInt(localStorage.getItem(IDLE_KEY) || '0', 10) || 0; } catch (e) {}
+    var son = Math.max(_idleSonAktivite, paylasilan);
+    if (Date.now() - son > IDLE_LIMIT_MS) _idleZamanAsimi();
+  }, 30000);
+})();
+
 // ══ OTURUM GERİ YÜKLEME ══
 // supabase-js oturumu localStorage'da saklar ve süresi dolunca kendisi tazeler.
 // Sayfa yenilendiğinde geçerli oturum varsa login ekranını atlayıp veriyi yükle.
 // (Eskiden bu akış yoktu; her yenilemede tekrar giriş gerekiyordu.)
 async function _oturumGeriYukle() {
+  // 30 dk hareketsizlik: sekme kapalıyken/arka planda son işlemden bu yana
+  // 30 dk geçtiyse oturumu otomatik geri yükleme — güvenli çıkış yap.
+  try {
+    const _sonAkt = parseInt(localStorage.getItem(IDLE_KEY) || '0', 10);
+    if (_sonAkt && (Date.now() - _sonAkt > IDLE_LIMIT_MS)) {
+      localStorage.removeItem(IDLE_KEY);
+      try { await _supabaseClient.auth.signOut(); } catch (e) {}
+      try { sessionStorage.removeItem('sb_session'); } catch (e) {}
+      const ls = document.getElementById('login-screen');
+      if (ls) { ls.classList.remove('hidden'); ls.style.display = ''; }
+      return false;
+    }
+  } catch (e) {}
   // "Beni hatırla" e-postasını login formuna her durumda doldur
   try {
     const hatirla = localStorage.getItem('hukuk_remember_user');
@@ -242,6 +295,7 @@ async function _oturumGeriYukle() {
     if (window._lqInterval) { clearInterval(window._lqInterval); window._lqInterval = null; }
     try { tabEkle("Gösterge Paneli","📊","dashboard"); } catch(e) {}
     window._appStarted = true;
+    try { _idleSonAktivite = Date.now(); localStorage.setItem(IDLE_KEY, String(_idleSonAktivite)); } catch(e) {}
   } finally {
     if (plLoading) plLoading.style.display = 'none';
   }
@@ -943,6 +997,7 @@ async function doLogin() {
       try { _uetsSureUyariKontrol(); } catch(e) {}
       try { tabEkle("Gösterge Paneli","📊","dashboard"); } catch(e) {}
       window._appStarted = true;
+    try { _idleSonAktivite = Date.now(); localStorage.setItem(IDLE_KEY, String(_idleSonAktivite)); } catch(e) {}
     } catch(e2) { console.warn('dashboard açma hatası:', e2.message); }
     // Veriler hazır — şimdi login ekranını VE yükleme katmanını birlikte kapat.
     const ls = document.getElementById('login-screen'); ls.classList.add('hidden'); ls.style.display = 'none';
