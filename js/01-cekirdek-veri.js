@@ -713,23 +713,27 @@ function _sbPostToChatterRow(post, dosyaTipi, dosyaId) {
   };
 }
 
-// Sayfa açılışında Supabase'den tüm tabloları çek, cache'i doldur.
-// HIZLANDIRMA: Eskiden tablolar İKİ ardışık `await Promise.all` grubunda
-// yükleniyordu (önce 7, o bitince 8) → 2 tur gidiş-geliş (RTT). Artık 15
-// tablonun tamamı TEK Promise.all ile aynı anda isteniyor → 1 RTT. Küçük
-// veride baskın maliyet ağ gecikmesi olduğundan açılış beklemesi ~yarıya iner.
+// Sayfa açılışında Supabase'den tabloları çek, cache'i doldur.
+// HIZLANDIRMA (2 aşamalı):
+//  1) TÜM 15 tablo AYNI ANDA istenir (tek round-trip).
+//  2) Ama yalnız PANEL için gerekli olanlar (oncelik:true — davalar, icralar,
+//     müvekkiller, finans, görevler) BEKLENİR; bunlar gelince fonksiyon döner
+//     ve panel hemen çizilir. Geri kalan 10 tablo ARKA PLANDA yüklenmeye devam
+//     eder (belgeler, kişiler, cari vb. — panelde kullanılmaz, ilgili sayfaya
+//     gidilene kadar zaten hazır olur). Böylece "Veriler yükleniyor" beklemesi
+//     15 tablo yerine 5 tabloya iner → gözle görülür hızlanma.
 async function _sbYukleDavalarIcralar() {
   if (!window._currentUserId) return;
-  // key: tablo adı, map: satır→obje dönüştürücü, diff: diff-sync "son durum"u init edilsin mi
+  // key: tablo adı, map: satır→obje, diff: diff-sync init'i, oncelik: panel için şart
   const _TABLOLAR = [
-    { key: 'davalar',        map: _sbRowToObj },
-    { key: 'icralar',        map: _sbRowToObj },
-    { key: 'muvekkiller',    map: _sbRowToObj },
+    { key: 'davalar',        map: _sbRowToObj,           oncelik: true },
+    { key: 'icralar',        map: _sbRowToObj,           oncelik: true },
+    { key: 'muvekkiller',    map: _sbRowToObj,           oncelik: true },
+    { key: 'finans',         map: _sbFinansRowToObj,     diff: true, oncelik: true },
+    { key: 'tasks',          map: _sbTaskRowToObj,       diff: true, oncelik: true },
     { key: 'kisiler',        map: _sbRowToObj },
     { key: 'contacts',       map: _sbContactRowToObj },
-    { key: 'finans',         map: _sbFinansRowToObj,     diff: true },
     { key: 'odeme_planlari', map: _sbOdemePlaniRowToObj, diff: true },
-    { key: 'tasks',          map: _sbTaskRowToObj,       diff: true },
     { key: 'belgeler',       map: _sbBelgeRowToObj,      diff: true },
     { key: 'icra_belgeler',  map: _sbIcraBelgeRowToObj,  diff: true },
     { key: 'icra_masraflar', map: _sbIcraMasrafRowToObj, diff: true },
@@ -738,27 +742,29 @@ async function _sbYukleDavalarIcralar() {
     { key: 'cari',           map: _sbCariRowToObj,       diff: true },
     { key: 'uets_kayitlar',  map: _sbUetsRowToObj,       diff: true }
   ];
-  try {
-    const sonuclar = await Promise.all(
-      _TABLOLAR.map(t => _supabaseClient.from(t.key).select('*').order('created_at', { ascending: false }))
-    );
-    _TABLOLAR.forEach((t, idx) => {
-      const { data, error } = sonuclar[idx];
-      if (error) { console.error(t.key + ' yüklenemedi:', error); return; }
-      window._sbCache[t.key] = (data || []).map(t.map);
-      // diff-sync'in "son senkronize durum" referansını gerçek veriyle başlat —
-      // aksi halde ilk DB.set tüm kayıtları "yeni" sanıp gereksiz upsert eder.
-      // DERİN kopya şart: cache objeleriyle referans paylaşılmamalı.
-      if (t.diff) window._sbDiffLastSynced[t.key] = JSON.parse(JSON.stringify(window._sbCache[t.key]));
-    });
-    // İcra haciz verilerini Supabase'den localStorage'a kopyala
-    // (haciz verileri icra kaydının detaylar.haciz alanında saklanır;
-    //  okuma tarafı değişmeden localStorage'dan okumaya devam eder)
-    try { _hacizSbToLocal(); } catch(e) {}
-  } catch (e) {
-    console.error('Supabase veri yükleme hatası:', e);
-    try { notify('⚠️ Veriler yüklenirken bir hata oluştu. İnternet bağlantınızı kontrol edin.'); } catch(e2) {}
+  function _isle(t, res) {
+    const { data, error } = res;
+    if (error) { console.error(t.key + ' yüklenemedi:', error); return; }
+    window._sbCache[t.key] = (data || []).map(t.map);
+    // diff-sync "son senkronize durum"unu gerçek veriyle başlat (derin kopya şart).
+    if (t.diff) window._sbDiffLastSynced[t.key] = JSON.parse(JSON.stringify(window._sbCache[t.key]));
   }
+  // Tüm istekleri AYNI ANDA başlat (tek round-trip)
+  const istekler = _TABLOLAR.map(t => ({
+    t: t,
+    p: _supabaseClient.from(t.key).select('*').order('created_at', { ascending: false })
+  }));
+  // 1) Öncelikli (panel) tabloları BEKLE
+  try {
+    await Promise.all(istekler.filter(x => x.t.oncelik).map(x => x.p.then(res => _isle(x.t, res))));
+    try { _hacizSbToLocal(); } catch (e) {}
+  } catch (e) {
+    console.error('Supabase (öncelikli) veri yükleme hatası:', e);
+    try { notify('⚠️ Veriler yüklenirken bir hata oluştu. İnternet bağlantınızı kontrol edin.'); } catch (e2) {}
+  }
+  // 2) Geri kalanları ARKA PLANDA yükle (beklenmez — panel zaten gösterildi)
+  Promise.all(istekler.filter(x => !x.t.oncelik).map(x => x.p.then(res => _isle(x.t, res))))
+    .catch(e => console.error('Supabase (arka plan) veri yükleme hatası:', e));
 }
 
 // Bir dosyanın (dava/icra) chatter mesajlarını Supabase'den çekip cache'e koy
