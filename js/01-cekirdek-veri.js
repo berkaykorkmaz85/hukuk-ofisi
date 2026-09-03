@@ -321,9 +321,9 @@ if (document.readyState === 'loading') {
 // "davalar" ve "icralar" artık localStorage'da değil, Supabase'de tutuluyor.
 // DB.get/DB.set bu key'ler için cache'i okur/günceller; gerçek senkronizasyon
 // (Supabase'e yazma) ilgili kaydet/sil fonksiyonlarında ayrıca yapılır.
-window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], finans: [], odeme_planlari: [], tasks: [], belgeler: [], icra_belgeler: [], icra_masraflar: [], dava_masraflar: [], notlar: [], cari: [], uets_kayitlar: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
+window._sbCache = { davalar: [], icralar: [], muvekkiller: [], kisiler: [], contacts: [], finans: [], odeme_planlari: [], tasks: [], belgeler: [], icra_belgeler: [], icra_masraflar: [], dava_masraflar: [], notlar: [], cari: [], uets_kayitlar: [], ajanda: [], chatter: {} };  // chatter: { [dosyaId]: [post,...] }
 const _SB_TABLES = { davalar: 'davalar', icralar: 'icralar', muvekkiller: 'muvekkiller', kisiler: 'kisiler', contacts: 'contacts' };
-const _SB_DIFF_TABLES = { finans: 'finans', odeme_planlari: 'odeme_planlari', tasks: 'tasks', belgeler: 'belgeler', icra_belgeler: 'icra_belgeler', icra_masraflar: 'icra_masraflar', dava_masraflar: 'dava_masraflar', notlar: 'notlar', cari: 'cari', uets_kayitlar: 'uets_kayitlar' };  // Bu key'ler DB.set çağrıldığında otomatik diff-sync edilir
+const _SB_DIFF_TABLES = { finans: 'finans', odeme_planlari: 'odeme_planlari', tasks: 'tasks', belgeler: 'belgeler', icra_belgeler: 'icra_belgeler', icra_masraflar: 'icra_masraflar', dava_masraflar: 'dava_masraflar', notlar: 'notlar', cari: 'cari', uets_kayitlar: 'uets_kayitlar', ajanda: 'ajanda' };  // Bu key'ler DB.set çağrıldığında otomatik diff-sync edilir
 
 // Bir chatter key'inin ('chatter_xxx' veya 'icra_chatter_xxx') dosya tipini ve id'sini çöz
 function _sbChatterKeyParse(key) {
@@ -536,6 +536,22 @@ function _sbNotRowToObj(row) {
     tarih: row.created_at
   };
 }
+// ajanda (kişisel plan) satırı ⇄ obje dönüşümleri
+function _sbAjandaToRow(obj) {
+  return {
+    id: obj.id, baslik: obj.baslik || '', not_: obj.not || '',
+    tarih: obj.tarih || null, saat: obj.saat || '',
+    renk: obj.renk || 'kisisel', done: !!obj.done,
+    user_id: window._currentUserId
+  };
+}
+function _sbAjandaRowToObj(row) {
+  return {
+    id: row.id, baslik: row.baslik || '', not: row.not_ || '',
+    tarih: row.tarih || '', saat: row.saat || '',
+    renk: row.renk || 'kisisel', done: !!row.done, created: row.created_at
+  };
+}
 // cari satırı ⇄ eski cari objesi dönüşümleri
 function _sbCariToRow(obj) {
   return {
@@ -634,7 +650,8 @@ async function _sbDiffSyncCalistir(key, yeniArr) {
       finans: _sbFinansToRow, odeme_planlari: _sbOdemePlaniToRow,
       tasks: _sbTaskToRow, belgeler: _sbBelgeToRow,
       icra_belgeler: _sbIcraBelgeToRow, icra_masraflar: _sbIcraMasrafToRow, dava_masraflar: _sbDavaMasrafToRow,
-      notlar: _sbNotToRow, cari: _sbCariToRow, uets_kayitlar: _sbUetsToRow
+      notlar: _sbNotToRow, cari: _sbCariToRow, uets_kayitlar: _sbUetsToRow,
+      ajanda: _sbAjandaToRow
     };
     const toRow = _TO_ROW_MAP[key] || null;
     if (!toRow) return;  // Sadece bilinen key'ler için senkron yapılır
@@ -740,7 +757,8 @@ async function _sbYukleDavalarIcralar() {
     { key: 'dava_masraflar', map: _sbDavaMasrafRowToObj, diff: true },
     { key: 'notlar',         map: _sbNotRowToObj,        diff: true },
     { key: 'cari',           map: _sbCariRowToObj,       diff: true },
-    { key: 'uets_kayitlar',  map: _sbUetsRowToObj,       diff: true }
+    { key: 'uets_kayitlar',  map: _sbUetsRowToObj,       diff: true },
+    { key: 'ajanda',         map: _sbAjandaRowToObj,     diff: true }
   ];
   function _isle(t, res) {
     const { data, error } = res;

@@ -150,7 +150,8 @@ function otkGunDetayAc(dateStr) {
     var tipIcon=t.tip==='randevu'?'📞':t.tip==='durusma'?'⚖️':'✅';
     var tipClr=t.tip==='randevu'?'#7ab5d4':t.tip==='durusma'?'var(--gold)':'var(--green)';
     var gecikti=!t.done&&diff<0;
-    evler.push({tip:t.tip, clr:tipClr, icon:tipIcon, baslik:escHtml(t.baslik||t.text||''), alt:(t.ilgili?'📁 '+escHtml(t.ilgili):'')+(t.done?' · ✓ Tamamlandı':gecikti?' · ⚠ Gecikmiş':''), done:t.done, click:null});
+    var saatStr=t.tarih&&t.tarih.includes('T')?'🕐 '+t.tarih.slice(11,16):'';
+    evler.push({tip:t.tip, clr:tipClr, icon:tipIcon, baslik:escHtml(t.baslik||t.text||''), alt:[saatStr,(t.ilgili?'📁 '+escHtml(t.ilgili):'')].filter(Boolean).join('  ·  ')+(t.done?' · ✓ Tamamlandı':gecikti?' · ⚠ Gecikmiş':''), done:t.done, click:null});
   });
 
   var icerik = document.getElementById('modal-gun-icerik');
@@ -1310,6 +1311,7 @@ function showPage(page) {
     renderTasks();
   }
   else if (page === 'notlar') { showSubpage('note-list'); renderNotes(); }
+  else if (page === 'ajanda') { renderAjanda(); }
   else if (page === 'davadash') { populateDavaDashCesit(); renderDavaDash(); }
   else if (page === 'tebligat') { renderTebligatGecmis(); }
   else if (page === 'raporlar') { renderRaporlarPage(); }
@@ -1344,6 +1346,7 @@ function showPage(page) {
       cari:           '+ Cari İşlem',
       tasks:          '+ Yeni Görev',
       notlar:         '+ Yeni Not',
+      ajanda:         '+ Yeni Plan',
       durusmatakvim:  '+ Yeni Duruşma',
       davadash:       '+ Yeni Dava',
       raporlar:       null,
@@ -1413,8 +1416,8 @@ function initMobileTopbar() {
   window.addEventListener('resize', updateTopbar);
 }
 
-const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip', udfDonusturucu:'🔄 UDF Dönüştürücü'};
-const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'PTT Tebligat'};
+const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', ajanda:'🗓️ Ajandam', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip', udfDonusturucu:'🔄 UDF Dönüştürücü'};
+const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', ajanda:'Ajandam', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'PTT Tebligat'};
 
 function showSubpage(id) {
   const page = id.split('-')[0];
@@ -1525,6 +1528,12 @@ function handleTopbarAdd() {
   if (activePage === 'notlar') {
     document.getElementById('modal-note-title').textContent = 'Yeni Not';
     openModal('modal-note');
+    return;
+  }
+
+  // Ajandam (kişisel plan)
+  if (activePage === 'ajanda') {
+    openAjandaModal();
     return;
   }
 

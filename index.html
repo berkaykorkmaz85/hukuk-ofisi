@@ -2831,6 +2831,9 @@
     <div class="nav-item nav-primary" onclick="showPage('notlar')" oncontextmenu="navContextMenu(event,'notlar','Notlar','📝')">
       <span class="nav-icon">📝</span> Notlar
     </div>
+    <div class="nav-item nav-primary" onclick="showPage('ajanda')" oncontextmenu="navContextMenu(event,'ajanda','Ajandam','🗓️')">
+      <span class="nav-icon">🗓️</span> Ajandam
+    </div>
     <div class="nav-item nav-secondary" onclick="showPage('tebligat')" oncontextmenu="navContextMenu(event,'tebligat','Yardımcı Siteler','🌐')">
       <span class="nav-icon">🔗</span> Yardımcı Siteler
     </div>
@@ -3727,6 +3730,23 @@
         <div id="notes-container"></div>
       </div>
       <div id="note-detail" class="subpage"></div>
+    </div>
+
+    <!-- AJANDAM (Kişisel plan — görev/randevulardan ayrı) -->
+    <div id="page-ajanda" class="page">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">
+        Yalnızca sana özel kişisel planların. Görev ve randevularından ayrıdır; panelin diğer bölümlerinde görünmez.
+      </div>
+      <div class="tabs" style="margin-bottom:12px">
+        <div class="tab active" id="ajanda-tab-yaklasan" onclick="setAjandaFilter('yaklasan')">📅 Yaklaşan</div>
+        <div class="tab" id="ajanda-tab-tumu" onclick="setAjandaFilter('tumu')">Tümü</div>
+        <div class="tab" id="ajanda-tab-tamamlanan" onclick="setAjandaFilter('tamamlanan')">✓ Tamamlanan</div>
+      </div>
+      <div class="search-bar">
+        <span>🔍</span>
+        <input type="text" id="ajanda-search" placeholder="Ajandada ara..." oninput="searchAjanda(this.value)">
+      </div>
+      <div id="ajanda-container"></div>
     </div>
 
     <!-- KİŞİLER (Müvekkiller + Diğer Kişiler) -->
@@ -4795,6 +4815,36 @@
   </div>
 </div>
 
+<!-- AJANDA MODAL -->
+<div class="modal-overlay" id="modal-ajanda">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-ajanda-title">Yeni Plan</div>
+      <button class="modal-close" onclick="closeModal('modal-ajanda')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Başlık</label><input id="aj-baslik" placeholder="Ne planlıyorsun?"></div>
+        <div class="form-group"><label>Tarih</label><input id="aj-tarih" type="date" min="1900-01-01" max="2100-12-31"></div>
+        <div class="form-group"><label>Saat <span style="color:var(--text3);font-weight:400;text-transform:none;font-size:10px">— isteğe bağlı</span></label><input id="aj-saat" type="time"></div>
+        <div class="form-group full"><label>Etiket</label>
+          <select id="aj-renk">
+            <option value="kisisel">🔵 Kişisel</option>
+            <option value="is">🟡 İş</option>
+            <option value="acil">🔴 Acil</option>
+            <option value="diger">🟢 Diğer</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Not</label><textarea id="aj-not" style="min-height:120px" placeholder="Detaylar..."></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="closeModal('modal-ajanda')">İptal</button>
+        <button class="btn btn-gold" onclick="saveAjanda()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- BACKUP MODAL -->
 <div class="modal-overlay" id="modal-backup">
   <div class="modal" style="max-width:520px">
@@ -5171,10 +5221,10 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20260825a"></script>
-<script src="js/02-dava-yonetimi.js?v=20260721a"></script>
-<script src="js/03-icra-finans-gorev.js?v=20260721a"></script>
-<script src="js/04-arac-ve-modul.js?v=20260718b"></script>
+<script src="js/01-cekirdek-veri.js?v=20260903a"></script>
+<script src="js/02-dava-yonetimi.js?v=20260903a"></script>
+<script src="js/03-icra-finans-gorev.js?v=20260903a"></script>
+<script src="js/04-arac-ve-modul.js?v=20260903a"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
 
 <!-- UETS KAYIT MODAL -->

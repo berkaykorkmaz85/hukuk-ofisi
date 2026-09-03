@@ -584,6 +584,167 @@ function deleteNote(id) {
   });
 }
 
+// ========== AJANDAM (Kişisel Plan) ==========
+// Görev/randevulardan tamamen ayrı, yalnız kullanıcının kendi planları.
+// Supabase'de 'ajanda' diff-sync tablosunda tutulur.
+var _ajandaFilter = 'yaklasan';
+var _ajandaSearch = '';
+var _AJANDA_ETIKET = {
+  kisisel: { renk: '#6c47ff', label: 'Kişisel' },
+  is:      { renk: '#c9a84c', label: 'İş' },
+  acil:    { renk: '#d05555', label: 'Acil' },
+  diger:   { renk: '#4a8c5c', label: 'Diğer' }
+};
+
+function setAjandaFilter(f) {
+  _ajandaFilter = f;
+  ['yaklasan','tumu','tamamlanan'].forEach(function(x){
+    var el = document.getElementById('ajanda-tab-'+x);
+    if (el) el.classList.toggle('active', x===f);
+  });
+  renderAjanda();
+}
+
+function searchAjanda(v) { _ajandaSearch = v || ''; renderAjanda(); }
+
+function _ajandaGunBasligi(tarih) {
+  var d = _yerelTarih(tarih);
+  if (!d || isNaN(d.getTime())) return tarih;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var diff = Math.round((d - today) / 86400000);
+  var rel = diff===0 ? 'Bugün' : diff===1 ? 'Yarın' : diff===-1 ? 'Dün' : '';
+  var gunler = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+  var aylar = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  var str = d.getDate()+' '+aylar[d.getMonth()]+' '+d.getFullYear()+' '+gunler[d.getDay()];
+  return rel ? rel + ' · ' + str : str;
+}
+
+function _ajandaKart(p) {
+  var et = _AJANDA_ETIKET[p.renk] || _AJANDA_ETIKET.kisisel;
+  var saat = p.saat ? '🕐 '+escHtml(p.saat) : '';
+  return '<div class="note-card" style="border-left:3px solid '+et.renk+';'+(p.done?'opacity:.55;':'')+'" onclick="editAjanda(\''+p.id+'\')">'
+    + '<div style="display:flex;align-items:flex-start;gap:10px">'
+    +   '<input type="checkbox" '+(p.done?'checked':'')+' onclick="event.stopPropagation();toggleAjandaDone(\''+p.id+'\')" style="margin-top:3px;width:16px;height:16px;cursor:pointer;flex-shrink:0">'
+    +   '<div style="flex:1;min-width:0">'
+    +     '<div class="note-card-title" style="'+(p.done?'text-decoration:line-through;':'')+'">'+escHtml(p.baslik)+'</div>'
+    +     '<div style="font-size:11px;color:var(--text3);margin:2px 0 4px;display:flex;gap:12px;flex-wrap:wrap">'
+    +       (saat?'<span>'+saat+'</span>':'')
+    +       '<span style="color:'+et.renk+'">● '+et.label+'</span>'
+    +     '</div>'
+    +     (p.not?'<div class="note-card-preview">'+escHtml(p.not.slice(0,140))+(p.not.length>140?'...':'')+'</div>':'')
+    +   '</div>'
+    +   '<div style="display:flex;gap:4px;flex-shrink:0" onclick="event.stopPropagation()">'
+    +     '<button class="btn btn-ghost" onclick="editAjanda(\''+p.id+'\')">✏</button>'
+    +     '<button class="btn btn-ghost" style="color:var(--red)" onclick="deleteAjanda(\''+p.id+'\')">🗑</button>'
+    +   '</div>'
+    + '</div></div>';
+}
+
+function renderAjanda() {
+  var cont = document.getElementById('ajanda-container');
+  if (!cont) return;
+  var list = (DB.get('ajanda') || []).slice();
+  var q = _ajandaSearch.trim().toLowerCase();
+  if (q) list = list.filter(function(p){
+    return (p.baslik||'').toLowerCase().indexOf(q) >= 0 || (p.not||'').toLowerCase().indexOf(q) >= 0;
+  });
+  var today = new Date(); today.setHours(0,0,0,0);
+  if (_ajandaFilter === 'tamamlanan') list = list.filter(function(p){ return p.done; });
+  else if (_ajandaFilter === 'yaklasan') list = list.filter(function(p){ return !p.done && (!p.tarih || _yerelTarih(p.tarih) >= today); });
+  // 'tumu' → hepsi
+
+  function keyOf(p){ return (p.tarih||'9999-99-99') + 'T' + (p.saat||'99:99'); }
+  list.sort(function(a,b){
+    var r = keyOf(a) < keyOf(b) ? -1 : keyOf(a) > keyOf(b) ? 1 : 0;
+    return _ajandaFilter === 'tamamlanan' ? -r : r; // tamamlananlar: yeni tarih önce
+  });
+
+  if (!list.length) {
+    cont.innerHTML = '<div class="empty"><div class="empty-icon">🗓️</div><div class="empty-text">'
+      + (q ? 'Sonuç bulunamadı' : 'Henüz plan yok — sağ üstteki “+ Yeni Plan” ile ekleyebilirsin')
+      + '</div></div>';
+    return;
+  }
+
+  var gruplar = [], idx = {};
+  list.forEach(function(p){
+    var g = p.tarih || '';
+    if (!(g in idx)) { idx[g] = gruplar.length; gruplar.push({ tarih:g, items:[] }); }
+    gruplar[idx[g]].items.push(p);
+  });
+
+  cont.innerHTML = gruplar.map(function(gr){
+    var baslik = gr.tarih ? _ajandaGunBasligi(gr.tarih) : 'Tarihsiz';
+    var gecmis = gr.tarih && _yerelTarih(gr.tarih) < today && _ajandaFilter !== 'tamamlanan';
+    return '<div style="margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:.3px;color:'+(gecmis?'var(--red)':'var(--gold)')+'">'+escHtml(baslik)+'</div>'
+      + gr.items.map(_ajandaKart).join('');
+  }).join('');
+}
+
+function openAjandaModal() {
+  editingId = null;
+  document.getElementById('modal-ajanda-title').textContent = 'Yeni Plan';
+  document.getElementById('aj-baslik').value = '';
+  document.getElementById('aj-not').value = '';
+  document.getElementById('aj-saat').value = '';
+  document.getElementById('aj-renk').value = 'kisisel';
+  var t = new Date();
+  document.getElementById('aj-tarih').value = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  openModal('modal-ajanda');
+}
+
+function editAjanda(id) {
+  var p = DB.get('ajanda').find(function(x){ return x.id===id; });
+  if (!p) return;
+  editingId = id;
+  document.getElementById('modal-ajanda-title').textContent = 'Planı Düzenle';
+  document.getElementById('aj-baslik').value = p.baslik || '';
+  document.getElementById('aj-tarih').value = p.tarih || '';
+  document.getElementById('aj-saat').value = p.saat || '';
+  document.getElementById('aj-renk').value = p.renk || 'kisisel';
+  document.getElementById('aj-not').value = p.not || '';
+  openModal('modal-ajanda');
+}
+
+function saveAjanda() { withSaveLock('saveAjanda', _saveAjandaInner); }
+function _saveAjandaInner() {
+  var baslik = document.getElementById('aj-baslik').value.trim();
+  if (!baslik) return notify('Plan başlığı zorunludur!');
+  var eski = editingId ? DB.get('ajanda').find(function(x){ return x.id===editingId; }) : null;
+  var obj = {
+    id: editingId || DB.genId(),
+    baslik: baslik,
+    tarih: document.getElementById('aj-tarih').value || '',
+    saat: document.getElementById('aj-saat').value || '',
+    renk: document.getElementById('aj-renk').value || 'kisisel',
+    not: document.getElementById('aj-not').value.trim(),
+    done: eski ? !!eski.done : false,
+    created: (eski && eski.created) || new Date().toISOString()
+  };
+  var arr = DB.get('ajanda');
+  if (editingId) arr = arr.map(function(x){ return x.id===editingId ? obj : x; });
+  else arr.push(obj);
+  DB.set('ajanda', arr);
+  closeModal('modal-ajanda');
+  renderAjanda();
+  notify(editingId ? 'Plan güncellendi ✓' : 'Plan eklendi ✓');
+  editingId = null;
+}
+
+function toggleAjandaDone(id) {
+  var arr = DB.get('ajanda').map(function(x){ return x.id===id ? Object.assign({}, x, { done: !x.done }) : x; });
+  DB.set('ajanda', arr);
+  renderAjanda();
+}
+
+function deleteAjanda(id) {
+  showConfirmModal('Bu planı silmek istediğinize emin misiniz?', function(){
+    DB.set('ajanda', DB.get('ajanda').filter(function(x){ return x.id!==id; }));
+    renderAjanda();
+    notify('Plan silindi');
+  });
+}
+
 // ========== CARİ HESAP ==========
 let cariEditingId = null;
 

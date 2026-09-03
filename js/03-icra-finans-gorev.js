@@ -3561,7 +3561,7 @@ function editTask(id) {
   document.getElementById('t-hatirlatma').value = t.hatirlatma||'';
   document.getElementById('t-aciklama').value = t.aciklama||'';
   document.getElementById('t-mahkeme-durusma').value = t.mahkeme||'';
-  document.getElementById('modal-task-title').textContent = t.tip === 'durusma' ? 'Duruşmayı Düzenle' : 'Görevi Düzenle';
+  document.getElementById('modal-task-title').textContent = t.tip === 'durusma' ? 'Duruşmayı Düzenle' : t.tip === 'randevu' ? 'Randevuyu Düzenle' : 'Görevi Düzenle';
   // İlgili dosya değeri window._taskIlgiliOnac üzerinden openModal'a iletilir
   // (bkz. openModal'daki açıklama) — görevin bağlı olduğu dosya artık
   // düzenlemede seçili kalıyor.
@@ -3622,7 +3622,7 @@ function setTaskTip(tip) {
   const saatG = document.getElementById('t-saat-group');
   const mhkG  = document.getElementById('t-mahkeme-group');
   const onclG = document.getElementById('t-oncelik-group');
-  if(saatG) saatG.style.display    = isDurusma ? '' : 'none';
+  if(saatG) saatG.style.display    = (isDurusma||isRandevu) ? '' : 'none';
   if(mhkG)  mhkG.style.display     = isDurusma ? '' : 'none';
   if(onclG) onclG.style.display    = isDurusma ? 'none' : '';
   const baslikLabel = document.getElementById('t-baslik-label');
@@ -3680,7 +3680,7 @@ function _saveTaskInner() {
     id: editingId || DB.genId(),
     tip,
     baslik,
-    tarih: tarih && saat && tip === 'durusma' ? tarih + 'T' + saat : tarih,
+    tarih: tarih && saat && (tip === 'durusma' || tip === 'randevu') ? tarih + 'T' + saat : tarih,
     oncelik: tip === 'durusma' ? 'Normal' : document.getElementById('t-oncelik').value,
     ilgili: document.getElementById('t-ilgili').value,
     mahkeme: tip === 'durusma' ? document.getElementById('t-mahkeme-durusma').value.trim() : '',

@@ -20,6 +20,7 @@ const YEDEKLENECEK_TABLOLAR = [
   'muvekkiller', 'davalar', 'icralar', 'kisiler', 'contacts',
   'finans', 'odeme_planlari', 'tasks', 'belgeler', 'icra_belgeler',
   'icra_masraflar', 'dava_masraflar', 'notlar', 'cari', 'uets_kayitlar', 'dosya_chatter',
+  'ajanda',
 ];
 
 const BACKUP_BUCKET = 'backups';
