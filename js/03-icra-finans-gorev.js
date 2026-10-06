@@ -3083,8 +3083,8 @@ function renderFinans() {
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:13px;font-weight:700;color:var(--text)">📈 Aylık Tahsilat / Masraf</div>
         <div style="display:flex;gap:14px;font-size:11px;color:var(--text3)">
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:#4a8c5c;border-radius:2px;display:inline-block"></span>Tahsilat</span>
-          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:#c0533a;border-radius:2px;display:inline-block"></span>Masraf</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:#2f5d8a;border-radius:2px;display:inline-block"></span>Tahsilat</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:3px;background:#c9a35a;border-radius:2px;display:inline-block"></span>Masraf</span>
         </div>
       </div>
       <div style="padding:12px 16px;position:relative;height:160px">
