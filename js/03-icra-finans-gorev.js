@@ -3100,8 +3100,8 @@ function renderFinans() {
         data: {
           labels: aylar.map(a => a.label),
           datasets: [
-            { label: 'Tahsilat', data: aylar.map(a => a.tah), backgroundColor: 'rgba(74,140,92,0.7)', borderColor: '#4a8c5c', borderWidth: 1, borderRadius: 4 },
-            { label: 'Masraf',   data: aylar.map(a => a.mas), backgroundColor: 'rgba(192,83,58,0.6)', borderColor: '#c0533a', borderWidth: 1, borderRadius: 4 }
+            { label: 'Tahsilat', data: aylar.map(a => a.tah), backgroundColor: CH.tahsilat, borderWidth: 0, borderRadius: 8, borderSkipped: false, maxBarThickness: 26, categoryPercentage: 0.6, barPercentage: 0.8 },
+            { label: 'Masraf',   data: aylar.map(a => a.mas), backgroundColor: CH.masraf, borderWidth: 0, borderRadius: 8, borderSkipped: false, maxBarThickness: 26, categoryPercentage: 0.6, barPercentage: 0.8 }
           ]
         },
         options: {
@@ -3110,8 +3110,8 @@ function renderFinans() {
           hover: { mode: 'index', intersect: false },
           interaction: { mode: 'index', intersect: false },
           scales: {
-            x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 } } },
-            y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 }, callback: function(v) { return '₺'+fmt(v); } } }
+            x: { grid: { display: false }, border: { display: false }, ticks: { color: CH.soluk(), font: { size: 11, family: CH.font } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(140,140,170,0.12)', drawTicks: false }, border: { display: false }, ticks: { color: CH.soluk(), padding: 8, maxTicksLimit: 5, font: { size: 11, family: CH.font }, callback: function(v) { return CH.kisaPara(v); } } }
           },
           plugins: {
             legend: { display: false },
@@ -3119,12 +3119,12 @@ function renderFinans() {
               enabled: true,
               mode: 'index',
               intersect: false,
-              backgroundColor: 'rgba(33,31,27,0.97)',
-              borderColor: '#c9a84c',
+              backgroundColor: 'rgba(255,255,255,0.98)', cornerRadius: 10, usePointStyle: true,
+              borderColor: 'rgba(108,71,255,0.25)',
               borderWidth: 1,
-              titleColor: '#f0ead8',
-              bodyColor: '#a89f8a',
-              padding: 10,
+              titleColor: '#1f1d2b',
+              bodyColor: '#4b4a5c',
+              padding: 12,
               callbacks: {
                 label: function(ctx) { return ' ' + ctx.dataset.label + ': ₺' + fmt(ctx.raw); },
                 afterBody: function(items) {

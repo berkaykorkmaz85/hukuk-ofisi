@@ -1562,34 +1562,42 @@ function destroyCharts() {
   dashCharts = {};
 }
 
+// Grafik teması — tüm panel grafikleri aynı palet ve tipografiyi kullanır
+var CH = {
+  renk: { 'Aktif':'#6c47ff', 'Bekliyor':'#f5a524', 'Kapalı':'#cbd2e1', 'Acil':'#ef4444', 'Yüksek':'#f5a524', 'Normal':'#22a36a' },
+  tahsilat: '#22a36a', masraf: '#ef6b6b', vurgu: '#6c47ff',
+  yazi: function(){ return getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f1d2b'; },
+  soluk: function(){ return getComputedStyle(document.body).getPropertyValue('--text3').trim() || '#8a8aa0'; },
+  font: "'DM Sans', system-ui, sans-serif",
+  kisaPara: function(v){ var a=Math.abs(v); return '₺' + (a>=1e6 ? (v/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mn' : a>=1e3 ? (v/1e3).toLocaleString('tr-TR',{maximumFractionDigits:0})+' B' : v.toLocaleString('tr-TR')); },
+  tooltip: function(extra){ return Object.assign({ backgroundColor:'rgba(255,255,255,0.98)', borderColor:'rgba(108,71,255,0.25)', borderWidth:1, titleColor:'#1f1d2b', bodyColor:'#4b4a5c', padding:12, cornerRadius:10, boxPadding:4, usePointStyle:true, titleFont:{family:"'DM Sans', sans-serif", weight:'700', size:12}, bodyFont:{family:"'DM Sans', sans-serif", size:12} }, extra||{}); }
+};
+
 function makeDonut(id, labels, data, colors, legendId) {
   const ctx = document.getElementById(id);
   if (!ctx) return;
   // Bu canvas'ta önceki bir Chart varsa önce yok et — aksi halde art arda
-  // render'da "Canvas is already in use" hatası çıkıyor (setTimeout'lu render
-  // yarışında destroyCharts yetişmeyebiliyor).
+  // render'da "Canvas is already in use" hatası çıkıyor.
   var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
+  colors = labels.map(function(l, i){ return CH.renk[l] || colors[i]; });
   const total = data.reduce((a,b)=>a+b,0);
+  const doluSayisi = data.filter(v => v > 0).length;
   const c = new Chart(ctx, {
     type: 'doughnut',
-    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: 'transparent', borderWidth: 0, hoverOffset: 4 }] },
+    data: { labels, datasets: [{
+      data: total ? data : [1],
+      backgroundColor: total ? colors : ['rgba(140,140,170,0.15)'],
+      borderWidth: 0, borderRadius: doluSayisi > 1 ? 8 : 0, spacing: doluSayisi > 1 ? 4 : 0, hoverOffset: 6
+    }] },
     options: {
-      animation: { duration: 0 },
-      cutout: '68%',
+      animation: { duration: 500, easing: 'easeOutQuart' },
+      cutout: '80%',
       responsive: true,
       maintainAspectRatio: false,
+      layout: { padding: 8 },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.label}: ${ctx.raw} (${total?Math.round(ctx.raw/total*100):0}%)`
-          },
-          backgroundColor: '#211f1b',
-          borderColor: '#3d3a32',
-          borderWidth: 1,
-          titleColor: '#f0ead8',
-          bodyColor: '#a89f8a',
-        }
+        tooltip: CH.tooltip({ enabled: total > 0, callbacks: { label: c2 => ` ${c2.label}: ${c2.raw} (%${total?Math.round(c2.raw/total*100):0})` } })
       }
     },
     plugins: [{
@@ -1598,11 +1606,13 @@ function makeDonut(id, labels, data, colors, legendId) {
         const { ctx, chartArea: { left, top, right, bottom } } = chart;
         const cx = (left+right)/2, cy = (top+bottom)/2;
         ctx.save();
-        ctx.font = 'bold 32px DM Mono, monospace';
-        ctx.fillStyle = 'var(--text)';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(total, cx, cy);
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = CH.yazi();
+        ctx.font = "800 34px 'DM Sans', sans-serif";
+        ctx.fillText(total, cx, cy - 8);
+        ctx.fillStyle = CH.soluk();
+        ctx.font = "600 11px 'DM Sans', sans-serif";
+        ctx.fillText('TOPLAM', cx, cy + 18);
         ctx.restore();
       }
     }]
@@ -1610,11 +1620,7 @@ function makeDonut(id, labels, data, colors, legendId) {
   dashCharts[id] = c;
   if (legendId) {
     document.getElementById(legendId).innerHTML = labels.map((l,i) =>
-      `<span style="display:flex;align-items:center;gap:5px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0;display:inline-block"></span>
-        <span style="color:var(--text3);font-size:11px">${l}:</span>
-        <span style="color:${colors[i]};font-size:14px;font-weight:700">${data[i]}</span>
-      </span>`
+      `<span class="ch-chip${data[i]?'':' bos'}"><i style="background:${colors[i]}"></i>${l}<b>${data[i]}</b></span>`
     ).join('');
   }
 }
@@ -1623,44 +1629,35 @@ function makeBar(id, labels, datasets) {
   const ctx = document.getElementById(id);
   if (!ctx) return;
   var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
+  datasets = datasets.map(function(ds){
+    var r = /masraf/i.test(ds.label) ? CH.masraf : CH.tahsilat;
+    return Object.assign({}, ds, { backgroundColor: r, hoverBackgroundColor: r, borderWidth: 0, borderRadius: 8, borderSkipped: false, maxBarThickness: 26, categoryPercentage: 0.6, barPercentage: 0.8 });
+  });
   const c = new Chart(ctx, {
     type: 'bar',
     data: { labels, datasets },
     options: {
-      animation: { duration: 0 },
+      animation: { duration: 500, easing: 'easeOutQuart' },
       responsive: true,
       maintainAspectRatio: false,
-      hover: { mode: 'index', intersect: false },
       interaction: { mode: 'index', intersect: false },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 } } },
-        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font: { size: 11 }, callback: v => '₺'+fmt(v) } }
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: CH.soluk(), font: { size: 11, family: CH.font } } },
+        y: { beginAtZero: true, grid: { color: 'rgba(140,140,170,0.12)', drawTicks: false }, border: { display: false }, ticks: { color: CH.soluk(), padding: 8, maxTicksLimit: 5, font: { size: 11, family: CH.font }, callback: v => CH.kisaPara(v) } }
       },
       plugins: {
-        legend: { labels: { color: '#a89f8a', font: { size: 11 }, boxWidth: 10, boxHeight: 10 } },
-        tooltip: {
-          enabled: true,
-          mode: 'index',
-          intersect: false,
-          backgroundColor: 'rgba(33,31,27,0.95)',
-          borderColor: '#c9a84c',
-          borderWidth: 1,
-          titleColor: '#f0ead8',
-          bodyColor: '#a89f8a',
-          padding: 10,
+        legend: { position: 'top', align: 'end', labels: { color: CH.soluk(), font: { size: 12, family: CH.font }, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16 } },
+        tooltip: CH.tooltip({
           callbacks: {
             title: items => items[0]?.label || '',
-            label: ctx => ` ${ctx.dataset.label}: ₺${fmt(ctx.raw)}`,
+            label: c2 => ` ${c2.dataset.label}: ₺${fmt(c2.raw)}`,
             afterBody: items => {
               const vals = items.map(i => i.raw);
-              if (vals.length >= 2) {
-                const net = vals[0] - vals[1];
-                return [`Net: ₺${fmt(Math.abs(net))} ${net >= 0 ? '↑ Kâr' : '↓ Zarar'}`];
-              }
+              if (vals.length >= 2) { const net = vals[0] - vals[1]; return [`Net: ${net >= 0 ? '+' : '−'}₺${fmt(Math.abs(net))}`]; }
               return [];
             }
           }
-        }
+        })
       }
     }
   });
@@ -1673,19 +1670,16 @@ function makeHBar(id, labels, data) {
   var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
   const c = new Chart(ctx, {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data, backgroundColor: 'rgba(224,185,58,0.85)', borderColor: '#e0b93a', borderWidth: 1, borderRadius: 4 }]
-    },
+    data: { labels, datasets: [{ data, backgroundColor: 'rgba(108,71,255,0.85)', hoverBackgroundColor: CH.vurgu, borderWidth: 0, borderRadius: 999, borderSkipped: false, maxBarThickness: 14 }] },
     options: {
-      animation: { duration: 0 },
+      animation: { duration: 500, easing: 'easeOutQuart' },
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { backgroundColor:'#211f1b', borderColor:'#3d3a32', borderWidth:1, titleColor:'#f0ead8', bodyColor:'#a89f8a' } },
+      plugins: { legend: { display: false }, tooltip: CH.tooltip({ callbacks: { label: c2 => ` ${c2.raw} dosya` } }) },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b6455', font:{size:11} } },
-        y: { grid: { display:false }, ticks: { color: '#a89f8a', font:{size:11} } }
+        x: { beginAtZero: true, grid: { color: 'rgba(140,140,170,0.12)', drawTicks: false }, border: { display: false }, ticks: { color: CH.soluk(), precision: 0, font: { size: 11, family: CH.font } } },
+        y: { grid: { display: false }, border: { display: false }, ticks: { color: CH.yazi(), font: { size: 12, family: CH.font, weight: '600' } } }
       }
     }
   });
