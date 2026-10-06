@@ -3217,10 +3217,8 @@ function hesaplaVekaletUcreti(mod) {
     const ucretTuru = document.getElementById('d-ucret-tur').value;
     const deger = Number(document.getElementById('d-dava-degeri').value) || 0;
     const asgari = AAUT.hesapla(tur, deger, ucretTuru);
-    document.getElementById('d-asgari-ucret').value = asgari > 0 ? fmt(asgari) + ' ₺' : '—';
-    // Akdi ücret boşsa asgariyi öner
-    const akdiEl = document.getElementById('d-akdi-ucret');
-    if (!akdiEl.value) akdiEl.value = asgari || '';
+    var _aEl = document.getElementById('d-asgari-ucret');
+    if (_aEl) _aEl.placeholder = asgari > 0 ? 'Öneri: ' + fmt(asgari) + ' ₺' : 'Elle giriniz';
     updateDavaFinans();
   }
 }
@@ -3247,7 +3245,8 @@ function icraFaizSec() {
 function updateIcraFinans() {
   const alacak = parsePara(document.getElementById('i-alacak')?.value) || 0;
   const asgari = AAUT.hesaplaIcra(alacak);
-  document.getElementById('i-asgari-ucret').value = fmt(asgari) + ' ₺';
+  // AAÜT asgari elle girilir; hesaplanan değer yalnızca öneri olarak gösterilir
+  document.getElementById('i-asgari-ucret').placeholder = asgari ? 'Öneri: ' + fmt(asgari) + ' ₺' : 'Elle giriniz';
   const akdi = Number(document.getElementById('i-akdi-ucret').value) || 0;
   const tahsil = Number(document.getElementById('i-tahsil-edilen').value) || 0;
   const masraf = Number(document.getElementById('i-masraf').value) || 0;

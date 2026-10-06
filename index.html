@@ -4301,7 +4301,7 @@
         <input id="d-yargi-kolu" style="display:none">
         <!-- VEKÂLETÜCRETİ & MASRAF -->
         <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:4px">
-          <div style="font-size:11px;color:#4a8c5c;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">💰 Vekâlet Ücreti & Masraf</div>
+          <div style="font-size:11px;color:#4a8c5c;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">💰 Vekâlet Ücreti</div>
           <div class="form-grid-3" style="gap:10px">
             <div class="form-group">
               <label>Ücret Türü</label>
@@ -4314,6 +4314,10 @@
             <div class="form-group" id="d-dava-degeri-wrap">
               <label>Dava Değeri (₺) <span style="color:var(--text3);font-size:10px">— bilgi amaçlı</span></label>
               <input id="d-dava-degeri" type="number" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label id="d-asgari-ucret-label">AAÜT Asgari Vekâlet (₺)</label>
+              <input id="d-asgari-ucret" data-para placeholder="Elle giriniz">
             </div>
             <div class="form-group">
               <label>Akdi Vekâlet Ücreti (₺) <span style="color:var(--text3);font-weight:400;font-size:10px">— bu dosyaya özel</span></label>
@@ -4342,26 +4346,26 @@
               <label>Peşinat Tutarı (₺)</label>
               <input id="d-pesinat-tutar" type="number" min="0" placeholder="0" style="width:100%">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Tahsil Edilen (₺)</label>
               <input id="d-tahsil-edilen" type="number" placeholder="0" oninput="updateDavaFinans()">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Kalan Alacak (₺)</label>
               <input id="d-kalan-alacak" readonly style="color:var(--red);background:var(--bg)">
             </div>
           </div>
           <div class="divider" style="margin:12px 0 10px"></div>
           <div class="form-grid-3" style="gap:10px">
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Toplam Masraf (₺)</label>
               <input id="d-masraf" type="number" placeholder="0" oninput="updateDavaFinans()">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Masraf Açıklaması</label>
               <input id="d-masraf-aciklama" placeholder="Harç, posta, bilirkişi...">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Net Kazanç (₺)</label>
               <input id="d-net-kazanc" readonly style="color:var(--gold);background:var(--bg)">
             </div>
@@ -4479,29 +4483,29 @@
 
         <!-- İCRA VEKÂLETÜCRETİ & MASRAF -->
         <div class="form-group full" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px">
-          <div style="font-size:11px;color:#4a8c5c;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">💰 Vekâlet Ücreti & Masraf</div>
+          <div style="font-size:11px;color:#4a8c5c;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;font-weight:600">💰 Vekâlet Ücreti</div>
           <div class="form-grid-3" style="gap:10px">
             <div class="form-group">
               <label>AAÜT Asgari Vekâlet (₺)</label>
-              <input id="i-asgari-ucret" readonly style="color:#4a8c5c;background:var(--bg)" placeholder="Takip miktarına göre">
+              <input id="i-asgari-ucret" data-para placeholder="Elle giriniz">
             </div>
             <div class="form-group">
               <label>Akdi Vekâlet Ücreti (₺)</label>
               <input id="i-akdi-ucret" type="number" placeholder="0" oninput="updateIcraFinans()">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Tahsil Edilen (₺)</label>
               <input id="i-tahsil-edilen" type="number" placeholder="0" oninput="updateIcraFinans()">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Toplam Masraf (₺)</label>
               <input id="i-masraf" type="number" placeholder="0" oninput="updateIcraFinans()">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Masraf Açıklaması</label>
               <input id="i-masraf-aciklama" placeholder="Harç, tebligat, satış...">
             </div>
-            <div class="form-group">
+            <div class="form-group" style="display:none">
               <label>Net Kazanç (₺)</label>
               <input id="i-net-kazanc" readonly style="color:var(--gold);background:var(--bg)">
             </div>
@@ -5313,12 +5317,12 @@
   <div class="ncm-item" onclick="ncmGo()">→ Sayfaya Git</div>
 </div>
 
-<script src="js/01-cekirdek-veri.js?v=20261007a"></script>
-<script src="js/02-dava-yonetimi.js?v=20261007a"></script>
-<script src="js/03-icra-finans-gorev.js?v=20261007a"></script>
-<script src="js/04-arac-ve-modul.js?v=20261006a"></script>
+<script src="js/01-cekirdek-veri.js?v=20261007b"></script>
+<script src="js/02-dava-yonetimi.js?v=20261007b"></script>
+<script src="js/03-icra-finans-gorev.js?v=20261007b"></script>
+<script src="js/04-arac-ve-modul.js?v=20261007b"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
-<script src="js/06-para-girisi.js?v=20261007a"></script>
+<script src="js/06-para-girisi.js?v=20261007b"></script>
 
 <!-- UETS KAYIT MODAL -->
 <div class="modal-overlay" id="modal-uets">

@@ -266,6 +266,7 @@ function editDava(id) {
   document.getElementById('d-ucret-tur').value = d.ucretTuru || 'maktu';
   document.getElementById('d-dava-degeri').value = d.davaDegeri || '';
   document.getElementById('d-akdi-ucret').value = d.akdiUcret || '';
+  if (document.getElementById('d-asgari-ucret')) document.getElementById('d-asgari-ucret').value = d.asgariUcret || '';
   document.getElementById('d-tahsil-edilen').value = d.tahsilEdilen || '';
   document.getElementById('d-masraf').value = d.masraf || '';
   document.getElementById('d-masraf-aciklama').value = d.masrafAciklama || '';
@@ -366,6 +367,7 @@ async function _saveDavaInner() {
     ucretTuru: document.getElementById('d-ucret-tur').value,
     davaDegeri: document.getElementById('d-dava-degeri').value,
     akdiUcret: document.getElementById('d-akdi-ucret').value,
+    asgariUcret: document.getElementById('d-asgari-ucret')?.value || '',
     odemeSekli: (document.getElementById('d-odeme-sekli') && document.getElementById('d-odeme-sekli').value) || '',
     taksitSayisi: parseInt(document.getElementById('d-taksit-sayi')?.value)||0,
     taksitBaslangic: document.getElementById('d-taksit-baslangic')?.value||'',
@@ -706,7 +708,7 @@ function hesaplaVekaletUcreti(tip) {
   var deger = parseFloat(document.getElementById('d-dava-degeri')?.value || '0') || 0;
   var el = document.getElementById('d-asgari-ucret');
   if (!el) return;
-  if (!deger || deger <= 0) { el.value = ''; return; }
+  if (!deger || deger <= 0) { el.placeholder = 'Elle giriniz'; return; }
   var t = _getDavaTarife();
   var ucret = 0, kalan = deger;
   for (var i = 0; i < t.dilimler.length; i++) {
@@ -717,7 +719,7 @@ function hesaplaVekaletUcreti(tip) {
     kalan -= dilim;
   }
   ucret = Math.max(Math.round(ucret), t.asgari);
-  el.value = ucret.toLocaleString('tr-TR') + ' ₺';
+  el.placeholder = 'Öneri: ' + ucret.toLocaleString('tr-TR') + ' ₺';
 }
 
 function _getIcraTarife() {
@@ -1096,7 +1098,7 @@ function renderIcraTab(id, sekme) {
   if (!el) return;
 
   const hacizData = JSON.parse(localStorage.getItem('icra_haciz_' + id) || '{}');
-  const asgariUcret = hesaplaIcraAaüt(Number(i.alacak)||0);
+  const asgariUcret = Number(i.asgariUcret) || hesaplaIcraAaüt(Number(i.alacak)||0);
   const masraflar = (DB.get('icra_masraflar')||[]).filter(function(m){return m.icraId===id;});
   const toplamMasraf = masraflar.reduce(function(a,b){return a+Number(b.tutar||0);},0) + Number(i.masraf||0);
   const tasks = DB.get('tasks').filter(function(t){return t.ilgili && (t.ilgili===i.no || t.ilgili===id || (i.bki && t.ilgili===i.bki)) && t.tip!=='durusma';});
@@ -1684,6 +1686,7 @@ function editIcra(id) {
   if (i.tur) document.getElementById('i-tur').value = i.tur;
   // Finans
   document.getElementById('i-akdi-ucret').value = i.akdiUcret || '';
+  document.getElementById('i-asgari-ucret').value = i.asgariUcret || '';
   document.getElementById('i-tahsil-edilen').value = i.tahsilEdilen || '';
   document.getElementById('i-masraf').value = i.masraf || '';
   document.getElementById('i-masraf-aciklama').value = i.masrafAciklama || '';
@@ -1747,6 +1750,7 @@ async function _saveIcraInner() {
     notlar: document.getElementById('i-notlar').value,
     // Finans
     akdiUcret: document.getElementById('i-akdi-ucret').value,
+    asgariUcret: document.getElementById('i-asgari-ucret').value,
     tahsilEdilen: document.getElementById('i-tahsil-edilen').value,
     masraf: document.getElementById('i-masraf').value,
     masrafAciklama: document.getElementById('i-masraf-aciklama').value,
