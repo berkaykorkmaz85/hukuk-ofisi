@@ -2408,7 +2408,7 @@ function _ddpExportFinansCSV(davaId) {
   var d = DB.get('davalar').find(function(x){return x.id===davaId;});
   if(!d) return;
   var GELIR_T = HUKUK_GELIR_TURLERI;
-  var finans = DB.get('finans').filter(function(f){return f.davaId===davaId||f.ilgili===d.no;});
+  var finans = _davaFinans(d);
   var rows = [['Tarih','Tür','Tutar','Yön','Açıklama']];
   finans.forEach(function(f){
     rows.push([f.tarih||'',f.tur||'',f.tutar||0,GELIR_T.includes(f.tur)?'Gelir':'Gider',f.aciklama||'']);
@@ -2449,7 +2449,7 @@ function renderDavaTab(id, sekme) {
   const GELIR_T = HUKUK_GELIR_TURLERI;
   const MASRAF_T = HUKUK_MASRAF_TUM;
   // Fix 4: Filter finans strictly by this case only (davaId or ilgili matching case no)
-  const finans = DB.get('finans').filter(f => f.davaId === id || f.ilgili === d.no);
+  const finans = _davaFinans(d);
   const tahsilat = finans.filter(f=>GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const masraf   = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const masrafOd = finans.filter(f=>f.tur==='Masraf Ödemesi').reduce((a,b)=>a+(Number(b.tutar)||0),0);

@@ -387,6 +387,23 @@ function _masrafMv(m) {
 function _mvEsit(a, b) { return !!a && _normAd(a) === _normAd(b); }
 window._masrafMv = _masrafMv; window._mvEsit = _mvEsit;
 
+// Bir dava dosyasına ait finans kayıtları: dosyaya bağlı olanlar (davaId / ilgili)
+// + müvekkilin TEK dosyası varsa, hiçbir dosyaya bağlanmadan girilmiş kayıtları.
+// (Finans sayfasından dosya seçilmeden eklenen tahsilatlar bu sayede görünür.)
+function _davaFinans(d) {
+  var tum = DB.get('finans') || [];
+  var bagli = tum.filter(function(f){ return f.davaId === d.id || (d.no && f.ilgili === d.no); });
+  var dosyaSayisi = (DB.get('davalar')||[]).filter(function(x){ return _mvEsit(x.muvekkil, d.muvekkil); }).length
+    + (DB.get('icralar')||[]).filter(function(x){ return _mvEsit(x.muvekkil, d.muvekkil); }).length;
+  if (dosyaSayisi === 1) {
+    tum.forEach(function(f){
+      if (!f.davaId && !f.icraId && !f.ilgili && _mvEsit(f.muvekkil, d.muvekkil) && bagli.indexOf(f) < 0) bagli.push(f);
+    });
+  }
+  return bagli;
+}
+window._davaFinans = _davaFinans;
+
 // Alacaklı/Borçlu isimlerini üretir. Eski icra kayıtlarında i.muvekkil her
 // zaman alacaklı tarafı temsil ediyordu (form her zaman öyle çalışıyordu),
 // bu yüzden geriye dönük varsayılan taraf 'alacakli'dir.
