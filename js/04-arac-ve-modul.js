@@ -1627,7 +1627,8 @@ const FAIZ_TARIHLERI = [
   {bas:'2006-01-01',bit:'2009-12-31',kanuni:12,avans:27,reeskont:25},
   {bas:'2010-01-01',bit:'2010-12-31',kanuni:9, avans:14,reeskont:12},
   // Avans/reeskont: TCMB resmî tablosu (Reeskont ve Avans Faiz Oranları), 07.10.2026 itibarıyla.
-  // Kanuni faiz: 3095 s.K. m.1 — 01.06.2024'ten itibaren %24, öncesi %9.
+  // Kanuni faiz: 3095 s.K. m.1 — 01.06.2024'ten %24; 31.07.2026'dan itibaren (7589 s.K. m.10)
+  // TCMB'nin önceki yıl 31 Aralık reeskont oranının %80'i → 2026 için 38,75 × 0,80 = %31.
   {bas:'2011-01-01',bit:'2016-12-30',kanuni:9, avans:14,reeskont:13.75},
   {bas:'2016-12-31',bit:'2018-06-28',kanuni:9,avans:9.75,reeskont:8.75},
   {bas:'2018-06-29',bit:'2019-10-10',kanuni:9,avans:19.5,reeskont:18.5},
@@ -1648,7 +1649,8 @@ const FAIZ_TARIHLERI = [
   {bas:'2024-12-28',bit:'2025-03-07',kanuni:24,avans:49.25,reeskont:48.25},
   {bas:'2025-03-08',bit:'2025-09-16',kanuni:24,avans:44.25,reeskont:43.25},
   {bas:'2025-09-17',bit:'2025-12-19',kanuni:24,avans:42.25,reeskont:41.25},
-  {bas:'2025-12-20',bit:null,kanuni:24,avans:39.75,reeskont:38.75},
+  {bas:'2025-12-20',bit:'2026-07-30',kanuni:24,avans:39.75,reeskont:38.75},
+  {bas:'2026-07-31',bit:null,kanuni:31,avans:39.75,reeskont:38.75},
 ];
 const TTK1530_TARIHLERI = [
   {bas:'2013-01-01',bit:'2016-12-31',oran:10.25},
@@ -1659,7 +1661,7 @@ const TTK1530_TARIHLERI = [
   {bas:'2024-01-01',bit:'2026-01-01',oran:56.00},
   {bas:'2026-01-02',bit:null,         oran:43.00},
 ];
-const GUNCEL_FAIZ = {kanuni:24, avans:39.75, reeskont:38.75, ticari:43};
+const GUNCEL_FAIZ = {kanuni:31, avans:39.75, reeskont:38.75, ticari:43};
 
 function fhGetOran(tur, tarihStr) {
   const d = new Date(tarihStr);
@@ -1674,7 +1676,7 @@ function fhGetOran(tur, tarihStr) {
     const bit = r.bit ? new Date(r.bit) : new Date('2099-12-31');
     if (d >= new Date(r.bas) && d <= bit) return r[tur==='kanuni'?'kanuni':tur==='avans'?'avans':'reeskont'];
   }
-  return tur === 'kanuni' ? 24 : 39.75;
+  return tur === 'kanuni' ? 31 : 39.75;
 }
 
 function fhYontemGuncelle() {
@@ -1711,7 +1713,7 @@ function fhHesapla() {
   if (!sonucEl) return;
 
   var ORANLAR = {
-    kanuni:   Number(document.getElementById('oran-kanuni')?.dataset?.oran || '24'),
+    kanuni:   Number(document.getElementById('oran-kanuni')?.dataset?.oran || '31'),
     ticari:   Number(document.getElementById('oran-ticari')?.dataset?.oran || '43'),
     avans:    Number(document.getElementById('oran-avans')?.dataset?.oran || '39.75'),
     reeskont: Number(document.getElementById('oran-reeskont')?.dataset?.oran || '38.75'),
