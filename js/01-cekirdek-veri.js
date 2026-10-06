@@ -1777,7 +1777,8 @@ function tekrarSorgula(kod) {
     if (!list.length) { card.style.display = 'none'; return; }
     card.style.display = '';
     el.innerHTML = list.map(function(g) {
-      return '<div class="ptt-history-item" onclick="pttSorgulaNo(\'' + g.no + '\')">' +
+      // Satıra tıklamak yalnız numarayı kutuya yazar ve kopyalar; PTT'yi açmak için "Sorgula" kullanılır
+      return '<div class="ptt-history-item" title="Numarayı kutuya al ve kopyala" onclick="pttSec(\'' + g.no + '\')">' +
         '<span style="font-size:14px">📬</span>' +
         '<span class="ptt-history-no">' + g.no + '</span>' +
         '<span class="ptt-history-date">' + pttFmtDate(g.tarih) + '</span>' +
@@ -1795,6 +1796,13 @@ function tekrarSorgula(kod) {
       return d.toLocaleDateString('tr-TR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
     } catch(e) { return iso || ''; }
   }
+
+  window.pttSec = function(no) {
+    var inp = document.getElementById('ptt-takip-no');
+    if (inp) { inp.value = no; inp.focus(); }
+    if (navigator.clipboard) navigator.clipboard.writeText(no).catch(function(){});
+    if (typeof notify === 'function') notify('Numara kutuya alındı ve kopyalandı');
+  };
 
   window.pttKopyala = function(no) {
     if (navigator.clipboard) navigator.clipboard.writeText(no).catch(function(){});
