@@ -1782,7 +1782,8 @@ function renderDashboard() {
   const buYil = new Date().getFullYear();
   const ayFiltre = function(f){ return new Date(f.tarih).getMonth()===buAy && new Date(f.tarih).getFullYear()===buYil; };
   const tahsilat = finans.filter(f=>GELIR_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
-  const masraf = finans.filter(f=>MASRAF_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+  const masraf = finans.filter(f=>MASRAF_TURLER_DASH.includes(f.tur)&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0)
+    + _dosyaMasrafAy(buYil+'-'+String(buAy+1).padStart(2,'0'));
   const masrafOdemesi = finans.filter(f=>f.tur==='Masraf Ödemesi'&&ayFiltre(f)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const netBakiyeDash = tahsilat - masraf + masrafOdemesi;
   // Duruşmalar görev sayısına dahil edilmez
@@ -1855,7 +1856,7 @@ function renderDashboard() {
       var tVal = finans.filter(f=>GELIR_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
       var mVal = finans.filter(f=>MASRAF_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
       tahArr.push(tVal);
-      masArr.push(mVal);
+      masArr.push(mVal + _dosyaMasrafAy(y+'-'+String(mo+1).padStart(2,'0')));
     }
     makeBar('chart-finans-aylik', months, [
       { label:'Tahsilat', data:tahArr, backgroundColor:'rgba(34,163,90,0.85)', borderColor:'#22a35a', borderWidth:1, borderRadius:4 },

@@ -404,6 +404,15 @@ function _davaFinans(d) {
 }
 window._davaFinans = _davaFinans;
 
+// Dosyaların Masraflar sekmesinden girilen masrafların (dava_masraflar + icra_masraflar)
+// belirli bir aydaki toplamı. ayKey: 'YYYY-MM'. mvAd verilirse yalnız o müvekkil.
+function _dosyaMasrafAy(ayKey, mvAd) {
+  return (DB.get('dava_masraflar')||[]).concat(DB.get('icra_masraflar')||[])
+    .filter(function(m){ return m.tarih && String(m.tarih).slice(0,7) === ayKey && (!mvAd || _mvEsit(_masrafMv(m), mvAd)); })
+    .reduce(function(a,m){ return a + (Number(m.tutar)||0); }, 0);
+}
+window._dosyaMasrafAy = _dosyaMasrafAy;
+
 // Alacaklı/Borçlu isimlerini üretir. Eski icra kayıtlarında i.muvekkil her
 // zaman alacaklı tarafı temsil ediyordu (form her zaman öyle çalışıyordu),
 // bu yüzden geriye dönük varsayılan taraf 'alacakli'dir.

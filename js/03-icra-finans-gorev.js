@@ -3071,7 +3071,8 @@ function renderFinans() {
       const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
       const label = d.toLocaleString('tr-TR',{month:'short'});
       const ayTah = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
-      const ayMas = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+      const ayMas = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0)
+        + _dosyaMasrafAy(key, mvFilt);
       aylar.push({key, label, tah:ayTah, mas:ayMas});
     }
     const maxVal = Math.max(...aylar.map(a=>Math.max(a.tah,a.mas)), 1);
