@@ -952,10 +952,8 @@ function _idpQuickAddTask(icraNo, icraId) {
 // Ö6: İcra masraf ekleme
 // Tutar okuma: "1.250,50", "1250,5", "1250.50", "1.200.000" hepsi doğru okunur
 function _paraOku(v) {
-  var t = String(v||'').replace(/[^\d.,]/g,'');
-  if (t.indexOf(',') >= 0) return parsePara(t);
-  if ((t.match(/\./g)||[]).length > 1) return parseFloat(t.replace(/\./g,'')) || 0;
-  return parseFloat(t) || 0;
+  // 06-para-girisi.js parsePara'yı tüm yazımları (1.000.000 / 1.250,50 / 1250.5) okuyacak şekilde genişletir
+  return parsePara(v);
 }
 
 function _mfChip(btn) {
@@ -1291,7 +1289,7 @@ function renderIcraTab(id, sekme) {
       + '</label>'
       + (hacizData.maasHaczi?'<div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px">'
         + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">İşveren</div><input value="'+escAttr(hacizData.maasIsyeri||'')+'" onchange="saveIcraHaciz(\''+id+'\',\'maasIsyeri\',this.value)" placeholder="İşveren adı..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none"></div>'
-        + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Aylık Kesinti</div><input value="'+escAttr(hacizData.maasKesinti||'')+'" onchange="saveIcraHaciz(\''+id+'\',\'maasKesinti\',this.value)" placeholder="₺..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:monospace"></div>'
+        + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Aylık Kesinti</div><input data-para value="'+escAttr(hacizData.maasKesinti||'')+'" onchange="saveIcraHaciz(\''+id+'\',\'maasKesinti\',this.value)" placeholder="₺..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:6px 8px;outline:none;font-family:monospace"></div>'
         + '</div>':'')
       + '</div>'
       // T5: Bankalar
@@ -1382,7 +1380,7 @@ function renderIcraTab(id, sekme) {
             + '<div style="flex:1;font-size:13px;color:var(--text2)">'+escHtml(k.label)+'</div>'
             + (isReadonly
               ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(201,168,76,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(k.hesap))+'</div>'
-              : '<input type="text" inputmode="decimal" value="'+displayVal+'" placeholder="0,00" onchange="icraKapakKaydet(\''+id+'\',\''+k.key+'\',this.value)" style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:6px 10px;outline:none;text-align:right;font-family:monospace">')
+              : '<input type="text" data-para inputmode="decimal" value="'+displayVal+'" placeholder="0,00" onchange="icraKapakKaydet(\''+id+'\',\''+k.key+'\',this.value)" style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:6px 10px;outline:none;text-align:right;font-family:monospace">')
             + '</div>';
         }).join('')
       + '</div>'
@@ -1396,7 +1394,7 @@ function renderIcraTab(id, sekme) {
         ? '<div style="margin-top:8px;background:rgba(74,140,92,0.1);border:1px solid rgba(74,140,92,0.3);border-radius:10px;padding:12px 16px">'
           + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
           + '<div style="font-size:12px;color:var(--text3)">Yatan Para</div>'
-          + '<input type="text" inputmode="decimal" value="'+escAttr(kd.yatanPara)+'" onchange="icraKapakKaydet(\''+id+'\',\'yatanPara\',this.value)" style="width:110px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;padding:3px 6px;outline:none;text-align:right;font-family:monospace">'
+          + '<input type="text" data-para inputmode="decimal" value="'+escAttr(kd.yatanPara)+'" onchange="icraKapakKaydet(\''+id+'\',\'yatanPara\',this.value)" style="width:110px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;padding:3px 6px;outline:none;text-align:right;font-family:monospace">'
           + '</div>'
           + '<div style="display:flex;align-items:center;justify-content:space-between">'
           + '<div style="font-size:13px;font-weight:700;color:'+(toplam-kpNum(kd.yatanPara)<=0?'var(--green)':'var(--red)')+'">Bakiye Borç</div>'
@@ -3174,8 +3172,21 @@ function _saveFinansInner() {
   const aciklama = document.getElementById('f-aciklama').value.trim();
   if (!tutar) return notify('Tutar giriniz!');
   if (tutar < 0) return notify('⚠️ Geçersiz tutar! Negatif değer girilemez.');
-  const ilgiliId = document.getElementById('f-ilgili-id')?.value || '';
-  const ilgiliTip = document.getElementById('f-ilgili-tip')?.value || '';
+  let ilgiliId = document.getElementById('f-ilgili-id')?.value || '';
+  let ilgiliTip = document.getElementById('f-ilgili-tip')?.value || '';
+  let ilgiliNo = document.getElementById('f-ilgili')?.value || '';
+  // Müvekkilli kayıtlarda dosya bağlantısı: birden fazla dosya varsa seçim zorunlu,
+  // tek dosya varsa kayıt otomatik o dosyaya bağlanır.
+  const _fMv = document.getElementById('f-muvekkil')?.value || '';
+  if (_fMv && !ilgiliId && !ilgiliNo) {
+    const _dosyalar = (DB.get('davalar')||[]).filter(d => _mvEsit(d.muvekkil, _fMv)).map(d => ({tip:'dava', id:d.id, no:d.no}))
+      .concat((DB.get('icralar')||[]).filter(i => _mvEsit(i.muvekkil, _fMv)).map(i => ({tip:'icra', id:i.id, no:i.no})));
+    if (_dosyalar.length > 1) {
+      const _el = document.getElementById('f-ilgili'); if (_el) { _el.focus(); _el.style.borderColor = 'var(--red)'; }
+      return notify('⚠️ Bu müvekkilin ' + _dosyalar.length + ' dosyası var — lütfen ilgili dosyayı seçin.');
+    }
+    if (_dosyalar.length === 1) { ilgiliId = _dosyalar[0].id; ilgiliTip = _dosyalar[0].tip; ilgiliNo = _dosyalar[0].no; }
+  }
   const obj = {
     id: editingId || DB.genId(),
     tur: document.getElementById('f-tur').value,
@@ -3187,7 +3198,7 @@ function _saveFinansInner() {
       var mv = (DB.get('muvekkiller')||[]).find(function(m){ return m.ad === ad; });
       return mv ? mv.id : '';
     })(),
-    ilgili: document.getElementById('f-ilgili')?.value||'',
+    ilgili: ilgiliNo,
     davaId: ilgiliTip === 'dava' ? ilgiliId : '',
     icraId: ilgiliTip === 'icra' ? ilgiliId : '',
     aciklama,
