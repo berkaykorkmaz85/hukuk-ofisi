@@ -2816,7 +2816,7 @@ function _ddpRenderMasraflar(id, d) {
   var muvekkilAd = d.muvekkil||'';
   var avansAlinan = finans.filter(function(f){return f.muvekkil===muvekkilAd&&f.tur==='Masraf Ödemesi';})
     .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
-  var tumHarcanan = tumMasraflar.filter(function(m){return m.muvekkilAd===muvekkilAd;})
+  var tumHarcanan = tumMasraflar.filter(function(m){return _mvEsit(_masrafMv(m),muvekkilAd);})
     .reduce(function(a,b){return a+Number(b.tutar||0);},0)
     + finans.filter(function(f){return f.muvekkil===muvekkilAd&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);})
     .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);

@@ -375,6 +375,18 @@ function _normAd(s) {
 }
 window._normAd = _normAd;
 
+// Masraf kaydının müvekkili. icra_masraflar tablosunda müvekkil sütunu yok;
+// bu yüzden Supabase'den yüklenen kayıtlarda muvekkilAd boş gelir. Müvekkil
+// her zaman bağlı dosyadan (icraId / davaId) bulunur, yoksa kayıttaki ada düşülür.
+function _masrafMv(m) {
+  if (!m) return '';
+  if (m.icraId) { var i = (DB.get('icralar')||[]).find(function(x){return x.id===m.icraId;}); if (i) return i.muvekkil||''; }
+  if (m.davaId) { var d = (DB.get('davalar')||[]).find(function(x){return x.id===m.davaId;}); if (d) return d.muvekkil||''; }
+  return m.muvekkilAd||'';
+}
+function _mvEsit(a, b) { return !!a && _normAd(a) === _normAd(b); }
+window._masrafMv = _masrafMv; window._mvEsit = _mvEsit;
+
 // Alacaklı/Borçlu isimlerini üretir. Eski icra kayıtlarında i.muvekkil her
 // zaman alacaklı tarafı temsil ediyordu (form her zaman öyle çalışıyordu),
 // bu yüzden geriye dönük varsayılan taraf 'alacakli'dir.

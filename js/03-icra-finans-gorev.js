@@ -1020,9 +1020,9 @@ function _idpRenderMasraflar(id, i, masraflar) {
   var muvekkilAd = i.muvekkil||'';
   var avansAlinan = finans.filter(function(f){return f.muvekkil===muvekkilAd&&f.tur==='Masraf Ödemesi';})
     .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
-  var tumHarcanan = tumMasraflar.filter(function(m){return m.muvekkilAd===muvekkilAd;})
+  var tumHarcanan = tumMasraflar.filter(function(m){return _mvEsit(_masrafMv(m),muvekkilAd);})
     .reduce(function(a,b){return a+Number(b.tutar||0);},0)
-    + (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===muvekkilAd;})
+    + (DB.get('dava_masraflar')||[]).filter(function(m){return _mvEsit(_masrafMv(m),muvekkilAd);})
     .reduce(function(a,b){return a+Number(b.tutar||0);},0)
     + finans.filter(function(f){return f.muvekkil===muvekkilAd&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);})
     .reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
@@ -1801,7 +1801,9 @@ function renderMuvekkiller() {
   const davalar = DB.get('davalar');
   const contacts = DB.get('contacts');
   document.getElementById('muvekkil-tbody').innerHTML = mv.length ? mv.map(m=>{
-    const aktif = davalar.filter(d=>d.muvekkil===m.ad && d.durum==='Aktif').length;
+    // Aktif dosya = aktif davalar + aktif icralar (ad karşılaştırması büyük/küçük harf ve boşluk duyarsız)
+    const aktif = davalar.filter(d=>_mvEsit(d.muvekkil, m.ad) && (d.durum||'Aktif')==='Aktif').length
+      + (DB.get('icralar')||[]).filter(i=>_mvEsit(i.muvekkil, m.ad) && (i.durum||'Aktif')==='Aktif').length;
     const isKurumsal = m.tur === 'kurumsal';
     const ctCount = contacts.filter(c => c.muvekkilId === m.id).length;
     return `
@@ -1903,8 +1905,8 @@ function showMuvekkilDetail(id) {
   const kvTahsilatToplam = kvTahsil.reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const kvBekleyenToplam = kvBekleyen.reduce((a,b)=>a+(Number(b.tutar)||0),0);
   const topMasFinans = finans.filter(f=>MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
-  const topMasDava   = (DB.get('dava_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
-  const topMasIcra   = (DB.get('icra_masraflar')||[]).filter(m=>m.muvekkilAd===mv.ad).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const topMasDava   = (DB.get('dava_masraflar')||[]).filter(m=>_mvEsit(_masrafMv(m),mv.ad)).reduce((a,b)=>a+Number(b.tutar||0),0);
+  const topMasIcra   = (DB.get('icra_masraflar')||[]).filter(m=>_mvEsit(_masrafMv(m),mv.ad)).reduce((a,b)=>a+Number(b.tutar||0),0);
   const topMas  = topMasFinans + topMasDava + topMasIcra;
   const masOde  = finans.filter(f=>AVANS_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
 
@@ -2828,8 +2830,8 @@ function renderAvansKasa() {
   var mvBakiyeler = muvekkiller.map(function(mv){
     var alinan = finans.filter(function(f){return f.muvekkil===mv.ad&&f.tur==='Masraf Ödemesi';}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
     var harcananFinans = finans.filter(function(f){return f.muvekkil===mv.ad&&['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);}).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
-    var harcananDavaMasraf = (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
-    var harcananIcraMasraf = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mv.ad;}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
+    var harcananDavaMasraf = (DB.get('dava_masraflar')||[]).filter(function(m){return _mvEsit(_masrafMv(m),mv.ad);}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
+    var harcananIcraMasraf = (DB.get('icra_masraflar')||[]).filter(function(m){return _mvEsit(_masrafMv(m),mv.ad);}).reduce(function(a,b){return a+Number(b.tutar||0);},0);
     var harcanan = harcananFinans + harcananDavaMasraf + harcananIcraMasraf;
     return {ad:mv.ad, alinan:alinan, harcanan:harcanan, bakiye:alinan-harcanan};
   }).filter(function(m){return m.alinan>0||m.harcanan>0;});
@@ -2865,8 +2867,8 @@ function _avansKasaDetayHTML(mvAd) {
   var finans = DB.get('finans')||[];
   var alinanKayitlar = finans.filter(function(f){return f.muvekkil===mvAd && f.tur==='Masraf Ödemesi';});
   var harcananFinans = finans.filter(function(f){return f.muvekkil===mvAd && ['Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'].includes(f.tur);});
-  var harcananDava = (DB.get('dava_masraflar')||[]).filter(function(m){return m.muvekkilAd===mvAd;});
-  var harcananIcra = (DB.get('icra_masraflar')||[]).filter(function(m){return m.muvekkilAd===mvAd;});
+  var harcananDava = (DB.get('dava_masraflar')||[]).filter(function(m){return _mvEsit(_masrafMv(m),mvAd);});
+  var harcananIcra = (DB.get('icra_masraflar')||[]).filter(function(m){return _mvEsit(_masrafMv(m),mvAd);});
 
   function satir(tarih, aciklama, tutar, pozitif, silOnclick) {
     return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:12px">'
