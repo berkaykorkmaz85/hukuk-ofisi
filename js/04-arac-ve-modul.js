@@ -590,7 +590,7 @@ function deleteNote(id) {
 var _ajandaFilter = 'yaklasan';
 var _ajandaSearch = '';
 var _AJANDA_ETIKET = {
-  kisisel: { renk: '#6c47ff', label: 'Kişisel' },
+  kisisel: { renk: '#1e3a5f', label: 'Kişisel' },
   is:      { renk: '#c9a84c', label: 'İş' },
   acil:    { renk: '#d05555', label: 'Acil' },
   diger:   { renk: '#4a8c5c', label: 'Diğer' }

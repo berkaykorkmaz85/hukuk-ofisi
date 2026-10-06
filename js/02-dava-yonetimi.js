@@ -1564,13 +1564,13 @@ function destroyCharts() {
 
 // Grafik teması — tüm panel grafikleri aynı palet ve tipografiyi kullanır
 var CH = {
-  renk: { 'Aktif':'#6c47ff', 'Bekliyor':'#f5a524', 'Kapalı':'#cbd2e1', 'Acil':'#ef4444', 'Yüksek':'#f5a524', 'Normal':'#22a36a' },
-  tahsilat: '#22a36a', masraf: '#ef6b6b', vurgu: '#6c47ff',
+  renk: { 'Aktif':'#1e3a5f', 'Bekliyor':'#b8893b', 'Kapalı':'#cbd2e1', 'Acil':'#ef4444', 'Yüksek':'#f5a524', 'Normal':'#22a36a' },
+  tahsilat: '#22a36a', masraf: '#ef6b6b', vurgu: '#1e3a5f',
   yazi: function(){ return getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f1d2b'; },
   soluk: function(){ return getComputedStyle(document.body).getPropertyValue('--text3').trim() || '#8a8aa0'; },
   font: "'DM Sans', system-ui, sans-serif",
   kisaPara: function(v){ var a=Math.abs(v); return '₺' + (a>=1e6 ? (v/1e6).toLocaleString('tr-TR',{maximumFractionDigits:1})+' Mn' : a>=1e3 ? (v/1e3).toLocaleString('tr-TR',{maximumFractionDigits:0})+' B' : v.toLocaleString('tr-TR')); },
-  tooltip: function(extra){ return Object.assign({ backgroundColor:'rgba(255,255,255,0.98)', borderColor:'rgba(108,71,255,0.25)', borderWidth:1, titleColor:'#1f1d2b', bodyColor:'#4b4a5c', padding:12, cornerRadius:10, boxPadding:4, usePointStyle:true, titleFont:{family:"'DM Sans', sans-serif", weight:'700', size:12}, bodyFont:{family:"'DM Sans', sans-serif", size:12} }, extra||{}); }
+  tooltip: function(extra){ return Object.assign({ backgroundColor:'rgba(255,255,255,0.98)', borderColor:'rgba(30,58,95,0.25)', borderWidth:1, titleColor:'#1f1d2b', bodyColor:'#4b4a5c', padding:12, cornerRadius:10, boxPadding:4, usePointStyle:true, titleFont:{family:"'DM Sans', sans-serif", weight:'700', size:12}, bodyFont:{family:"'DM Sans', sans-serif", size:12} }, extra||{}); }
 };
 
 function makeDonut(id, labels, data, colors, legendId) {
@@ -1670,7 +1670,7 @@ function makeHBar(id, labels, data) {
   var _e = (window.Chart && Chart.getChart) ? Chart.getChart(ctx) : null; if (_e) _e.destroy();
   const c = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ data, backgroundColor: 'rgba(108,71,255,0.85)', hoverBackgroundColor: CH.vurgu, borderWidth: 0, borderRadius: 999, borderSkipped: false, maxBarThickness: 14 }] },
+    data: { labels, datasets: [{ data, backgroundColor: 'rgba(30,58,95,0.85)', hoverBackgroundColor: CH.vurgu, borderWidth: 0, borderRadius: 999, borderSkipped: false, maxBarThickness: 14 }] },
     options: {
       animation: { duration: 500, easing: 'easeOutQuart' },
       indexAxis: 'y',
@@ -2538,7 +2538,7 @@ function renderDavaTab(id, sekme) {
           ${d.istinafEsas?`<div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:monospace">${escHtml(d.istinafEsas)}</div>`:''}
         </div>`:''}
         ${d.temyizMahkeme?`<div style="background:rgba(196,168,224,0.08);border:1px solid rgba(196,168,224,0.3);border-radius:8px;padding:10px 14px">
-          <div style="font-size:11px;font-weight:700;color:#c4a8e0;margin-bottom:4px">🟣 TEMYİZ</div>
+          <div style="font-size:11px;font-weight:700;color:#8fa3bd;margin-bottom:4px">🟣 TEMYİZ</div>
           <div style="font-size:13px;color:var(--text)">${escHtml(d.temyizMahkeme)}</div>
           ${d.temyizEsas?`<div style="font-size:12px;color:var(--text3);margin-top:2px;font-family:monospace">${escHtml(d.temyizEsas)}</div>`:''}
         </div>`:''}
@@ -2955,7 +2955,7 @@ const DAVA_NOT_LABELS = {
   sonDurum:   {label:'📌 Son Durum',    color:'var(--gold)'},
   sonrakiAdim:{label:'➡️ Sonraki Adım', color:'#7dc495'},
   strateji:   {label:'⚖️ Strateji',     color:'#7ab5d4'},
-  arabuluculuk:{label:'🤝 Arabuluculuk',color:'#c4a8e0'},
+  arabuluculuk:{label:'🤝 Arabuluculuk',color:'#8fa3bd'},
   notlar:     {label:'📝 Genel Not',    color:'var(--text2)'}
 };
 let _activeNotKart = {};
@@ -3101,7 +3101,7 @@ function saveInlineEdit(davaId, field, type) {
 // ── AVATAR RENK SİSTEMİ ──
 var CH_COLORS=[
   {bg:'var(--gold-dim)',border:'rgba(201,168,76,0.4)',color:'var(--gold)'},
-  {bg:'rgba(122,92,140,0.2)',border:'rgba(122,92,140,0.4)',color:'#c4a0e0'},
+  {bg:'rgba(122,92,140,0.2)',border:'rgba(122,92,140,0.4)',color:'#8fa3bd'},
   {bg:'rgba(74,140,92,0.2)',border:'rgba(74,140,92,0.4)',color:'#7dc495'},
   {bg:'rgba(58,107,140,0.2)',border:'rgba(58,107,140,0.4)',color:'#7ab5d4'},
   {bg:'rgba(192,83,58,0.2)',border:'rgba(192,83,58,0.4)',color:'#e08878'},

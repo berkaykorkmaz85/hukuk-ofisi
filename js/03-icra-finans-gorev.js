@@ -778,7 +778,7 @@ function vuHesapla() {
     + '<div style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text3);font-size:11px">'
     + 'AAÜT ' + tarife.yil + ' · ' + baslik + ' · ' + _vuFmt(tutar) + ',00 TL için VEKALET ÜCRETİ Hesap Tablosu</div>'
     + '<table style="width:100%;border-collapse:collapse">'
-    + '<thead><tr style="background:rgba(108,71,255,0.07)">'
+    + '<thead><tr style="background:rgba(30,58,95,0.07)">'
     + '<th style="text-align:left;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Dilim</th>'
     + '<th style="text-align:center;padding:7px 8px;font-size:11px;color:var(--text3);font-weight:600">Oran</th>'
     + '<th style="text-align:right;padding:7px 12px;font-size:11px;color:var(--text3);font-weight:600">Tutar</th>'
@@ -792,7 +792,7 @@ function vuHesapla() {
       + '</tr>';
   });
 
-  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(108,71,255,0.1)">'
+  html += '</tbody><tfoot><tr style="border-top:2px solid var(--border);background:rgba(30,58,95,0.1)">'
     + '<td colspan="2" style="padding:10px 12px;font-size:13px;font-weight:700;color:var(--gold)">' + _vuFmt(tutar) + ',00 TL için TOPLAM</td>'
     + '<td style="padding:10px 12px;text-align:right;font-size:15px;font-family:monospace;font-weight:900;color:var(--gold)">' + _vuFmt(toplamGosterilen) + ',00 TL</td>'
     + '</tr></tfoot></table>';
@@ -3121,7 +3121,7 @@ function renderFinans() {
               mode: 'index',
               intersect: false,
               backgroundColor: 'rgba(255,255,255,0.98)', cornerRadius: 10, usePointStyle: true,
-              borderColor: 'rgba(108,71,255,0.25)',
+              borderColor: 'rgba(30,58,95,0.25)',
               borderWidth: 1,
               titleColor: '#1f1d2b',
               bodyColor: '#4b4a5c',

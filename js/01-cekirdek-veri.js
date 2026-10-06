@@ -1339,7 +1339,7 @@ function renderRaporlarPage() {
     ${[
       {icon:'📁', l:'Aktif Dava',   v:davalar.filter(d=>d.durum==='Aktif').length,  c:'var(--gold)'},
       {icon:'⚡', l:'Aktif İcra',   v:icralar.filter(i=>i.durum==='Aktif').length,  c:'#7ab5d4'},
-      {icon:'👤', l:'Müvekkil',     v:muvekkiller.length,                            c:'#c4a8e0'},
+      {icon:'👤', l:'Müvekkil',     v:muvekkiller.length,                            c:'#8fa3bd'},
       {icon:'✅', l:'Bekleyen Görev',v:tasks.filter(t=>!t.done&&t.tip!=='durusma').length,              c:'#7dc495'},
       {icon:'💰', l:'Toplam Tahsilat',v:'₺'+fmt(topTah),                            c:'var(--green)'},
       {icon:'📊', l:'Net Bakiye',   v:'₺'+fmt(topTah-topMas),                       c:'var(--gold2)'},
@@ -1441,13 +1441,13 @@ function renderRaporlarPage() {
   </div>
 
   <!-- MÜVEKKİL RAPORU -->
-  <div class="card" style="border-top:3px solid #c4a8e0">
+  <div class="card" style="border-top:3px solid #8fa3bd">
     <div class="card-title" style="font-size:14px;margin-bottom:14px">👤 Müvekkil Raporu</div>
     <div style="margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">Dahil Edilecek Sütunlar</span><button onclick="raporSutunToggle(this)" style="font-size:10px;color:var(--gold);background:none;border:none;cursor:pointer;text-decoration:underline">Tümünü Kaldır</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px;max-height:220px;overflow-y:auto">
         ${['Ad','Tür','TC/VKN','Telefon','E-posta','Adres','Dava Sayısı','İcra Sayısı'].map(s=>
-          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-mv" style="accent-color:#c4a8e0;width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
+          '<label style="display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;cursor:pointer;color:var(--text2);padding:5px 8px;border-radius:6px;transition:background 0.1s" onmouseover="this.style.background=\'rgba(201,168,76,0.08)\'" onmouseout="this.style.background=\'transparent\'">'+s+'<input type="checkbox" checked value="'+s+'" class="rc-mv" style="accent-color:#8fa3bd;width:15px;height:15px;flex-shrink:0;cursor:pointer"></label>').join('')}
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -3398,8 +3398,8 @@ function populateDavaDashCesit() {
 
 // Renk paleti dosyalara göre (tutarlı)
 var DOSYA_RENKLER = [
-  '#C9A84C','#7ab5d4','#7dc495','#c4a8e0','#e8a04d',
-  '#d4756b','#5fa8a0','#b0c45a','#a882c8','#6ba5d4'
+  '#C9A84C','#7ab5d4','#7dc495','#8fa3bd','#e8a04d',
+  '#d4756b','#5fa8a0','#b0c45a','#6f86a6','#6ba5d4'
 ];
 
 function gorevDonut(gorevler, today, boyut) {
