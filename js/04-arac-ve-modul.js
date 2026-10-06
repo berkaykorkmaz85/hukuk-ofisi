@@ -139,6 +139,8 @@ function _uetsModalHesapla() {
 }
 
 function _pttSekme(sekme) {
+  // PTT sorgu bölümü kaldırıldı; sayfa yalnız UETS defteri
+  if (!document.getElementById('ptt-bolum-sorgu')) { _uetsRender(); return; }
   document.getElementById('ptt-bolum-sorgu').style.display = sekme === 'sorgu' ? '' : 'none';
   document.getElementById('ptt-bolum-uets').style.display = sekme === 'uets' ? '' : 'none';
   const s1 = document.getElementById('ptt-sekme-sorgu');

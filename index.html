@@ -2943,8 +2943,8 @@
     <div class="nav-item nav-secondary" onclick="showPage('tebligat')" oncontextmenu="navContextMenu(event,'tebligat','Yardımcı Siteler','🌐')">
       <span class="nav-icon">🔗</span> Yardımcı Siteler
     </div>
-    <div class="nav-item nav-secondary" onclick="showPage('ptt-takip')" oncontextmenu="navContextMenu(event,'ptt-takip','PTT Tebligat Takip','📬')">
-      <span class="nav-icon">📬</span> PTT Tebligat Takip
+    <div class="nav-item nav-secondary" onclick="showPage('ptt-takip')" oncontextmenu="navContextMenu(event,'ptt-takip','Tebligat Takip','📨')">
+      <span class="nav-icon">📨</span> Tebligat Takip
     </div>
     <div class="nav-item nav-secondary" onclick="showPage('udfDonusturucu')" oncontextmenu="navContextMenu(event,'udfDonusturucu','UDF Dönüştürücü','🔄')">
       <span class="nav-icon">🔄</span> UDF Dönüştürücü
@@ -3735,62 +3735,14 @@
     <!-- PTT TEBLİGAT TAKİP -->
     <div id="page-ptt-takip" class="page">
 
-      <!-- Sekme başlıkları -->
-      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px">
-        <button id="ptt-sekme-sorgu" onclick="_pttSekme('sorgu')"
-          style="padding:10px 18px;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-          🔍 PTT Sorgulama
-        </button>
-        <button id="ptt-sekme-uets" onclick="_pttSekme('uets')"
-          style="padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-          📨 UETS Kayıt Defteri
-        </button>
-      </div>
-
-      <!-- PTT Sorgulama Bölümü -->
-      <div id="ptt-bolum-sorgu">
-      <!-- Hero -->
-      <div class="ptt-hero">
-        <div class="ptt-hero-icon">📬</div>
-        <div>
-          <div class="ptt-hero-title">PTT Tebligat & Gönderi Takip</div>
-          <div class="ptt-hero-sub">13 haneli takip numaranızı girin — numara panoya kopyalanır ve PTT gönderi takip sayfası yeni sekmede açılır.<br>PTT, sorgularda robot doğrulaması istediği için sonuç uygulamaya otomatik çekilemiyor; sorgu geçmişiniz burada tutulur.</div>
-        </div>
-      </div>
-
-      <!-- Arama Kutusu -->
-      <div class="ptt-search-box">
-        <div class="ptt-input-row">
-          <input type="text" id="ptt-takip-no" maxlength="20"
-            placeholder="Takip numaranızı girin..."
-            oninput="pttInputFormat(this)"
-            onkeydown="if(event.key==='Enter')pttSorgula()">
-          <button class="ptt-search-btn" id="ptt-btn" onclick="pttSorgula()">
-            🔍 Sorgula
-          </button>
-        </div>
-        <div class="ptt-hint">
-          <span>📋 PTT kargo, APS, tebligat, iadeli taahhütlü mektup</span>
-          <span>🔢 13 haneli barkod numarası</span>
-          <span>⚡ Enter ile hızlı sorgula</span>
-        </div>
-      </div>
-
-      <!-- Sonuç Alanı -->
-      <div class="ptt-result-wrap" id="ptt-result-wrap" style="display:none"></div>
-
-      <!-- Geçmiş -->
-      <div class="ptt-history-card" id="ptt-history-card" style="display:none">
-        <div class="ptt-history-header">
-          <span>🕒 Son Sorgular</span>
-          <button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;text-transform:none;letter-spacing:0" onclick="pttGecmisSil()">Temizle</button>
-        </div>
-        <div id="ptt-history-list"></div>
-      </div>
+      <!-- PTT sorgulaması kaldırıldı: PTT, gönderi sorgusunda robot doğrulaması (Cloudflare) istiyor;
+           uygulama içinden sorgu mümkün değil. Sayfa yalnız UETS / e-Tebligat kayıt defteridir. -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <a href="https://www.ptt.gov.tr/" target="_blank" rel="noopener" style="font-size:12px;color:var(--gold);text-decoration:none;font-weight:600;border:1px solid var(--border);border-radius:999px;padding:6px 12px;background:var(--bg2)">📬 PTT'de gönderi sorgula ↗</a>
       </div>
 
       <!-- UETS Kayıt Defteri Bölümü -->
-      <div id="ptt-bolum-uets" style="display:none">
+      <div id="ptt-bolum-uets">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
           <div>
             <div style="font-size:16px;font-weight:700;color:var(--text)">📨 UETS / e-Tebligat Kayıt Defteri</div>
@@ -5332,9 +5284,9 @@
 </div>
 
 <script src="js/01-cekirdek-veri.js?v=20261007f"></script>
-<script src="js/02-dava-yonetimi.js?v=20261007f"></script>
+<script src="js/02-dava-yonetimi.js?v=20261007g"></script>
 <script src="js/03-icra-finans-gorev.js?v=20261007f"></script>
-<script src="js/04-arac-ve-modul.js?v=20261007f"></script>
+<script src="js/04-arac-ve-modul.js?v=20261007g"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
 <script src="js/06-para-girisi.js?v=20261007b"></script>
 

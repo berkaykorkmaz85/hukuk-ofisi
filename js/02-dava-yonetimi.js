@@ -1324,9 +1324,7 @@ function showPage(page) {
   }
   else if (page === 'ptt-takip') {
     setTimeout(function() {
-      if (typeof window.pttGecmisRender === 'function') window.pttGecmisRender();
-      var inp = document.getElementById('ptt-takip-no');
-      if (inp) inp.focus();
+      if (typeof _uetsRender === 'function') _uetsRender();
     }, 80);
   }
   else if (page === 'udfDonusturucu') {
@@ -1416,8 +1414,8 @@ function initMobileTopbar() {
   window.addEventListener('resize', updateTopbar);
 }
 
-const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', ajanda:'🗓️ Ajandam', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📬 PTT Tebligat Takip', udfDonusturucu:'🔄 UDF Dönüştürücü'};
-const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', ajanda:'Ajandam', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'PTT Tebligat'};
+const pageTitles = {kullanicilar:'Kullanıcı Yönetimi', dashboard:'Gösterge Paneli', davalar:'Dava Dosyaları', icralar:'İcra Dosyaları', muvekkiller:'Müvekkil & Kişiler', kisiler:'Müvekkil & Kişiler', finans:'Finans', tasks:'Görevler', notlar:'Notlar', ajanda:'🗓️ Ajandam', davadash:'Dava Dashboardu', tebligat:'Yardımcı Siteler', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'📨 Tebligat Takip', udfDonusturucu:'🔄 UDF Dönüştürücü'};
+const pageNames = {kullanicilar:'Kullanıcı', dashboard:'Gösterge', davalar:'Dava Dosyaları', icralar:'İcra', muvekkiller:'Müvekkil', kisiler:'Müvekkil', finans:'Finans', tasks:'Görev', notlar:'Not', ajanda:'Ajandam', davadash:'Dava Dashboard', tebligat:'Yardımcı', raporlar:'Raporlar', durusmatakvim:'Duruşma Takvimi', faizHesap:'🧮 Faiz Hesaplama', smmHesap:'🧾 SMM Hesaplama', 'ptt-takip':'Tebligat Takip'};
 
 function showSubpage(id) {
   const page = id.split('-')[0];
@@ -1564,8 +1562,9 @@ function destroyCharts() {
 
 // Grafik teması — tüm panel grafikleri aynı palet ve tipografiyi kullanır
 var CH = {
-  renk: { 'Aktif':'#1e3a5f', 'Bekliyor':'#b8893b', 'Kapalı':'#cbd2e1', 'Acil':'#ef4444', 'Yüksek':'#f5a524', 'Normal':'#22a36a' },
-  tahsilat: '#22a36a', masraf: '#ef6b6b', vurgu: '#1e3a5f',
+  renk: { 'Aktif':'#1e3a5f', 'Bekliyor':'#b8893b', 'Kapalı':'#cbd2e1', 'Acil':'#ef4444', 'Yüksek':'#f5a524', 'Normal':'#5b7fa6' },
+  // Lacivert & altın palet: tahsilat lacivert, masraf altın
+  tahsilat: '#2f5d8a', masraf: '#c9a35a', vurgu: '#1e3a5f',
   yazi: function(){ return getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f1d2b'; },
   soluk: function(){ return getComputedStyle(document.body).getPropertyValue('--text3').trim() || '#8a8aa0'; },
   font: "'DM Sans', system-ui, sans-serif",
