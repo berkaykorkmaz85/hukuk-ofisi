@@ -1913,7 +1913,7 @@ function renderDashboard() {
     if (mvDava.length) {
       // Canvas önceki bir "Veri yok" render'ında silinmişse geri kur
       if (_mvWrap && !document.getElementById('chart-muvekkil-dava')) {
-        _mvWrap.innerHTML = '<canvas id="chart-muvekkil-dava" style="pointer-events:none"></canvas>';
+        _mvWrap.innerHTML = '<canvas id="chart-muvekkil-dava"></canvas>';
       }
       makeHBar('chart-muvekkil-dava', mvDava.map(x=>x.ad), mvDava.map(x=>x.count));
     } else if (_mvWrap) {

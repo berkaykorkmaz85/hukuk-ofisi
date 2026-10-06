@@ -3074,7 +3074,7 @@
           <div class="card-title">📁 Dava Durumları</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
             <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-dava-durum" style="pointer-events:none"></canvas>
+              <canvas id="chart-dava-durum"></canvas>
             </div>
             <div id="chart-dava-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
@@ -3083,7 +3083,7 @@
           <div class="card-title">⚡ İcra Durumları</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
             <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-icra-durum" style="pointer-events:none"></canvas>
+              <canvas id="chart-icra-durum"></canvas>
             </div>
             <div id="chart-icra-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
@@ -3092,7 +3092,7 @@
           <div class="card-title">📋 Görev Öncelikleri</div>
           <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
             <div style="position:relative;height:160px;width:100%;display:flex;align-items:center;justify-content:center">
-              <canvas id="chart-task-oncelik" style="pointer-events:none"></canvas>
+              <canvas id="chart-task-oncelik"></canvas>
             </div>
             <div id="chart-task-legend" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:11px;padding-bottom:4px"></div>
           </div>
@@ -3104,13 +3104,13 @@
         <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('finans')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">💰 Aylık Finansal Özet</div>
           <div style="height:200px;position:relative">
-            <canvas id="chart-finans-aylik" style="min-height:180px;pointer-events:none"></canvas>
+            <canvas id="chart-finans-aylik" style="min-height:180px"></canvas>
           </div>
         </div>
         <div class="card db-nav-card" style="cursor:pointer;border:1px solid var(--border);transition:border-color .15s" onclick="showPage('kisiler')" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
           <div class="card-title">👤 Müvekkil Başına Dava</div>
           <div style="height:200px;position:relative" id="chart-muvekkil-dava-wrap">
-            <canvas id="chart-muvekkil-dava" style="pointer-events:none"></canvas>
+            <canvas id="chart-muvekkil-dava"></canvas>
           </div>
         </div>
       </div>
@@ -5324,7 +5324,7 @@
 </div>
 
 <script src="js/01-cekirdek-veri.js?v=20261007d"></script>
-<script src="js/02-dava-yonetimi.js?v=20261007d"></script>
+<script src="js/02-dava-yonetimi.js?v=20261007e"></script>
 <script src="js/03-icra-finans-gorev.js?v=20261007d"></script>
 <script src="js/04-arac-ve-modul.js?v=20261007c"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
