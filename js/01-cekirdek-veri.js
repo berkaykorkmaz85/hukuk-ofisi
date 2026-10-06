@@ -1816,23 +1816,11 @@ function tekrarSorgula(kod) {
     if (!wrap) return;
     wrap.style.display = '';
 
-    // Yükleniyor göster
-    wrap.innerHTML = '<div class="ptt-loading"><div class="ptt-spinner"></div><span>PTT sorgulanıyor...</span></div>';
-
-    // Btn disable
-    var btn = document.getElementById('ptt-btn');
-    if (btn) btn.disabled = true;
-
-    // Önce API'yi dene, hata alırsa fallback
-    pttApiSorgula(no, function(err, data) {
-      if (btn) btn.disabled = false;
-      if (!err && data) {
-        pttRenderSonuc(no, data, wrap);
-      } else {
-        // Fallback: PTT iframe + yeni sekme
-        pttFallback(no, wrap);
-      }
-    });
+    // PTT, Eylül 2026'dan itibaren gönderi sorgusunda Cloudflare Turnstile (robot doğrulaması)
+    // istiyor; sunucu/proxy üzerinden otomatik sorgu artık mümkün değil. Numara panoya
+    // kopyalanır ve PTT gönderi takip sayfası yeni sekmede açılır (kullanıcı tıklamasıyla).
+    try { window.open('https://www.ptt.gov.tr/', '_blank', 'noopener'); } catch (e) {}
+    pttFallback(no, wrap);
   };
 
   // --- PTT API sorgusu (CORS proxy üzerinden deneme) ---
@@ -1957,7 +1945,7 @@ function tekrarSorgula(kod) {
         '<div class="ptt-fallback-header">' +
           '<span style="font-size:16px">ℹ️</span>' +
           '<div style="flex:1">' +
-            '<div style="font-size:13px;color:var(--text);font-weight:600">PTT API doğrudan erişilemiyor — CORS kısıtlaması</div>' +
+            '<div style="font-size:13px;color:var(--text);font-weight:600">PTT sorgusu PTT sitesinde yapılır</div>' +
             '<div style="font-size:12px;color:var(--text3);margin-top:2px">Takip numarası <strong style="font-family:\'DM Mono\',monospace;color:var(--gold)">' + no + '</strong> panoya kopyalandı</div>' +
           '</div>' +
           '<button class="btn btn-gold" style="font-size:12px;padding:7px 14px;white-space:nowrap" onclick="window.open(\'https://www.ptt.gov.tr/#/\',\'_blank\')">' +
@@ -1965,7 +1953,7 @@ function tekrarSorgula(kod) {
           '</button>' +
         '</div>' +
         '<div style="padding:16px 18px">' +
-          '<div style="font-size:12px;color:var(--text3);margin-bottom:12px">PTT sitesi güvenlik nedeniyle iframe içinde açılmıyor. Aşağıdaki adımları izleyin:</div>' +
+          '<div style="font-size:12px;color:var(--text3);margin-bottom:12px">PTT, gönderi sorgusunda robot doğrulaması (Cloudflare) istediği için sonuç uygulamaya otomatik çekilemiyor. PTT sitesi yeni sekmede açıldı; açılmadıysa yukarıdaki butonu kullanın:</div>' +
           '<div style="display:flex;flex-direction:column;gap:8px">' +
             '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">' +
               '<div style="width:24px;height:24px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.4);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);flex-shrink:0">1</div>' +
