@@ -950,13 +950,30 @@ function _idpQuickAddTask(icraNo, icraId) {
 }
 
 // Ö6: İcra masraf ekleme
+// Tutar okuma: "1.250,50", "1250,5", "1250.50", "1.200.000" hepsi doğru okunur
+function _paraOku(v) {
+  var t = String(v||'').replace(/[^\d.,]/g,'');
+  if (t.indexOf(',') >= 0) return parsePara(t);
+  if ((t.match(/\./g)||[]).length > 1) return parseFloat(t.replace(/\./g,'')) || 0;
+  return parseFloat(t) || 0;
+}
+
+function _mfChip(btn) {
+  var box = btn.parentNode;
+  Array.prototype.forEach.call(box.querySelectorAll('.mf-chip'), function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  var card = btn.closest('.mf-card');
+  var h = card && card.querySelector('input[type=hidden]'); if (h) h.value = btn.getAttribute('data-tur');
+  var t = card && card.querySelector('.mf-money input'); if (t) t.focus();
+}
+
 function _idpAddMasraf(icraId) {
   var turEl = document.getElementById('idp-masraf-tur');
   var tutarEl = document.getElementById('idp-masraf-tutar');
   var tarihEl = document.getElementById('idp-masraf-tarih');
   var aciklamaEl = document.getElementById('idp-masraf-aciklama');
   if(!tutarEl || !tutarEl.value.trim()) return notify('Tutar giriniz!');
-  var tutar = Number(tutarEl.value.replace(/[^0-9.,]/g,'').replace(',','.'));
+  var tutar = _paraOku(tutarEl.value);
   if(!tutar || tutar <= 0) return notify('Geçersiz tutar!');
   var icra = DB.get('icralar').find(function(x){return x.id===icraId;});
   var obj = {
@@ -1021,15 +1038,15 @@ function _idpRenderMasraflar(id, i, masraflar) {
     + '<div style="background:var(--bg3);border:1px solid '+(bakiye>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.5)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Avans Bakiyesi</div><div style="font-size:16px;font-weight:800;color:'+(bakiye>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(bakiye>=0?'+':'')+'₺'+fmt(Math.abs(bakiye))+'</div></div>'
     + '</div>'
     // Masraf ekleme formu
-    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
-    + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:10px">+ Masraf Ekle</div>'
-    + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-    + '<select id="idp-masraf-tur" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px">'
-    + '<option value="Harç">Harç</option><option value="Bilirkişi Ücreti">Bilirkişi Ücreti</option><option value="Posta Gideri">Posta Gideri</option><option value="Satış Avansı">Satış Avansı</option><option value="Diğer">Diğer</option></select>'
-    + '<input id="idp-masraf-tutar" placeholder="Tutar (₺)" style="width:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px">'
-    + '<input id="idp-masraf-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px;color-scheme:dark">'
-    + '<input id="idp-masraf-aciklama" placeholder="Açıklama..." style="flex:1;min-width:80px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:11px;padding:6px 8px">'
-    + '<button class="btn btn-gold" style="font-size:11px;padding:6px 12px" onclick="_idpAddMasraf(\''+id+'\')">+ Ekle</button>'
+    + '<div class="mf-card" onkeydown="if(event.key===\'Enter\'&&event.target.tagName===\'INPUT\'){event.preventDefault();_idpAddMasraf(\''+id+'\')}">'
+    + '<div class="mf-head">Yeni masraf</div>'
+    + '<input type="hidden" id="idp-masraf-tur" value="Harç">'
+    + '<div class="mf-chips"><button type="button" class="mf-chip on" data-tur="Harç" onclick="_mfChip(this)">⚖️ Harç</button><button type="button" class="mf-chip" data-tur="Posta Gideri" onclick="_mfChip(this)">✉️ Posta Gideri</button><button type="button" class="mf-chip" data-tur="Bilirkişi Ücreti" onclick="_mfChip(this)">🔬 Bilirkişi Ücreti</button><button type="button" class="mf-chip" data-tur="Satış Avansı" onclick="_mfChip(this)">🏷️ Satış Avansı</button><button type="button" class="mf-chip" data-tur="Diğer" onclick="_mfChip(this)">📎 Diğer</button></div>'
+    + '<div class="mf-row">'
+    + '<label class="mf-field mf-tutar"><span>Tutar</span><div class="mf-money"><b>₺</b><input id="idp-masraf-tutar" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></label>'
+    + '<label class="mf-field mf-tarih"><span>Tarih</span><input id="idp-masraf-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'"></label>'
+    + '<label class="mf-field mf-acik"><span>Açıklama</span><input id="idp-masraf-aciklama" placeholder="Örn. PTT tebligat masrafı" autocomplete="off"></label>'
+    + '<button type="button" class="btn btn-gold mf-ekle" onclick="_idpAddMasraf(\''+id+'\')">+ Ekle</button>'
     + '</div></div>'
     // Liste başlığı
     + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Masraf Geçmişi</div>'
@@ -1140,7 +1157,12 @@ function renderIcraTab(id, sekme) {
 
   } else if (sekme === 'finans') {
     // T3: KPI kartları + Ö1 faiz + Ö2 progress + Ö6 masraf
-    var netKazanc = (Number(i.tahsilEdilen)||0) - toplamMasraf;
+    // Net kazanç = büronun bu dosyadan geliri: akdi vekâlet + karşı vekâlet.
+    // Masraflar müvekkil adına yapılır (avanstan karşılanır); büro geliri değildir.
+    var karsiVekalet = (DB.get('finans')||[]).filter(function(f){
+      return f.tur==='Karşı Vekalet Ücreti' && (f.icraId===id || (i.no && f.ilgili===i.no));
+    }).reduce(function(a,b){return a+(Number(b.tutar)||0);},0);
+    var netKazanc = (Number(i.akdiUcret)||0) + karsiVekalet;
     var tahsilatPct = (Number(i.alacak)||0) > 0 ? Math.min(Math.round((Number(i.tahsilEdilen)||0) / Number(i.alacak) * 100), 100) : 0;
 
     el.innerHTML = '<div style="padding:16px">'
@@ -1150,7 +1172,7 @@ function renderIcraTab(id, sekme) {
       + '<div style="background:var(--bg3);border:1px solid rgba(201,168,76,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Asıl Alacak</div><div style="font-size:16px;font-weight:800;color:var(--gold);font-family:monospace">₺'+fmt(i.alacak)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid rgba(74,140,92,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Tahsil Edilen</div><div style="font-size:16px;font-weight:800;color:var(--green);font-family:monospace">₺'+fmt(i.tahsilEdilen||0)+'</div></div>'
       + '<div style="background:var(--bg3);border:1px solid rgba(192,83,58,0.3);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Toplam Masraf</div><div style="font-size:16px;font-weight:800;color:var(--red);font-family:monospace">₺'+fmt(toplamMasraf)+'</div></div>'
-      + '<div style="background:var(--bg3);border:1px solid '+(netKazanc>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.3)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Net Kazanç</div><div style="font-size:16px;font-weight:800;color:'+(netKazanc>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(netKazanc>=0?'+':'')+'₺'+fmt(Math.abs(netKazanc))+'</div></div>'
+      + '<div style="background:var(--bg3);border:1px solid '+(netKazanc>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.3)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px" title="Akdi vekâlet + karşı vekâlet ücreti">Net Kazanç</div><div style="font-size:16px;font-weight:800;color:'+(netKazanc>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(netKazanc<0?'−':'')+'₺'+fmt(Math.abs(netKazanc))+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">Akdi + karşı vekâlet</div></div>'
       + '</div>'
       // Vekalet bilgileri
       + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">'
@@ -1173,7 +1195,8 @@ function renderIcraTab(id, sekme) {
   } else if (sekme === 'haciz') {
     // Keep existing haciz template but with Ö5 summary dashboard at top
     var bankalar = ['Ziraat Bankası','Vakıfbank','Halkbank','İş Bankası','Garanti BBVA','Yapı Kredi','Akbank','Denizbank','Finansbank (QNB)','Kuveyt Türk','HSBC'];
-    var tasinmazlar = hacizData.tasinmazlarList || [];
+    var tasinmazlar = (hacizData.tasinmazlarList || []).map(function(t,ix){return Object.assign({_ix:ix},t);});
+    var eskiTasinmaz = hacizData.tasinmazlar_list || [];
     var araclar = hacizData.araclarList || [];
     var seciliBanka = (hacizData.bankalar||[]).length;
     var tarihAlani = function(key, label) {
@@ -1214,28 +1237,51 @@ function renderIcraTab(id, sekme) {
       + '</div>'
       // T4: Timeline
       + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;font-weight:700">📅 Takip Aşamaları</div>'
-      + '<div style="display:flex;flex-direction:column;gap:0;margin-bottom:16px;padding-left:8px">'
-      + tlItems.map(function(t, idx) {
+      + '<div class="ht-grid">'
+      + tlItems.map(function(t) {
         var val = hacizData[t.key];
         var isSet = !!val;
         var displayVal = val ? val.split('-').reverse().join('.') : '';
-        var dotColor = isSet ? 'var(--green)' : 'var(--gold)';
-        var lineOpacity = idx < tlItems.length-1 ? '1' : '0';
-        return '<div style="display:flex;gap:12px;align-items:flex-start;position:relative">'
-          + '<div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:20px">'
-          + '<div style="width:10px;height:10px;border-radius:50%;background:'+dotColor+';margin-top:5px'+(isSet?'':';box-shadow:0 0 0 3px rgba(201,168,76,0.2)')+'"></div>'
-          + '<div style="width:1px;flex:1;background:var(--border);margin-top:2px;opacity:'+lineOpacity+'"></div>'
-          + '</div>'
-          + '<div style="flex:1;padding-bottom:12px">'
-          + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
-          + '<span style="font-size:14px">'+t.icon+'</span>'
-          + '<span style="font-size:12px;font-weight:600;color:'+(isSet?'var(--text)':'var(--text3)')+'">'+t.label+'</span>'
-          + (isSet?'<span style="font-size:11px;color:var(--green);font-family:monospace">'+displayVal+'</span>':'<span style="font-size:11px;color:var(--text3)">Girilmedi</span>')
-          + '</div>'
-          + tarihAlani(t.key, t.label)
+        var inputId = 'th-' + id + '-' + t.key;
+        return '<div class="ht-cell'+(isSet?' set':'')+'">'
+          + '<div class="ht-lbl"><span>'+t.icon+'</span>'+escHtml(t.label)+'</div>'
+          + '<div class="ht-in">'
+          + '<input id="'+inputId+'" type="text" inputmode="numeric" placeholder="GG.AA.YYYY" value="'+displayVal+'" oninput="hacizTarihFormat(this)" onblur="hacizTarihKaydet(this,\''+id+'\',\''+t.key+'\')" onkeydown="if(event.key===\'Enter\'){this.blur()}">'
+          + '<button type="button" title="Bugün" onclick="var t=new Date().toISOString().slice(0,10);document.getElementById(\''+inputId+'\').value=t.split(\'-\').reverse().join(\'.\');saveIcraHaciz(\''+id+'\',\''+t.key+'\',t);renderIcraTab(\''+id+'\',\'haciz\')">Bugün</button>'
           + '</div></div>';
       }).join('')
       + '</div>'
+      // Taşınmazlar
+      + '<div class="ht-sec">🏘 Taşınmazlar <span>'+(tasinmazlar.length+eskiTasinmaz.length)+'</span></div>'
+      + '<div class="ht-box">'
+      + tasinmazlar.map(function(t){
+          return '<div class="ht-item"><div><b>'+escHtml([t.il,t.ilce].filter(Boolean).join(' / ')||'—')+'</b>'
+            + '<small>'+escHtml(t.adres||'')+(t.tarih?' · Haciz: '+fmtDate(t.tarih):'')+'</small></div>'
+            + '<button type="button" onclick="icraTasinmazSil(\''+id+'\','+t._ix+')">🗑</button></div>';
+        }).join('')
+      + eskiTasinmaz.map(function(t){
+          return '<div class="ht-item"><div><b>['+escHtml(t.tur||'')+'] '+escHtml(t.adres||'')+'</b><small>'+(t.tarih?'Haciz: '+fmtDate(t.tarih):'')+(t.aciklama?' · '+escHtml(t.aciklama):'')+'</small></div></div>';
+        }).join('')
+      + '<div class="ht-form ht-form-ts">'
+      + '<input id="tsnmz-il-'+id+'" placeholder="İl">'
+      + '<input id="tsnmz-ilce-'+id+'" placeholder="İlçe">'
+      + '<input id="tsnmz-adres-'+id+'" placeholder="Mahalle, ada/parsel, nitelik…">'
+      + '<input id="tsnmz-tarih-'+id+'" type="date" title="Haciz tarihi">'
+      + '<button type="button" class="btn btn-gold" onclick="icraTasinmazEkle(\''+id+'\')">+ Ekle</button>'
+      + '</div></div>'
+      // Araçlar
+      + '<div class="ht-sec">🚗 Araçlar <span>'+araclar.length+'</span></div>'
+      + '<div class="ht-box">'
+      + araclar.map(function(a,ix){
+          return '<div class="ht-item"><div><b style="font-family:monospace">'+escHtml(a.plaka||'')+'</b><small>'+escHtml([a.marka,a.model].filter(Boolean).join(' '))+'</small></div>'
+            + '<button type="button" onclick="icraAracSil(\''+id+'\','+ix+')">🗑</button></div>';
+        }).join('')
+      + '<div class="ht-form ht-form-ar">'
+      + '<input id="arac-plaka-'+id+'" placeholder="Plaka" style="text-transform:uppercase">'
+      + '<input id="arac-marka-'+id+'" placeholder="Marka">'
+      + '<input id="arac-model-'+id+'" placeholder="Model / yıl">'
+      + '<button type="button" class="btn btn-gold" onclick="icraAracEkle(\''+id+'\')">+ Ekle</button>'
+      + '</div></div>'
       // Remaining haciz sections: maaş, taşınmaz, araç, banka, satış avansı
       // We keep references to the existing saveIcraHaciz functions
       + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;font-weight:700">💼 Maaş Haczi</div>'
@@ -1261,20 +1307,24 @@ function renderIcraTab(id, sekme) {
   } else if (sekme === 'kapak') {
     var kd = JSON.parse(localStorage.getItem('icra_kapak_' + id) || '{}');
     // Faiz hesaplama: ana para × oran × gün / 365
-    var faizHesapla = function() {
-      var ana = parseFloat((kd.anaPara||'').replace(',','.')) || 0;
-      var oran = parseFloat((kd.faizOrani||'').replace(',','.')) || 0;
-      var bas = kd.faizBasTarih;
-      if (!ana || !oran || !bas) return null;
-      var gun = Math.max(0, Math.floor((new Date() - new Date(bas)) / 86400000));
-      return ana * (oran / 100) * (gun / 365);
-    };
-    var hesaplananFaiz = faizHesapla();
+    // Tutar: "1.200.000", "1200000", "187171,05", "1.250,50" hepsi doğru okunur
+    var kpNum = _paraOku;
+    var gunFark = function(a, b) { return Math.max(0, Math.floor((new Date(b) - new Date(a)) / 86400000)); };
+    var ana = kpNum(kd.anaPara);
+    var oran = parseFloat(String(kd.faizOrani||'').replace(',','.')) || 0;
+    var bugun = new Date().toISOString().slice(0,10);
+    // Takip öncesi: vade → takip tarihi; takip sonrası: takip tarihi → bugün
+    var oncesiGun = (kd.faizVadeTarih && kd.faizBasTarih) ? gunFark(kd.faizVadeTarih, kd.faizBasTarih) : null;
+    var sonrasiGun = kd.faizBasTarih ? gunFark(kd.faizBasTarih, bugun) : null;
+    var hesaplananOncesi = (ana && oran && oncesiGun !== null) ? ana * (oran/100) * (oncesiGun/365) : null;
+    var hesaplananFaiz = (ana && oran && sonrasiGun !== null) ? ana * (oran/100) * (sonrasiGun/365) : null;
+    var gosterilecekOncesi = hesaplananOncesi !== null ? hesaplananOncesi.toFixed(2) : null;
     var gosterilecekFaiz = hesaplananFaiz !== null ? hesaplananFaiz.toFixed(2) : null;
 
     var kalemler = [
       { key: 'anaPara',      label: 'Ana Para',         icon: '💰', zorunlu: true },
-      { key: 'islemiFaiz',   label: 'İşlemiş Faiz',     icon: '📈', readonly: gosterilecekFaiz !== null },
+      { key: 'takipOncesiFaiz', label: 'Takip Öncesi İşlemiş Faiz', icon: '📉', hesap: gosterilecekOncesi },
+      { key: 'islemiFaiz',   label: 'Takip Sonrası İşlemiş Faiz', icon: '📈', hesap: gosterilecekFaiz },
       { key: 'vekaletUcreti',label: 'Vekalet Ücreti',   icon: '⚖️', zorunlu: false },
       { key: 'masrafMiktari',label: 'Masraf Miktarı',   icon: '📋', zorunlu: false },
       { key: 'tahsilHarci',  label: 'Tahsil Harcı',     icon: '🏛️', zorunlu: false },
@@ -1284,10 +1334,10 @@ function renderIcraTab(id, sekme) {
     // Toplam hesapla
     var toplam = kalemler.reduce(function(acc, k) {
       var val;
-      if (k.key === 'islemiFaiz' && gosterilecekFaiz !== null) {
-        val = parseFloat(gosterilecekFaiz) || 0;
+      if (k.hesap != null) {
+        val = parseFloat(k.hesap) || 0;
       } else {
-        val = parseFloat((kd[k.key]||'').replace(',','.')) || 0;
+        val = kpNum(kd[k.key]);
       }
       return acc + val;
     }, 0);
@@ -1304,30 +1354,34 @@ function renderIcraTab(id, sekme) {
       // Faiz parametreleri kutusu
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px">'
       + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:10px">⚙️ Faiz Parametreleri</div>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
       + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Faiz Oranı (%)</div>'
       + '<input type="text" inputmode="decimal" value="'+escAttr(kd.faizOrani||'')+'" placeholder="ör: 9.00" onchange="icraKapakKaydet(\''+id+'\',\'faizOrani\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;box-sizing:border-box"></div>'
-      + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Faiz Başlangıç Tarihi</div>'
+      + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Vade Tarihi</div>'
+      + '<input type="date" value="'+escAttr(kd.faizVadeTarih||'')+'" onchange="icraKapakKaydet(\''+id+'\',\'faizVadeTarih\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;box-sizing:border-box"></div>'
+      + '<div><div style="font-size:10px;color:var(--text3);margin-bottom:3px">Takip Tarihi</div>'
       + '<input type="date" value="'+escAttr(kd.faizBasTarih||'')+'" onchange="icraKapakKaydet(\''+id+'\',\'faizBasTarih\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;box-sizing:border-box">'
       + '</div>'
       + '</div>'
-      + (kd.faizBasTarih && kd.faizOrani && kd.anaPara
-        ? '<div style="font-size:11px;color:var(--text3);margin-top:8px">📅 Bugün itibarıyla <strong style="color:var(--text2)">'
-          + Math.max(0,Math.floor((new Date()-new Date(kd.faizBasTarih))/86400000))
-          + ' gün</strong> — Hesaplanan faiz: <strong style="color:var(--gold)">'+fmtTL(hesaplananFaiz||0)+'</strong></div>'
+      + (hesaplananOncesi !== null
+        ? '<div style="font-size:11px;color:var(--text3);margin-top:8px">📉 Vade → takip: <strong style="color:var(--text2)">'+oncesiGun+' gün</strong> — Takip öncesi faiz: <strong style="color:var(--gold)">'+fmtTL(hesaplananOncesi)+'</strong></div>'
         : '')
+      + (hesaplananFaiz !== null
+        ? '<div style="font-size:11px;color:var(--text3);margin-top:4px">📈 Takip → bugün: <strong style="color:var(--text2)">'+sonrasiGun+' gün</strong> — Takip sonrası faiz: <strong style="color:var(--gold)">'+fmtTL(hesaplananFaiz)+'</strong></div>'
+        : '')
+      + '<div style="font-size:10px;color:var(--text3);margin-top:6px">Vade tarihi boş bırakılırsa takip öncesi faiz elle girilebilir (ör. takip talebindeki tutar).</div>'
       + '</div>'
       // Alacak kalemleri
       + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px">'
       + '<div style="font-size:10px;color:var(--gold);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;padding:10px 12px;border-bottom:1px solid var(--border)">📊 Alacak Kalemleri</div>'
       + kalemler.map(function(k) {
-          var isReadonly = k.key === 'islemiFaiz' && gosterilecekFaiz !== null;
-          var displayVal = isReadonly ? gosterilecekFaiz : escAttr(kd[k.key]||'');
+          var isReadonly = k.hesap != null;
+          var displayVal = isReadonly ? k.hesap : escAttr(kd[k.key]||'');
           return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04)">'
             + '<span style="font-size:16px;width:22px;text-align:center;flex-shrink:0">'+k.icon+'</span>'
             + '<div style="flex:1;font-size:13px;color:var(--text2)">'+escHtml(k.label)+'</div>'
             + (isReadonly
-              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(201,168,76,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(gosterilecekFaiz))+'</div>'
+              ? '<div style="font-size:13px;font-weight:600;color:var(--gold);font-family:monospace;background:rgba(201,168,76,0.08);padding:6px 10px;border-radius:6px;min-width:110px;text-align:right">'+fmtTL(parseFloat(k.hesap))+'</div>'
               : '<input type="text" inputmode="decimal" value="'+displayVal+'" placeholder="0,00" onchange="icraKapakKaydet(\''+id+'\',\''+k.key+'\',this.value)" style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:6px 10px;outline:none;text-align:right;font-family:monospace">')
             + '</div>';
         }).join('')
@@ -1345,8 +1399,8 @@ function renderIcraTab(id, sekme) {
           + '<input type="text" inputmode="decimal" value="'+escAttr(kd.yatanPara)+'" onchange="icraKapakKaydet(\''+id+'\',\'yatanPara\',this.value)" style="width:110px;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-size:13px;padding:3px 6px;outline:none;text-align:right;font-family:monospace">'
           + '</div>'
           + '<div style="display:flex;align-items:center;justify-content:space-between">'
-          + '<div style="font-size:13px;font-weight:700;color:'+(toplam-(parseFloat((kd.yatanPara||'').replace(',','.'))||0)<=0?'var(--green)':'var(--red)')+'">Bakiye Borç</div>'
-          + '<div style="font-size:16px;font-weight:800;font-family:monospace;color:'+(toplam-(parseFloat((kd.yatanPara||'').replace(',','.'))||0)<=0?'var(--green)':'var(--red)')+'">'+fmtTL(Math.max(0,toplam-(parseFloat((kd.yatanPara||'').replace(',','.'))||0)))+'</div>'
+          + '<div style="font-size:13px;font-weight:700;color:'+(toplam-kpNum(kd.yatanPara)<=0?'var(--green)':'var(--red)')+'">Bakiye Borç</div>'
+          + '<div style="font-size:16px;font-weight:800;font-family:monospace;color:'+(toplam-kpNum(kd.yatanPara)<=0?'var(--green)':'var(--red)')+'">'+fmtTL(Math.max(0,toplam-kpNum(kd.yatanPara)))+'</div>'
           + '</div>'
           + '</div>'
         : '<button onclick="icraKapakKaydet(\''+id+'\',\'yatanPara\',\'0\');renderIcraTab(\''+id+'\',\'kapak\')" style="margin-top:8px;width:100%;background:transparent;border:1px dashed var(--border);border-radius:8px;color:var(--text3);font-size:12px;padding:8px;cursor:pointer">+ Yatan Para Ekle</button>')
@@ -1542,14 +1596,14 @@ function icraTasinmazEkle(icraId) {
   arr.push({ il: il==='__diger__'?adres:il, ilce, adres, tarih });
   data.tasinmazlarList = arr;
   _hacizLocalYaz(icraId, data);
-  showIcraDetail(icraId);
+  if (typeof renderIcraTab === 'function') renderIcraTab(icraId, 'haciz'); else showIcraDetail(icraId);
 }
 
 function icraTasinmazSil(icraId, idx) {
   const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
   (data.tasinmazlarList||[]).splice(idx, 1);
   _hacizLocalYaz(icraId, data);
-  showIcraDetail(icraId);
+  if (typeof renderIcraTab === 'function') renderIcraTab(icraId, 'haciz'); else showIcraDetail(icraId);
 }
 
 function icraAracEkle(icraId) {
@@ -1562,14 +1616,14 @@ function icraAracEkle(icraId) {
   arr.push({ plaka, marka, model });
   data.araclarList = arr;
   _hacizLocalYaz(icraId, data);
-  showIcraDetail(icraId);
+  if (typeof renderIcraTab === 'function') renderIcraTab(icraId, 'haciz'); else showIcraDetail(icraId);
 }
 
 function icraAracSil(icraId, idx) {
   const data = JSON.parse(localStorage.getItem('icra_haciz_' + icraId) || '{}');
   (data.araclarList||[]).splice(idx, 1);
   _hacizLocalYaz(icraId, data);
-  showIcraDetail(icraId);
+  if (typeof renderIcraTab === 'function') renderIcraTab(icraId, 'haciz'); else showIcraDetail(icraId);
 }
 
 // Tarih input'unda otomatik nokta ekle (GG.AA.YYYY formatı)

@@ -4050,35 +4050,56 @@ function _gorevRow(t, ctxType, id) {
   var today2 = new Date(); today2.setHours(0, 0, 0, 0);
   var diff = t.tarih ? Math.ceil((_yerelTarih(t.tarih) - today2) / 86400000) : null;
   var gecikti = diff !== null && diff < 0 && !t.done;
-  var oclr = t.oncelik === 'Acil' ? 'var(--red)' : t.oncelik === 'Yüksek' ? 'var(--gold)' : 'var(--text3)';
+  var onc = t.oncelik === 'Acil' ? 'acil' : t.oncelik === 'Yüksek' ? 'yuksek' : 'normal';
   var durum = _gorevDurum(t);
   var db = _gorevDurumBadge(durum);
   var deleteFn = ctxType === 'dava' ? '_ddpDeleteTask' : '_idpDeleteTask';
-
-  return '<tr' + (gecikti ? ' style="background:rgba(192,83,58,0.06)"' : '') + '>'
-    + '<td style="width:34px"><div class="ddp-checkbox ' + (t.done ? 'done' : 'undone') + '" onclick="toggleTask(\'' + t.id + '\',function(){_gorevRerender(\'' + ctxType + '\',\'' + id + '\')})">' + (t.done ? '<span style="color:#fff;font-size:11px">✓</span>' : '') + '</div></td>'
-    + '<td><div style="font-size:13px;font-weight:600;color:' + (t.done ? 'var(--text3)' : 'var(--text)') + (t.done ? ';text-decoration:line-through' : '') + '">' + escHtml(t.baslik || t.text || '') + '</div></td>'
-    + '<td style="font-size:12px;color:' + (gecikti ? 'var(--red)' : diff === 0 ? 'var(--gold)' : 'var(--text3)') + ';white-space:nowrap">' + (t.tarih ? fmtDate(t.tarih.slice(0, 10)) + (gecikti ? ' ⚠' : '') : '—') + '</td>'
-    + '<td><span style="font-size:11px;font-weight:700;color:' + oclr + ';background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:10px">' + escHtml(t.oncelik || 'Normal') + '</span></td>'
-    + '<td><span style="cursor:pointer;font-size:11px;font-weight:700;color:' + db.renk + ';background:' + db.renk + '1a;padding:3px 10px;border-radius:10px;white-space:nowrap" title="Tıklayarak durumu değiştir" onclick="_gorevDurumDongu(\'' + t.id + '\',\'' + ctxType + '\',\'' + id + '\')">' + db.icon + ' ' + db.label + '</span></td>'
-    + '<td style="text-align:right;white-space:nowrap">'
-    + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="editTask(\'' + t.id + '\')">✏</button>'
-    + '<button class="btn btn-ghost" style="font-size:11px;padding:3px 8px;color:var(--red)" onclick="' + deleteFn + '(\'' + t.id + '\',\'' + id + '\')">🗑</button>'
-    + '</td></tr>';
+  var rerender = 'function(){_gorevRerender(\'' + ctxType + '\',\'' + id + '\')}';
+  // Göreli tarih: "Bugün", "Yarın", "3 gün kaldı", "2 gün gecikti"
+  var rel = '';
+  if (diff !== null && !t.done) {
+    rel = diff === 0 ? 'Bugün' : diff === 1 ? 'Yarın' : diff > 1 ? diff + ' gün kaldı' : Math.abs(diff) + ' gün gecikti';
+  }
+  var dateCls = gecikti ? 'late' : diff === 0 ? 'today' : '';
+  return '<div class="gv-item onc-' + onc + (t.done ? ' done' : '') + (gecikti ? ' late' : '') + '">'
+    + '<button type="button" class="gv-check" title="' + (t.done ? 'Geri al' : 'Tamamlandı') + '" onclick="toggleTask(\'' + t.id + '\',' + rerender + ')">' + (t.done ? '✓' : '') + '</button>'
+    + '<div class="gv-body" onclick="editTask(\'' + t.id + '\')">'
+    + '<div class="gv-title">' + escHtml(t.baslik || t.text || '') + '</div>'
+    + '<div class="gv-meta">'
+    + (t.tarih ? '<span class="gv-date ' + dateCls + '">📅 ' + fmtDate(t.tarih.slice(0, 10)) + (rel ? ' · ' + rel : '') + '</span>' : '<span class="gv-date">Tarih yok</span>')
+    + (onc !== 'normal' ? '<span class="gv-onc">' + escHtml(t.oncelik) + '</span>' : '')
+    + '</div></div>'
+    + '<span class="gv-durum d-' + durum + '" title="Tıklayarak durumu değiştir" onclick="_gorevDurumDongu(\'' + t.id + '\',\'' + ctxType + '\',\'' + id + '\')">' + db.label + '</span>'
+    + '<div class="gv-act">'
+    + '<button type="button" title="Düzenle" onclick="editTask(\'' + t.id + '\')">✏️</button>'
+    + '<button type="button" title="Sil" onclick="' + deleteFn + '(\'' + t.id + '\',\'' + id + '\')">🗑</button>'
+    + '</div></div>';
 }
 
 function _gorevRowListHTML(tasks, ctxType, id) {
-  if (!tasks.length) return '<div style="text-align:center;color:var(--text3);padding:30px">Bu dosyada görev yok</div>';
-  var siraliTasks = tasks.slice().sort(function(a, b) {
+  if (!tasks.length) return '<div class="gv-empty"><div>✨</div>Bu dosyada henüz görev yok.<br><small>Yukarıdaki kutuya yazıp Enter\'a basarak hızlıca ekleyebilirsiniz.</small></div>';
+  var today2 = new Date(); today2.setHours(0, 0, 0, 0);
+  var byDate = function(a, b) {
     var da = a.tarih ? new Date(a.tarih) : new Date('9999-12-31');
     var db_ = b.tarih ? new Date(b.tarih) : new Date('9999-12-31');
     return da - db_;
-  });
-  return '<div class="table-wrap"><table><thead><tr>'
-    + '<th></th><th>Görev</th><th>Tarih</th><th>Öncelik</th><th>Durum</th><th></th>'
-    + '</tr></thead><tbody>'
-    + siraliTasks.map(function(t) { return _gorevRow(t, ctxType, id); }).join('')
-    + '</tbody></table></div>';
+  };
+  var acik = tasks.filter(function(t){ return !t.done; }).sort(byDate);
+  var gecikmis = acik.filter(function(t){ return t.tarih && _yerelTarih(t.tarih) < today2; });
+  var yaklasan = acik.filter(function(t){ return gecikmis.indexOf(t) < 0; });
+  var tamam = tasks.filter(function(t){ return t.done; }).sort(byDate).reverse();
+  var grup = function(baslik, cls, arr, kapali) {
+    if (!arr.length) return '';
+    var ic = arr.map(function(t){ return _gorevRow(t, ctxType, id); }).join('');
+    return kapali
+      ? '<details class="gv-group ' + cls + '"><summary>' + baslik + ' <span>' + arr.length + '</span></summary>' + ic + '</details>'
+      : '<div class="gv-group ' + cls + '"><div class="gv-gh">' + baslik + ' <span>' + arr.length + '</span></div>' + ic + '</div>';
+  };
+  return '<div class="gv-list">'
+    + grup('Gecikmiş', 'g-late', gecikmis)
+    + grup('Yapılacaklar', 'g-open', yaklasan)
+    + grup('Tamamlananlar', 'g-done', tamam, true)
+    + '</div>';
 }
 
 var _lqIdx = Math.floor(Math.random() * _loginQuotes.length);

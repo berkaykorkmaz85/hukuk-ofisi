@@ -2831,18 +2831,16 @@ function _ddpRenderMasraflar(id, d) {
     + '<div style="background:var(--bg3);border:1px solid '+(bakiye>=0?'rgba(74,140,92,0.3)':'rgba(192,83,58,0.5)')+';border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Avans Bakiyesi</div><div style="font-size:16px;font-weight:800;color:'+(bakiye>=0?'var(--green)':'var(--red)')+';font-family:monospace">'+(bakiye>=0?'+':'')+'₺'+fmt(Math.abs(bakiye))+'</div></div>'
     + '</div>'
     // Masraf ekleme formu
-    + '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px">'
-    + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:10px">+ Masraf Ekle</div>'
-    + '<div class="form-grid" style="gap:8px;margin-bottom:8px">'
-    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tarih</label><input type="date" id="ddp-masraf-tarih" value="'+new Date().toISOString().slice(0,10)+'" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none;color-scheme:dark"></div>'
-    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tutar (₺)</label><input type="number" id="ddp-masraf-tutar" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"></div>'
-    + '</div>'
-    + '<div class="form-grid" style="gap:8px;margin-bottom:10px">'
-    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Tür</label><select id="ddp-masraf-tur" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"><option>Harç</option><option>Tebligat Ücreti</option><option>Bilirkişi Ücreti</option><option>Posta Ücreti</option><option>Keşif Masrafı</option><option>Tercüman Ücreti</option><option>Yol/Konaklama</option><option>Diğer</option></select></div>'
-    + '<div><label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Açıklama</label><input type="text" id="ddp-masraf-aciklama" placeholder="İsteğe bağlı..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;padding:6px 10px;font-family:inherit;outline:none"></div>'
-    + '</div>'
-    + '<button class="btn btn-gold" style="width:100%;justify-content:center;font-size:13px" onclick="_ddpAddDavaMasraf(\''+id+'\',\''+escHtml(d.muvekkil||'')+'\')">+ Masraf Kaydet</button>'
-    + '</div>'
+    + '<div class="mf-card" onkeydown="if(event.key===\'Enter\'&&event.target.tagName===\'INPUT\'){event.preventDefault();_ddpAddDavaMasraf(\''+id+'\',\''+escHtml(d.muvekkil||'')+'\')}">'
+    + '<div class="mf-head">Yeni masraf</div>'
+    + '<input type="hidden" id="ddp-masraf-tur" value="Harç">'
+    + '<div class="mf-chips"><button type="button" class="mf-chip on" data-tur="Harç" onclick="_mfChip(this)">⚖️ Harç</button><button type="button" class="mf-chip" data-tur="Tebligat Ücreti" onclick="_mfChip(this)">✉️ Tebligat Ücreti</button><button type="button" class="mf-chip" data-tur="Bilirkişi Ücreti" onclick="_mfChip(this)">🔬 Bilirkişi Ücreti</button><button type="button" class="mf-chip" data-tur="Keşif Masrafı" onclick="_mfChip(this)">🔎 Keşif Masrafı</button><button type="button" class="mf-chip" data-tur="Tercüman Ücreti" onclick="_mfChip(this)">🗣️ Tercüman Ücreti</button><button type="button" class="mf-chip" data-tur="Yol/Konaklama" onclick="_mfChip(this)">🚗 Yol/Konaklama</button><button type="button" class="mf-chip" data-tur="Diğer" onclick="_mfChip(this)">📎 Diğer</button></div>'
+    + '<div class="mf-row">'
+    + '<label class="mf-field mf-tutar"><span>Tutar</span><div class="mf-money"><b>₺</b><input id="ddp-masraf-tutar" inputmode="decimal" placeholder="0,00" autocomplete="off"></div></label>'
+    + '<label class="mf-field mf-tarih"><span>Tarih</span><input id="ddp-masraf-tarih" type="date" value="'+new Date().toISOString().slice(0,10)+'"></label>'
+    + '<label class="mf-field mf-acik"><span>Açıklama</span><input id="ddp-masraf-aciklama" placeholder="Örn. bilirkişi ücreti avansı" autocomplete="off"></label>'
+    + '<button type="button" class="btn btn-gold mf-ekle" onclick="_ddpAddDavaMasraf(\''+id+'\',\''+escHtml(d.muvekkil||'')+'\')">+ Ekle</button>'
+    + '</div></div>'
     // Liste başlığı
     + '<div style="font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;margin-bottom:8px">Masraf Geçmişi</div>'
     + (masraflar.length === 0
@@ -2864,7 +2862,7 @@ function _ddpRenderMasraflar(id, d) {
 
 function _ddpAddDavaMasraf(davaId, muvekkilAd) {
   var tarih = document.getElementById('ddp-masraf-tarih')?.value;
-  var tutar = parseFloat(document.getElementById('ddp-masraf-tutar')?.value)||0;
+  var tutar = _paraOku(document.getElementById('ddp-masraf-tutar')?.value);
   var tur   = document.getElementById('ddp-masraf-tur')?.value||'Harç';
   var aciklama = document.getElementById('ddp-masraf-aciklama')?.value||'';
   if (!tutar || tutar <= 0) { notify('Tutar giriniz'); return; }

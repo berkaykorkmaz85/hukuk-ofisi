@@ -3201,7 +3201,8 @@ function updateDavaFinans() {
   const tahsil = Number(document.getElementById('d-tahsil-edilen').value) || 0;
   const masraf = Number(document.getElementById('d-masraf').value) || 0;
   document.getElementById('d-kalan-alacak').value = akdi - tahsil > 0 ? fmt(akdi - tahsil) + ' ₺' : '0 ₺';
-  document.getElementById('d-net-kazanc').value = fmt(tahsil - masraf) + ' ₺';
+  // Net kazanç = akdi vekâlet (karşı vekâlet ücreti ayrıca eklenir); masraf büro geliri değildir
+  document.getElementById('d-net-kazanc').value = fmt(akdi) + ' ₺';
 }
 
 
@@ -3221,7 +3222,8 @@ function updateIcraFinans() {
   const akdi = Number(document.getElementById('i-akdi-ucret').value) || 0;
   const tahsil = Number(document.getElementById('i-tahsil-edilen').value) || 0;
   const masraf = Number(document.getElementById('i-masraf').value) || 0;
-  document.getElementById('i-net-kazanc').value = fmt(tahsil - masraf) + ' ₺';
+  // Net kazanç = akdi vekâlet (karşı vekâlet ücreti dosya detayında eklenir); masraf büro geliri değildir
+  document.getElementById('i-net-kazanc').value = fmt(akdi) + ' ₺';
 }
 
 function switchKisilerTab(tab) {
