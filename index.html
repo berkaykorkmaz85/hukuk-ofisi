@@ -4700,7 +4700,7 @@
           <label>İlgili Dosya <span style="font-weight:400;color:var(--text3)">(opsiyonel)</span></label>
           <div style="position:relative">
             <input id="f-ilgili" placeholder="Dosya ara veya seç..." autocomplete="off"
-              oninput="finansDosyaAra(this.value)"
+              oninput="finansDosyaAra(this.value);_ilgiliAlanAc(this)"
               onfocus="finansDosyaAra(this.value);_ilgiliAlanAc(this)"
               onblur="setTimeout(()=>{const d=document.getElementById('f-ilgili-dropdown');if(d)d.style.display='none';_ilgiliAlanKapat(this)},200)"
               style="width:100%;padding-right:32px">
@@ -5290,16 +5290,18 @@
 <script src="js/04-arac-ve-modul.js?v=20261007g"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
 <script>
-// "İlgili dosya" listesi pencerenin altında kesilmesin: odaklanınca pencereye alt boşluk
-// eklenir ve alan yukarı kaydırılır; odak bitince boşluk kaldırılır.
+// "İlgili dosya" listesi pencerenin taşma sınırında kesilmesin: liste ekrana sabitlenir
+// (position:fixed), alanın altında yer yoksa üstünde açılır.
 function _ilgiliAlanAc(inp){
-  var m = inp.closest('.modal'); if(!m) return;
-  m.style.paddingBottom = '320px';
-  setTimeout(function(){ inp.scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+  var dd = document.getElementById('f-ilgili-dropdown'); if(!dd) return;
+  var r = inp.getBoundingClientRect(), alt = window.innerHeight - r.bottom - 12, ust = r.top - 12;
+  var h = Math.min(320, Math.max(alt, ust));
+  dd.style.position = 'fixed'; dd.style.left = r.left + 'px'; dd.style.width = r.width + 'px'; dd.style.right = 'auto';
+  dd.style.maxHeight = h + 'px'; dd.style.zIndex = 100000;
+  if (alt >= 200 || alt >= ust) { dd.style.top = (r.bottom + 4) + 'px'; dd.style.bottom = 'auto'; }
+  else { dd.style.top = 'auto'; dd.style.bottom = (window.innerHeight - r.top + 4) + 'px'; }
 }
-function _ilgiliAlanKapat(inp){
-  var m = inp && inp.closest ? inp.closest('.modal') : null; if(m) m.style.paddingBottom = '';
-}
+function _ilgiliAlanKapat(){}
 </script>
 <script src="js/06-para-girisi.js?v=20261007b"></script>
 
