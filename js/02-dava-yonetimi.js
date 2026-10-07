@@ -1652,7 +1652,16 @@ function makeBar(id, labels, datasets) {
             label: c2 => ` ${c2.dataset.label}: ₺${fmt(c2.raw)}`,
             afterBody: items => {
               const vals = items.map(i => i.raw);
-              if (vals.length >= 2) { const net = vals[0] - vals[1]; return [`Net: ${net >= 0 ? '+' : '−'}₺${fmt(Math.abs(net))}`]; }
+              if (vals.length >= 2) {
+                // Masraflar müvekkilden alınan avanstan karşılanır; avans net hesabına eklenir
+                const avArr = (items[1].dataset && items[1].dataset.avans) || [];
+                const av = avArr[items[0].dataIndex] || 0;
+                const net = vals[0] - vals[1] + av;
+                const out = [];
+                if (av) out.push(`Avans alınan: ₺${fmt(av)}`);
+                out.push(`Net: ${net >= 0 ? '+' : '−'}₺${fmt(Math.abs(net))}`);
+                return out;
+              }
               return [];
             }
           }
@@ -1844,7 +1853,7 @@ function renderDashboard() {
 
     // --- BAR: Aylık finans (son 6 ay) ---
     const months = [];
-    const tahArr = [], masArr = [];
+    const tahArr = [], masArr = [], avArr = [];
     for (let m=5; m>=0; m--) {
       const d = new Date(); d.setMonth(d.getMonth()-m);
       const y = d.getFullYear(), mo = d.getMonth();
@@ -1856,10 +1865,11 @@ function renderDashboard() {
       var mVal = finans.filter(f=>MASRAF_TURLER.includes(f.tur)&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0);
       tahArr.push(tVal);
       masArr.push(mVal + _dosyaMasrafAy(y+'-'+String(mo+1).padStart(2,'0')));
+      avArr.push(finans.filter(f=>f.tur==='Masraf Ödemesi'&&new Date(f.tarih).getMonth()===mo&&new Date(f.tarih).getFullYear()===y).reduce((a,b)=>a+(Number(b.tutar)||0),0));
     }
     makeBar('chart-finans-aylik', months, [
       { label:'Tahsilat', data:tahArr, backgroundColor:'rgba(34,163,90,0.85)', borderColor:'#22a35a', borderWidth:1, borderRadius:4 },
-      { label:'Masraf',   data:masArr, backgroundColor:'rgba(224,71,43,0.85)', borderColor:'#e0472b', borderWidth:1, borderRadius:4 }
+      { label:'Masraf',   data:masArr, avans:avArr, backgroundColor:'rgba(224,71,43,0.85)', borderColor:'#e0472b', borderWidth:1, borderRadius:4 }
     ]);
 
     // --- HBAR: Müvekkil başına dava sayısı (top 6) ---

@@ -3077,7 +3077,9 @@ function renderFinans() {
       // Masraflar İşlemler listesinden çıkarıldığı için grafikte tüm finans kayıtlarından sayılır
       const ayMas = (DB.get('finans')||[]).filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)&&(!mvFilt||_mvEsit(f.muvekkil,mvFilt))).reduce((a,b)=>a+(Number(b.tutar)||0),0)
         + _dosyaMasrafAy(key, mvFilt);
-      aylar.push({key, label, tah:ayTah, mas:ayMas});
+      // Müvekkilden alınan masraf avansı: masraflar bu paradan karşılanır, net hesabına girer
+      const ayAvans = (DB.get('finans')||[]).filter(f=>f.tarih&&f.tarih.startsWith(key)&&f.tur==='Masraf Ödemesi'&&(!mvFilt||_mvEsit(f.muvekkil,mvFilt))).reduce((a,b)=>a+(Number(b.tutar)||0),0);
+      aylar.push({key, label, tah:ayTah, mas:ayMas, avans:ayAvans});
     }
     const maxVal = Math.max(...aylar.map(a=>Math.max(a.tah,a.mas)), 1);
     
@@ -3134,8 +3136,12 @@ function renderFinans() {
                 label: function(ctx) { return ' ' + ctx.dataset.label + ': ₺' + fmt(ctx.raw); },
                 afterBody: function(items) {
                   if (items.length >= 2) {
-                    var net = items[0].raw - items[1].raw;
-                    return ['Net: ₺' + fmt(Math.abs(net)) + (net >= 0 ? ' ↑' : ' ↓')];
+                    var av = (aylar[items[0].dataIndex] || {}).avans || 0;
+                    var net = items[0].raw - items[1].raw + av;
+                    var satirlar = [];
+                    if (av) satirlar.push('Avans alınan: ₺' + fmt(av));
+                    satirlar.push('Net: ' + (net >= 0 ? '+' : '−') + '₺' + fmt(Math.abs(net)));
+                    return satirlar;
                   }
                   return [];
                 }
