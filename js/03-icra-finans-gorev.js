@@ -3009,8 +3009,11 @@ function renderFinans() {
   // Ofis giderleri islemler sekmesinde gösterme
   const OFIS_TURLER = ['Ofis Kirası','Personel Maaşı','Baro Aidatı','Vergi / SGK','Ofis Gideri'];
   var PLAN_TURLER = ['Taksit Planı', 'Karşı Vekalet Ücreti']; // bunlar işlemlerde görünmesin — kendi sekmelerinde takip edilir
-  finans = finans.filter(function(f){return !OFIS_TURLER.includes(f.tur) && !PLAN_TURLER.includes(f.tur);});
-  if (mvFilt) finans = finans.filter(f => f.muvekkil === mvFilt);
+  // Avans (müvekkilden alınan masraf parası) ve masraf kayıtları Avans Kasası sekmesinde listelenir;
+  // İşlemler'de yalnız ücret tahsilatları vb. görünür. Tür filtresiyle açıkça seçilirse yine gösterilir.
+  var AVANS_MASRAF_TURLER = ['Masraf Ödemesi','Masraf (Ofis Avansı)','Masraf','Dava Masrafı','Harç'];
+  finans = finans.filter(function(f){return !OFIS_TURLER.includes(f.tur) && !PLAN_TURLER.includes(f.tur) && (turFilt === f.tur || !AVANS_MASRAF_TURLER.includes(f.tur));});
+  if (mvFilt) finans = finans.filter(f => _mvEsit(f.muvekkil, mvFilt));
   if (turFilt) finans = finans.filter(f => f.tur === turFilt);
 
   const GELIR_T = HUKUK_GELIR_TURLERI;
@@ -3071,7 +3074,8 @@ function renderFinans() {
       const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
       const label = d.toLocaleString('tr-TR',{month:'short'});
       const ayTah = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&GELIR_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0);
-      const ayMas = finans.filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)).reduce((a,b)=>a+(Number(b.tutar)||0),0)
+      // Masraflar İşlemler listesinden çıkarıldığı için grafikte tüm finans kayıtlarından sayılır
+      const ayMas = (DB.get('finans')||[]).filter(f=>f.tarih&&f.tarih.startsWith(key)&&MASRAF_T.includes(f.tur)&&(!mvFilt||_mvEsit(f.muvekkil,mvFilt))).reduce((a,b)=>a+(Number(b.tutar)||0),0)
         + _dosyaMasrafAy(key, mvFilt);
       aylar.push({key, label, tah:ayTah, mas:ayMas});
     }
