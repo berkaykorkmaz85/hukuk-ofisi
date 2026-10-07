@@ -4701,13 +4701,13 @@
           <div style="position:relative">
             <input id="f-ilgili" placeholder="Dosya ara veya seç..." autocomplete="off"
               oninput="finansDosyaAra(this.value)"
-              onfocus="finansDosyaAra(this.value)"
-              onblur="setTimeout(()=>{const d=document.getElementById('f-ilgili-dropdown');if(d)d.style.display='none';},200)"
+              onfocus="finansDosyaAra(this.value);_ilgiliAlanAc(this)"
+              onblur="setTimeout(()=>{const d=document.getElementById('f-ilgili-dropdown');if(d)d.style.display='none';_ilgiliAlanKapat(this)},200)"
               style="width:100%;padding-right:32px">
             <input type="hidden" id="f-ilgili-id">
             <input type="hidden" id="f-ilgili-tip">
             <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px;pointer-events:none">🔍</span>
-            <div id="f-ilgili-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);max-height:240px;overflow-y:auto;margin-top:3px"></div>
+            <div id="f-ilgili-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:var(--bg2);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.5);max-height:300px;overflow-y:auto;margin-top:3px"></div>
           </div>
         </div>
       </div>
@@ -5289,6 +5289,18 @@
 <script src="js/03-icra-finans-gorev.js?v=20261007i"></script>
 <script src="js/04-arac-ve-modul.js?v=20261007g"></script>
 <script src="js/05-udf-donusturucu.js?v=20260717i"></script>
+<script>
+// "İlgili dosya" listesi pencerenin altında kesilmesin: odaklanınca pencereye alt boşluk
+// eklenir ve alan yukarı kaydırılır; odak bitince boşluk kaldırılır.
+function _ilgiliAlanAc(inp){
+  var m = inp.closest('.modal'); if(!m) return;
+  m.style.paddingBottom = '320px';
+  setTimeout(function(){ inp.scrollIntoView({behavior:'smooth', block:'start'}); }, 30);
+}
+function _ilgiliAlanKapat(inp){
+  var m = inp && inp.closest ? inp.closest('.modal') : null; if(m) m.style.paddingBottom = '';
+}
+</script>
 <script src="js/06-para-girisi.js?v=20261007b"></script>
 
 <!-- UETS KAYIT MODAL -->
